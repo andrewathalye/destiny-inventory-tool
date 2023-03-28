@@ -51,7 +51,7 @@ package body API.Memberships is
 
 --		Stream := Get_Stream (Response.Message_Body (Data));
 
-		Stream := Get_Stream (+Read_File ("memberships.json"));
+		Stream := Get_Stream (+Read_File ("json/memberships.json"));
 
 		Set_Stream (Reader, Input_Text_Stream_Access (Stream));
 

@@ -2,7 +2,6 @@ pragma Ada_2022;
 
 -- AWS
 with AWS.Messages;
-with AWS.Headers;
 use AWS;
 
 -- Local Packages

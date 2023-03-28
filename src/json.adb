@@ -1,12 +1,7 @@
 -- VSS
-with VSS.JSON.Pull_Readers; use VSS.JSON.Pull_Readers;
-
 with VSS.Stream_Element_Vectors.Conversions; use VSS.Stream_Element_Vectors.Conversions;
 with VSS.Strings.Conversions; use VSS.Strings; use VSS.Strings.Conversions;
 with VSS.Text_Streams; use VSS.Text_Streams;
-
--- Local Packages
-with Shared; use Shared;
 
 package body JSON is
 	function Get_Stream (JSON_Data : Unbounded_String)

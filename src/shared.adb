@@ -3,7 +3,12 @@ with Ada.Text_IO;
 
 with Ada.Directories; use Ada.Directories;
 
+-- AWS
+with AWS.URL;
+use AWS;
+
 package body Shared is
+	-- Debug Utilities
 	procedure Put_Debug (Item : String) is
 		use Ada.Text_IO;
 	begin
@@ -26,4 +31,50 @@ package body Shared is
 
 		return Text;
 	end Read_File;
+
+	-- Cache Utilities
+	function Has_Cached (Name : String) return Boolean
+	is (Exists ("cache/" & URL.Encode (Name)));
+
+	function Get_Cached (Name : String) return Stream_Element_Array
+	is 
+		use Ada.Streams.Stream_IO;
+		use Ada.Streams;
+
+		File_Name : constant String := "cache/" & URL.Encode (Name);
+		SF : File_Type;
+		S : Stream_Access;
+		SEA : Stream_Element_Array (1 .. Stream_Element_Offset (Size (File_Name)));
+	begin
+		Open (SF, In_File, File_Name);
+		S := Stream (SF);
+
+		Stream_Element_Array'Read (S, SEA);
+		Close (SF);
+
+		return SEA;
+	end Get_Cached;
+
+
+	procedure Cache (Name : String; Content : Stream_Element_Array)
+	is
+		use Ada.Streams.Stream_IO;
+		use Ada.Streams;
+
+		SF : File_Type;
+		S : Stream_Access;
+	begin
+		if Has_Cached (Name) then
+			raise Program_Error;
+		end if;
+
+		if not Exists ("cache/") then
+			Create_Directory ("cache");
+		end if;
+
+		Create (SF, Out_File, "cache/" & URL.Encode (Name));
+		S := Stream (SF);
+		Stream_Element_Array'Write (S, Content);
+		Close (SF);
+	end Cache;
 end Shared;

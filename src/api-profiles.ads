@@ -3,21 +3,14 @@ with Ada.Containers.Ordered_Maps;
 with Ada.Containers.Vectors;
 
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
-with Ada.Strings.Hash;
 
 -- Local Packages
+with Shared; use Shared;
 with API.Memberships; use API.Memberships;
+with API.Manifest; use API.Manifest;
 
 package API.Profiles is
-	-- Hashed Map Functions
-	function Hash (Key : Unbounded_String) return Ada.Containers.Hash_Type is
-		(Ada.Strings.Hash (To_String (Key)));
-	
-	function Equivalent_Key (L, R : Unbounded_String) return Boolean is
-		(L = R);
-
-	subtype Manifest_Hash is Unsigned_32; -- TODO!
-
+	-- Characters
 	package SM is new Ada.Containers.Ordered_Maps (Manifest_Hash, Integer_32);
 	subtype Stats_Map is SM.Map;
 
@@ -27,11 +20,15 @@ package API.Profiles is
 		Light : Integer_32;
 		Stats : Stats_Map;
 		Race_Hash : Manifest_Hash;
+			-- DestinyRaceDefinition
 		Gender_Hash : Manifest_Hash;
+			-- DestinyGenderDefinition
 		Class_Hash : Manifest_Hash;
+			-- DestinyClassDefinition
 		Emblem_Path : Unbounded_String;
 		Emblem_Background_Path : Unbounded_String;
 		Title_Record_Hash : Manifest_Hash := 0; -- Nullable
+			-- Records.DestinyRecordDefinition
 		-- Items Omitted
 	end record;
 
@@ -42,6 +39,7 @@ package API.Profiles is
 		Equivalent_Keys => Equivalent_Key);
 	subtype Character_Map is CM.Map;
 
+	-- Inventories
 	type Bind_Status_Type is (Not_Bound, Bound_To_Character, Bound_To_Account, Bound_To_Guild);
 	type Item_Location_type is (Unknown, Inventory, Vault, Vendor, Postmaster);
 	type Transfer_Status_Type is (Can_Transfer, Item_Is_Equipped, Not_Transferable, No_Room_In_Destination);
@@ -55,15 +53,18 @@ package API.Profiles is
 
 	type Item_Type is record
 		Item_Hash : Manifest_Hash;
+			-- DestinyInventoryItemDefinition
 		Item_Instance_ID : Unbounded_String;
 		Quantity : Integer_32;
 		Bind_Status : Bind_Status_Type;
 		Location : Item_Location_Type;
 		Bucket_Hash : Manifest_Hash;
+			-- DestinyInventoryBucketDefinition
 		Transfer_Status : Transfer_Status_Type;
 		Lockable : Boolean;
 		State : Item_State_Type;
 		Override_Style_Item_Hash : Manifest_Hash := 0; -- Nullable
+			-- DestinyInventoryItemDefinition
 		Expiration_Date : Unbounded_String;
 		-- Items Omitted
 	end record;
@@ -81,22 +82,43 @@ package API.Profiles is
 		Hash => Hash,
 		Equivalent_Keys => Equivalent_Key);
 	subtype Inventory_Map is IM.Map;
+
+	-- Loadouts
+	package MHV is new Ada.Containers.Vectors (Natural, Manifest_Hash);
+	subtype Manifest_Hash_List is MHV.Vector;
 		
+	type Loadout_Item_Type is record
+		Instance_ID : Unbounded_String;
+		Plug_Item_Hashes : Manifest_Hash_List;
+			-- DestinyInventoryItemDefinition
+	end record;
+
+	package LIV is new Ada.Containers.Vectors (Natural, Loadout_Item_Type);
+	subtype Loadout_Item_List is LIV.Vector;
+
 	type Loadout_Type is record
 		Colour_Hash : Manifest_Hash;
+			-- Loadouts.DestinyLoadoutColorDefinition
 		Icon_Hash : Manifest_Hash;
+			-- Loadouts.DestinyLoadoutIconDefinition
 		Name_Hash : Manifest_Hash;
-		Instance_ID : Unsigned_64;
-		Items : Item_List;
+			-- Loadouts.DestinyLoadoutNameDefinition
+		Items : Loadout_Item_List;
 	end record;
+
+	package LV is new Ada.Containers.Vectors (Natural, Loadout_Type);
+	subtype Loadout_List is LV.Vector;
+
+	function "=" (L, R : Loadout_List) return Boolean is (False);
 
 	package LM is new Ada.Containers.Hashed_Maps (
 		Key_Type => Unbounded_String,
-		Element_Type => Loadout_Type,
+		Element_Type => Loadout_List,
 		Hash => Hash,
 		Equivalent_Keys => Equivalent_Key);
 	subtype Loadout_Map is LM.Map;
 
+	-- Silver
 	type Platform_Silver_Type is record
 		PSN,
 		XBOX,
@@ -107,6 +129,7 @@ package API.Profiles is
 		EGS : Item_Type;
 	end record;
 
+	-- Profile
 	type Profile_Type is record
 		Profile_Inventory : Inventory_Type;
 		Profile_Currencies : Inventory_Type;
@@ -121,7 +144,8 @@ package API.Profiles is
 		-- Items Omitted
 	end record;
 
-	function Get_Profiles (
+	-- Subprograms
+	function Get_Profile (
 		Headers : Auth_Header_Type;
 		M : Membership_Type) return Profile_Type;
 end API.Profiles;

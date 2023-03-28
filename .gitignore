@@ -3,6 +3,7 @@ deps
 cert.pem
 inventory_tool
 obj
-*.json
+json/
+cache/
 .*.swp
 refresh.dat

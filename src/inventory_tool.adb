@@ -5,6 +5,7 @@ with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 -- Local Packages
 with API.Authorise;
 with API.Memberships;
+with API.Manifest;
 with API.Profiles;
 with API; use API;
 with Shared; use Shared;
@@ -15,14 +16,20 @@ procedure Inventory_Tool is
 	Auth_Data : Auth_Storage_Type;
 	Headers : constant Auth_Header_Type := Create_Headers (Auth_Data);
 
-	M : constant Memberships.Membership_Type := Memberships.Get_Memberships (Headers);
-	P : Profiles.Profile_Type := Profiles.Get_Profiles (Headers, M);
+	Membership : constant Memberships.Membership_Type := Memberships.Get_Memberships (Headers);
+	Profile : Profiles.Profile_Type := Profiles.Get_Profile (Headers, Membership);
+	M : Manifest.Manifest_Type := Manifest.Get_Manifest (Headers, Membership);
 begin
 	-- Print Welcome Message
 	Put_Line ("Destiny Inventory Tool v0.1");
-	Put_Line ("Welcome back " & (+M.Bungie_Net_User.Unique_Name) & "!");
+	Put_Line ("Welcome back " & (+Membership.Bungie_Net_User.Unique_Name) & "!");
 	Put_Line ("Your default platform appears to be "
-		& Memberships.Find_Default_Platform (M)'Image & ".");
+		& Memberships.Find_Default_Platform (Membership)'Image & ".");
+	Put_Line ("Active Characters:");
+
+	for C of Profile.Characters loop
+		null;	
+	end loop;
 
 	-- Print Current Loadout on Active Character
 	

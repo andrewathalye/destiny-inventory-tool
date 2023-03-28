@@ -1,6 +1,5 @@
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Containers.Hashed_Maps;
-with Ada.Strings.Hash;
 
 with Unchecked_Deallocation;
 
@@ -8,6 +7,9 @@ with Unchecked_Deallocation;
 with VSS.JSON.Pull_Readers.Simple; use VSS.JSON.Pull_Readers.Simple;
 use VSS.JSON.Pull_Readers;
 with VSS.Text_Streams.Memory_UTF8_Input; use VSS.Text_Streams.Memory_UTF8_Input;
+
+-- Local Packages
+with Shared; use Shared;
 
 package JSON is
 	-- Types
@@ -18,13 +20,6 @@ package JSON is
 	procedure Free is new Unchecked_Deallocation (
 		Memory_UTF8_Input_Stream,
 		Memory_UTF8_Input_Stream_Access);
-
-	-- Hashed Map instantiation
-	function Hash (Key : Unbounded_String) return Ada.Containers.Hash_Type is
-		(Ada.Strings.Hash (To_String (Key)));
-	
-	function Equivalent_Key (L, R : Unbounded_String) return Boolean is
-		(L = R);
 
 	package USL is new Ada.Containers.Hashed_Maps (
 		Key_Type => Unbounded_String,
