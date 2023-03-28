@@ -38,15 +38,18 @@ package API.Manifest is
 		Element_Type => Destiny_Title_Name);
 	subtype Destiny_Title_Map is DTNM.Map;
 
+	type Destiny_Tier_Type is (Unknown, Currency, Basic, Common, Rare, Superior, Exotic);
 	type Destiny_Inventory_Item_Definition is record
-		Name : Unbounded_String;
 		Description : Unbounded_String;
+		Name : Unbounded_String;
 		Icon_Path : Unbounded_String;
 		Watermark_Path : Unbounded_String;
 		Shelved_Watermark_Path : Unbounded_String;
-		Item_Type : Unbounded_String;
+		Item_Type_And_Tier_Display_Name : Unbounded_String;
+		Bucket_Type_Hash : Manifest_Hash;
+		Tier_Type : Destiny_Tier_Type;
 		-- Stats?
-		Default_Damage_Type_Hash : Manifest_Hash;
+		Default_Damage_Type_Hash : Manifest_Hash := 0; -- Nullable
 			-- DestinyDamageTypeDefinition
 	end record;
 	package DIIDM is new Ada.Containers.Ordered_Maps (
@@ -55,9 +58,10 @@ package API.Manifest is
 	subtype Destiny_Inventory_Item_Map is DIIDM.Map;
 
 	type Destiny_Damage_Type_Definition is record
-		Name : Unbounded_String;
 		Description : Unbounded_String;
+		Name : Unbounded_String;
 		Icon_Path : Unbounded_String;
+		Show_Icon : Boolean;
 	end record;
 	package DDTDM is new Ada.Containers.Ordered_Maps (
 		Key_Type => Manifest_Hash,
@@ -65,9 +69,9 @@ package API.Manifest is
 	subtype Destiny_Damage_Type_Map is DDTDM.Map;
 
 	type Destiny_Inventory_Bucket_Definition is record
-		Name : Unbounded_String;
 		Description : Unbounded_String;
-		Icon_Path : Unbounded_String;
+		Name : Unbounded_String;
+		Bucket_Order : Integer_32;
 		Item_Count : Integer_32;
 		FIFO : Boolean;
 	end record;
@@ -76,29 +80,24 @@ package API.Manifest is
 		Element_Type => Destiny_Inventory_Bucket_Definition);
 	subtype Destiny_Inventory_Bucket_Map is DIBDM.Map;
 
+	-- Fields ordered by Manifest order
 	type Manifest_Type is record
-		Destiny_Genders : Destiny_Gender_Map;
-			-- DestinyGenderDefinition
-		Destiny_Races : Destiny_Race_Map;
-			-- DestinyRaceDefinition
 		Destiny_Classes : Destiny_Class_Map;
 			-- DestinyClassDefinition
-		Destiny_Titles : Destiny_Title_Map;
-			-- DestinyRecordDefinition (partial)
-		Destiny_Inventory_Items : Destiny_Inventory_Item_Map;
-			-- DestinyInventoryItemDefinition
-		Destiny_Damage_Types : Destiny_Damage_Type_Map;
-			-- DestinyDamageTypeDefinition
+		Destiny_Genders : Destiny_Gender_Map;
+			-- DestinyGenderDefinition
 		Destiny_Inventory_Buckets : Destiny_Inventory_Bucket_Map;
 			-- DestinyInventoryBucketDefinition
+		Destiny_Races : Destiny_Race_Map;
+			-- DestinyRaceDefinition
+		Destiny_Damage_Types : Destiny_Damage_Type_Map;
+			-- DestinyDamageTypeDefinition
+		Destiny_Inventory_Items : Destiny_Inventory_Item_Map;
+			-- DestinyInventoryItemDefinition
+		Destiny_Titles : Destiny_Title_Map;
+			-- DestinyRecordDefinition (partial)
 	end record;
 
 	-- Subprograms
---	function Get_Character_Type (
---		M : Manifest_Type;
---		C : Profiles.Character_Type) return String;
-
-	function Get_Manifest (
-		Headers : Auth_Header_Type;
-		M : Memberships.Membership_Type) return Manifest_Type;
+	function Get_Manifest (M : Memberships.Membership_Type) return Manifest_Type;
 end API.Manifest;

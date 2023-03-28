@@ -72,13 +72,11 @@ package API.Profiles is
 	package IV is new Ada.Containers.Vectors (Natural, Item_Type);
 	subtype Item_List is IV.Vector;
 
-	type Inventory_Type is record
-		Items : Item_List;
-	end record;
+	function "=" (L,R : Item_List) return Boolean is (False);
 
 	package IM is new Ada.Containers.Hashed_Maps (
 		Key_Type => Unbounded_String,
-		Element_Type => Inventory_Type,
+		Element_Type => Item_List,
 		Hash => Hash,
 		Equivalent_Keys => Equivalent_Key);
 	subtype Inventory_Map is IM.Map;
@@ -131,8 +129,8 @@ package API.Profiles is
 
 	-- Profile
 	type Profile_Type is record
-		Profile_Inventory : Inventory_Type;
-		Profile_Currencies : Inventory_Type;
+		Profile_Inventory : Item_List;
+		Profile_Currencies : Item_List;
 		Platform_Silver : Platform_Silver_Type;
 		-- Plug Sets?
 		Characters : Character_Map;

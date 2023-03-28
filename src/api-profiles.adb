@@ -201,7 +201,7 @@ package body API.Profiles is
 	--Note: Position Reader before "items"
 	procedure Read_Inventory (
 		Reader : in out JSON_Simple_Pull_Reader;
-		Inventory : out Inventory_Type)
+		Inventory : out Item_List)
 	is begin
 		Wait_Until_Key (Reader, "items");
 		Read_Next (Reader);
@@ -214,7 +214,7 @@ package body API.Profiles is
 			Read_Next (Reader);
 			case Event_Kind (Reader) is
 				when Start_Object =>
-					Inventory.Items.Append (Read_Item (Reader));
+					Inventory.Append (Read_Item (Reader));
 				when End_Array => exit Read_Items;
 				when others => raise Program_Error;
 			end case;
@@ -352,7 +352,7 @@ package body API.Profiles is
 		while Event_Kind (Reader) /= End_Object loop
 			declare
 				Character_ID : Unbounded_String;
-				Inventory : Inventory_Type;
+				Inventory : Item_List;
 			begin
 				Read_Next (Reader); -- KEY_NAME
 				Character_ID := VS2UB (Key_Name (Reader));	
@@ -399,7 +399,7 @@ package body API.Profiles is
 		while Event_Kind (Reader) /= End_Object loop
 			declare
 				Character_ID : Unbounded_String;
-				Inventory : Inventory_Type;
+				Inventory : Item_List;
 			begin
 				Read_Next (Reader); -- KEY_NAME
 				Character_ID := VS2UB (Key_Name (Reader));	
