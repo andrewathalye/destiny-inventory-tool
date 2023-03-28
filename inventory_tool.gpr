@@ -1,0 +1,19 @@
+with "deps/share/gpr/vss_json.gpr";
+with "deps/lib/gnat/gtkada.gpr";
+with "deps/share/gpr/aws.gpr";
+
+project Inventory_Tool is
+	for Source_Dirs use ("src");
+	for Object_Dir use "obj";
+	for Exec_Dir use ".";
+
+	for Main use ("inventory_tool.adb");
+
+	package Compiler is
+		for Default_Switches ("Ada") use ("-gnatVa", "-gnateV", "-gnatwa", "-gnaty-3h", "-O2", "-march=native");
+	end Compiler;
+
+	package Binder is
+		for Default_Switches ("Ada") use ("-shared");
+	end Binder;
+end Inventory_tool;

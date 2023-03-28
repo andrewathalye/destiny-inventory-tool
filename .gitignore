@@ -1,0 +1,8 @@
+deps-src
+deps
+cert.pem
+inventory_tool
+obj
+*.json
+.*.swp
+refresh.dat
