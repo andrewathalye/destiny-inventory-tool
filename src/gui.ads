@@ -1,10 +1,18 @@
+private with Ada.Containers.Vectors;
+private with Ada.Streams;
+
 -- Gtkada
 with Gtkada.Builder; use Gtkada.Builder;
+private with Gtk.Grid;
+
+private with Gdk.Pixbuf;
+private with Glib;
 
 -- Local Packages
 with API.Authorise;
 with API.Profiles;
 with API.Manifest;
+private with API.Manifest.Tools;
 with API.Memberships;
 use API;
 
@@ -22,7 +30,47 @@ package GUI is
 
 	-- Subprograms
 	procedure Window_Close_Handler (Builder : access Gtkada_Builder_Record'Class);
-	procedure Switch_Button_Clicked_Handler (Builder : access Gtkada_Builder_Record'Class);
+private
+	use Ada.Streams;
+	use Gdk.Pixbuf;
+	use Gtk.Grid;
+	use Glib;
 
-	procedure Update_For_Character (Character : Profiles.Character_Type);
+	-- Types for use in GUI. child packages
+	function "=" (L, R : Manifest.Tools.Item_Description) return Boolean is (False);
+
+	package IDV is new Ada.Containers.Vectors (Natural, Manifest.Tools.Item_Description);
+	subtype Item_Description_List is IDV.Vector;
+	Bucket_Items : Item_Description_List;
+
+	type Bucket_Location is (
+		Kinetic,
+		Energy,
+		Power,
+		Helmet,
+		Gauntlets,
+		Chest,
+		Leg,
+		Class,
+		Unknown); -- TODO Add a lot more :)
+
+	for Bucket_Location use (
+		Kinetic => 20,
+		Energy => 30,
+		Power => 40,
+		Helmet => 50,
+		Gauntlets => 60,
+		Chest => 70,
+		Leg => 80,
+		Class => 90,
+		Unknown => 9999);
+
+	-- Private-Exported Subprograms
+	function Load_Image (File_Name : String; Data : Stream_Element_Array) return Gdk_Pixbuf;
+	procedure Clear_Bucket (G : Gtk_Grid);
+	procedure Render_Items (
+		List : Item_Description_List;
+		Bucket : Gtk_Grid;
+		Max_Left : Gint := 2;
+		Max_Top : Gint := 2);
 end GUI;

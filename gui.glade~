@@ -313,6 +313,8 @@
                         <property name="can-focus">False</property>
                         <property name="row-spacing">1</property>
                         <property name="column-spacing">1</property>
+                        <property name="row-homogeneous">True</property>
+                        <property name="column-homogeneous">True</property>
                         <child>
                           <placeholder/>
                         </child>
@@ -354,6 +356,8 @@
                         <property name="can-focus">False</property>
                         <property name="row-spacing">1</property>
                         <property name="column-spacing">1</property>
+                        <property name="row-homogeneous">True</property>
+                        <property name="column-homogeneous">True</property>
                         <child>
                           <placeholder/>
                         </child>
@@ -395,6 +399,8 @@
                         <property name="can-focus">False</property>
                         <property name="row-spacing">1</property>
                         <property name="column-spacing">1</property>
+                        <property name="row-homogeneous">True</property>
+                        <property name="column-homogeneous">True</property>
                         <child>
                           <placeholder/>
                         </child>
@@ -436,6 +442,8 @@
                         <property name="can-focus">False</property>
                         <property name="row-spacing">1</property>
                         <property name="column-spacing">1</property>
+                        <property name="row-homogeneous">True</property>
+                        <property name="column-homogeneous">True</property>
                         <child>
                           <placeholder/>
                         </child>
@@ -477,6 +485,8 @@
                         <property name="can-focus">False</property>
                         <property name="row-spacing">1</property>
                         <property name="column-spacing">1</property>
+                        <property name="row-homogeneous">True</property>
+                        <property name="column-homogeneous">True</property>
                         <child>
                           <placeholder/>
                         </child>
