@@ -29,6 +29,7 @@ package body API.Manifest.Tools is
 			Item_Instance_ID => I.Item_Instance_ID,
 			Quantity => I.Quantity,
 			Bucket_Hash => I.Bucket_Hash,
+			Category => M.Destiny_Inventory_Buckets (I.Bucket_Hash).Category,
 			Bucket_Order => M.Destiny_Inventory_Buckets (I.Bucket_Hash).Bucket_Order,
 			State => I.State,
 			Icon_Path => (case I.Override_Style_Item_Hash is
@@ -40,4 +41,14 @@ package body API.Manifest.Tools is
 			Item_Type_And_Tier_Display_Name => Manifest_Item.Item_Type_And_Tier_Display_Name,
 			Tier_Type => Manifest_Item.Tier_Type);
 	end Get_Description;
+
+	function Get_Title (
+		M : Manifest_Type;
+		C : Character_Type) return Unbounded_String
+	is begin
+		if C.Title_Record_Hash /= 0 then
+			return M.Destiny_Titles (C.Title_Record_Hash) (Get_Gender (M, C));
+		end if;
+		return Null_Unbounded_String;
+	end Get_Title;
 end API.Manifest.Tools;

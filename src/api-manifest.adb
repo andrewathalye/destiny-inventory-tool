@@ -184,7 +184,13 @@ package body API.Manifest is
 				Bucket.Name := VS2UB (String_Value (Reader));
 			end if;
 
-			Wait_Until_Key (Reader, "bucketOrder");
+			Wait_Until_Key (Reader, "category");
+			Read_Next (Reader);
+			Bucket.Category := Destiny_Inventory_Bucket_Category'Enum_Val (
+				As_Integer (
+					Number_Value (Reader)));
+
+			Read_Next (Reader); -- "bucketOrder"
 			Read_Next (Reader);
 			Bucket.Bucket_Order := Integer_32 (
 				As_Integer (
@@ -353,7 +359,7 @@ package body API.Manifest is
 
 		Result : Manifest_Type;
 
-		Stream : Memory_UTF8_Input_Stream_Access;
+		Stream : Memory_UTF8_Input_Stream_Access := new Memory_UTF8_Input_Stream;
 		Reader : JSON_Simple_Pull_Reader;
 	begin
 		Put_Debug ("Fetch and parse manifest");
@@ -364,7 +370,7 @@ package body API.Manifest is
 		else
 			Put_Debug ("Get localised manifest");
 			Data := Client.Get (
-				"https://www.bungie.net" & (+Localised_Manifest_Path));
+				Bungie_Root & (+Localised_Manifest_Path));
 			Check_Status (Data);
 			Cache (+Localised_Manifest_Path, Response.Message_Body (Data));
 			Set_Data (Stream.all, To_Stream_Element_Vector (

@@ -18,7 +18,7 @@ package body API.Profiles is
 	-- Note: Position Reader before "data"	
 	procedure Read_Characters (
 		Reader : in out JSON_Simple_Pull_Reader;
-		Map : out Character_Map)
+		List : out Character_List)
 	is begin
 		Wait_Until_Key (Reader, "data");
 		Read_Next (Reader); -- START_OBJECT
@@ -102,7 +102,7 @@ package body API.Profiles is
 						end loop Read_Character;
 
 						-- Submit Character
-						Map.Insert (Character.Character_ID, Character);
+						List.Append (Character);
 					when End_Object => exit;
 					when others => raise Program_Error;
 				end case;
@@ -359,6 +359,7 @@ package body API.Profiles is
 				Read_Inventory (Reader, Inventory);
 				Result.Character_Inventories.Insert (Character_ID, Inventory);
 				Read_Next (Reader); -- END_OBJECT
+				Read_Next (Reader); -- START_OBJECT / END_OBJECT
 			end;
 		end loop;
 

@@ -8,6 +8,7 @@ package API.Manifest.Tools is
 		Quantity : Integer_32;
 		Bucket_Hash : Manifest_Hash;
 			-- DestinyInventoryBucketDefinition
+		Category : Destiny_Inventory_Bucket_Category;
 		Bucket_Order : Integer_32;
 		State : Item_State_Type;
 		Icon_Path : Unbounded_String;
@@ -23,4 +24,8 @@ package API.Manifest.Tools is
 	function Get_Description (
 		M : Manifest_Type;
 		I : Item_Type) return Item_Description;
+	
+	function Get_Title (
+		M : Manifest_Type;
+		C : Character_Type) return Unbounded_String;
 end API.Manifest.Tools;

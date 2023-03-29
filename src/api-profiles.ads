@@ -32,12 +32,10 @@ package API.Profiles is
 		-- Items Omitted
 	end record;
 
-	package CM is new Ada.Containers.Hashed_Maps (
-		Key_Type => Unbounded_String,
-		Element_Type => Character_Type,
-		Hash => Hash,
-		Equivalent_Keys => Equivalent_Key);
-	subtype Character_Map is CM.Map;
+	package CV is new Ada.Containers.Vectors (
+		Index_Type => Natural,
+		Element_Type => Character_Type);
+	subtype Character_List is CV.Vector;
 
 	-- Inventories
 	type Bind_Status_Type is (Not_Bound, Bound_To_Character, Bound_To_Account, Bound_To_Guild);
@@ -133,7 +131,7 @@ package API.Profiles is
 		Profile_Currencies : Item_List;
 		Platform_Silver : Platform_Silver_Type;
 		-- Plug Sets?
-		Characters : Character_Map;
+		Characters : Character_List;
 		Character_Inventories : Inventory_Map;
 		Character_Loadouts : Loadout_Map;
 		Character_Equipment : Inventory_Map;

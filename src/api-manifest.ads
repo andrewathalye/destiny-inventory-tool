@@ -68,9 +68,11 @@ package API.Manifest is
 		Element_Type => Destiny_Damage_Type_Definition);
 	subtype Destiny_Damage_Type_Map is DDTDM.Map;
 
+	type Destiny_Inventory_Bucket_Category is (Invisible, Item, Currency, Equippable, Ignored);
 	type Destiny_Inventory_Bucket_Definition is record
 		Description : Unbounded_String;
 		Name : Unbounded_String;
+		Category: Destiny_Inventory_Bucket_Category;
 		Bucket_Order : Integer_32;
 		Item_Count : Integer_32;
 		FIFO : Boolean;

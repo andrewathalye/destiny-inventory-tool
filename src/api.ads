@@ -7,6 +7,9 @@ private with AWS.Response;
 with AWS.Headers;
 
 package API is
+	-- Constants
+	Bungie_Root : constant String := "https://www.bungie.net";
+
 	-- Types
 	type Auth_Storage_Type is private;
 	subtype Auth_Header_Type is AWS.Headers.List;
@@ -29,7 +32,7 @@ private
 
 	procedure Check_Status (Data : Response.Data);
 
-	API_Root : constant String := "https://www.bungie.net/Platform";
+	API_Root : constant String := Bungie_Root & "/Platform";
 	API_Key : constant String := "ba586a1fd8f94cccb485ed6ad880fefc";
 
 	type Auth_Storage_Type is record
