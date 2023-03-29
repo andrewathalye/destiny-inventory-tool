@@ -17,7 +17,6 @@ package body Shared is
 
 	function Read_File (Name : String) return String is
 		use Ada.Streams.Stream_IO;
-		use Ada.Streams;
 
 		SF : File_Type;
 		S : Stream_Access;
@@ -39,7 +38,6 @@ package body Shared is
 	function Get_Cached (Name : String) return Stream_Element_Array
 	is 
 		use Ada.Streams.Stream_IO;
-		use Ada.Streams;
 
 		File_Name : constant String := "cache/" & URL.Encode (Name);
 		SF : File_Type;
@@ -59,7 +57,6 @@ package body Shared is
 	procedure Cache (Name : String; Content : Stream_Element_Array)
 	is
 		use Ada.Streams.Stream_IO;
-		use Ada.Streams;
 
 		SF : File_Type;
 		S : Stream_Access;

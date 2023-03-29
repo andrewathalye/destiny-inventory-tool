@@ -1,5 +1,6 @@
 private with Ada.Containers.Vectors;
 private with Ada.Streams;
+private with Ada.Strings.Unbounded;
 
 -- Gtkada
 with Gtkada.Builder; use Gtkada.Builder;
@@ -35,9 +36,15 @@ private
 	use Gdk.Pixbuf;
 	use Gtk.Grid;
 	use Glib;
+	use Ada.Strings.Unbounded;
+
+	-- Shared State
+	Search_Query : Unbounded_String;
 
 	-- Types for use in GUI. child packages
+	pragma Warnings (Off, "is not referenced");
 	function "=" (L, R : Manifest.Tools.Item_Description) return Boolean is (False);
+	pragma Warnings (On, "is not referenced");
 
 	package IDV is new Ada.Containers.Vectors (Natural, Manifest.Tools.Item_Description);
 	subtype Item_Description_List is IDV.Vector;

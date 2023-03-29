@@ -426,6 +426,7 @@ package body API.Manifest is
 		begin
 			Create (SF, Out_File, "manifest.dat");
 			S := Ada.Streams.Stream_IO.Stream (SF);
+			Unbounded_String'Write (S, Localised_Manifest_Path);
 			Manifest_Type'Write (S, Result);
 			Close (SF);
 		end;
@@ -472,11 +473,21 @@ package body API.Manifest is
 
 				SF : File_Type;
 				S : Stream_Access;
+
+				Manifest_Version : Unbounded_String;
 			begin
 				Open (SF, In_File, "manifest.dat");
 				S := Ada.Streams.Stream_IO.Stream (SF);
+				Unbounded_String'Read (S, Manifest_Version);
 				Manifest_Type'Read (S, Result);
 				Close (SF);
+
+				if Manifest_Version /= Localised_Manifest_Path then
+					Put_Debug ("Update prepared manifest");
+					Delete_File ("manifest.dat");
+					return Fetch_Manifest (Localised_Manifest_Path);
+				end if;
+
 				return Result;
 			end;
 		else

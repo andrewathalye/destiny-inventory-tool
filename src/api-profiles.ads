@@ -70,7 +70,9 @@ package API.Profiles is
 	package IV is new Ada.Containers.Vectors (Natural, Item_Type);
 	subtype Item_List is IV.Vector;
 
+	pragma Warnings (Off, "is not referenced");
 	function "=" (L,R : Item_List) return Boolean is (False);
+	pragma Warnings (On, "is not referenced");
 
 	package IM is new Ada.Containers.Hashed_Maps (
 		Key_Type => Unbounded_String,
@@ -105,7 +107,9 @@ package API.Profiles is
 	package LV is new Ada.Containers.Vectors (Natural, Loadout_Type);
 	subtype Loadout_List is LV.Vector;
 
+	pragma Warnings (Off, "is not referenced");
 	function "=" (L, R : Loadout_List) return Boolean is (False);
+	pragma Warnings (On, "is not referenced");
 
 	package LM is new Ada.Containers.Hashed_Maps (
 		Key_Type => Unbounded_String,

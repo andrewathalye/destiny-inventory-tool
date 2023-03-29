@@ -29,6 +29,7 @@ package body API.Manifest.Tools is
 			Item_Instance_ID => I.Item_Instance_ID,
 			Quantity => I.Quantity,
 			Bucket_Hash => I.Bucket_Hash,
+			Default_Bucket_Hash => Manifest_Item.Bucket_Type_Hash,
 			Category => M.Destiny_Inventory_Buckets (I.Bucket_Hash).Category,
 			Bucket_Order => M.Destiny_Inventory_Buckets (I.Bucket_Hash).Bucket_Order,
 			State => I.State,

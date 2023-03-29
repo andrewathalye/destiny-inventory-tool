@@ -8,8 +8,11 @@ with Gtk.Main;
 with Gtk.Image; use Gtk.Image;
 with Gtk.Grid; use Gtk.Grid;
 with Gtk.Button; use Gtk.Button;
-with Gtk.Widget;
+with Gtk.Label; use Gtk.Label;
+with Gtk.Widget; use Gtk.Widget;
 with Gtk.Container; use Gtk.Container;
+with Gtk.Handlers; use Gtk.Handlers;
+with Gtk.Popover; use Gtk.Popover;
 
 with Gdk.Pixbuf; use Gdk.Pixbuf;
 with Glib.Error; use Glib.Error;
@@ -21,12 +24,14 @@ with AWS.Response;
 use AWS;
 
 -- Local Packages
-with API.Manifest.Tools;
 with Shared; use Shared;
 
 package body GUI is
-	-- Private Subprograms
+	-- Instantiations
+	package User_Callback_Item_Description is new User_Callback (Gtk_Widget_Record, Manifest.Tools.Item_Description);
+	use User_Callback_Item_Description;
 
+	-- Private Subprograms
 	-- Private-Exported
 	-- Exclusively for JPEG / PNG format images
 	function Load_Image (File_Name : String; Data : Stream_Element_Array) return Gdk_Pixbuf
@@ -103,6 +108,19 @@ package body GUI is
 		FUD_Grid.Foreach (G, Remove_Callback'Access, G);
 	end Clear_Bucket;
 
+	procedure Item_Button_Clicked_Handler (Widget : access Gtk_Widget_Record'Class; User_Data : Manifest.Tools.Item_Description)
+	is
+		Transfer_Name : constant Gtk_Label := Gtk_Label (Builder.Get_Object ("transfer_name"));
+		Transfer_Type : constant Gtk_Label := Gtk_Label (Builder.Get_Object ("transfer_type"));
+		Transfer_Menu : constant Gtk_Popover := Gtk_Popover (Builder.Get_Object ("transfer_menu"));
+	begin
+		Transfer_Name.Set_Label (+User_Data.Name);
+		Transfer_Type.Set_Label (+User_Data.Item_Type_And_Tier_Display_Name);
+
+		Transfer_Menu.Set_Relative_To (Widget);
+		Transfer_Menu.Popup;
+	end Item_Button_Clicked_Handler;
+
 	-- Private-Exported
 	procedure Render_Items (
 		List : Item_Description_List;
@@ -112,8 +130,17 @@ package body GUI is
 	is
 		Left : Gint := 0;
 		Top : Gint := 0;
+
+		-- Local Copies
+		Search : constant String := +Search_Query;
 	begin
 		for D of List loop
+			-- Filter Items based upon Search Query
+			if Search'Length /= 0 and then Index (D.Name, Search) = 0
+			then
+				goto Skip_Item;
+			end if;
+
 			declare
 				Button : Gtk_Button;
 				Image : Gtk_Image;
@@ -141,6 +168,11 @@ package body GUI is
 
 				Set_Image (Button, Image);
 
+				Connect (Button,
+					"clicked",
+					To_Marshaller (Item_Button_Clicked_Handler'Access),
+					User_Data => D);
+
 				Show (Button);
 				Bucket.Attach (Button, Left, Top);
 
@@ -150,7 +182,13 @@ package body GUI is
 					Left := 0;
 					Top := @ + 1;
 				end if;
+
+				if Top > Max_Top then
+					raise Program_Error;
+				end if;
 			end;
+
+			<<Skip_Item>>
 		end loop;
 
 		Show (Bucket);
@@ -159,8 +197,10 @@ package body GUI is
 	end Render_Items;
 
 	-- Public Subprograms
+	pragma Warnings (Off, "is not referenced");
 	procedure Window_Close_Handler (Builder : access Gtkada_Builder_Record'Class) is
 	begin
 		GTK.Main.Main_Quit;
 	end Window_Close_Handler;
+	pragma Warnings (On, "is not referenced");
 end GUI;

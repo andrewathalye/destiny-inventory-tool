@@ -7,7 +7,7 @@ package body JSON is
 	function Get_Stream (JSON_Data : Unbounded_String)
 		return Memory_UTF8_Input_Stream_Access
 	is
-		Stream : Memory_UTF8_Input_Stream_Access := new Memory_UTF8_Input_Stream;
+		Stream : constant Memory_UTF8_Input_Stream_Access := new Memory_UTF8_Input_Stream;
 	begin
 		Set_Data (Stream.all,
 			Unchecked_From_Unbounded_String (JSON_Data));

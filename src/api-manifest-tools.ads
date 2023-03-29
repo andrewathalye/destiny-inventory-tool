@@ -6,7 +6,7 @@ package API.Manifest.Tools is
 		Description : Unbounded_String;
 		Item_Instance_ID : Unbounded_String;
 		Quantity : Integer_32;
-		Bucket_Hash : Manifest_Hash;
+		Bucket_Hash, Default_Bucket_Hash : Manifest_Hash;
 			-- DestinyInventoryBucketDefinition
 		Category : Destiny_Inventory_Bucket_Category;
 		Bucket_Order : Integer_32;
