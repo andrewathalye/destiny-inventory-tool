@@ -5,6 +5,7 @@ private with Ada.Strings.Unbounded;
 -- Gtkada
 with Gtkada.Builder; use Gtkada.Builder;
 private with Gtk.Grid;
+private with Gtk.Overlay;
 
 private with Gdk.Pixbuf;
 private with Glib;
@@ -35,6 +36,7 @@ private
 	use Ada.Streams;
 	use Gdk.Pixbuf;
 	use Gtk.Grid;
+	use Gtk.Overlay;
 	use Glib;
 	use Ada.Strings.Unbounded;
 
@@ -54,27 +56,41 @@ private
 		Kinetic,
 		Energy,
 		Power,
+		Shell,
+		Artefact,
 		Helmet,
 		Gauntlets,
 		Chest,
 		Leg,
 		Class,
+		Sparrow,
+		Ship,
+		Emblem,
+		Finisher,
 		Unknown); -- TODO Add a lot more :)
 
 	for Bucket_Location use (
 		Kinetic => 20,
 		Energy => 30,
 		Power => 40,
+		Shell => 45,
+		Artefact => 46,
 		Helmet => 50,
 		Gauntlets => 60,
 		Chest => 70,
 		Leg => 80,
 		Class => 90,
+		Sparrow => 110,
+		Ship => 130,
+		Emblem => 150,
+		Finisher => 160,
 		Unknown => 9999);
 
 	-- Private-Exported Subprograms
 	function Load_Image (File_Name : String; Data : Stream_Element_Array) return Gdk_Pixbuf;
+	function Caching_Load_Image (File_Name : Unbounded_String; Cache_Path : String) return Gdk_Pixbuf;
 	procedure Clear_Bucket (G : Gtk_Grid);
+	function Get_Overlay (D : Manifest.Tools.Item_Description) return Gtk_Overlay;
 	procedure Render_Items (
 		List : Item_Description_List;
 		Bucket : Gtk_Grid;

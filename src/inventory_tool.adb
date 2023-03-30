@@ -1,6 +1,5 @@
 pragma Ada_2022;
 with Ada.Text_IO; use Ada.Text_IO;
-with Ada.Real_Time; use Ada.Real_Time;
 
 -- GtkAda
 with Gtk.Main;
@@ -12,8 +11,8 @@ use GLib;
 
 -- Local Packages
 with GUI;
-with GUI.Character;
 with GUI.Global;
+with GUI.Character;
 
 procedure Inventory_Tool is
 	-- Constants
@@ -28,35 +27,21 @@ begin
 	-- Load Interface
 	Gtk.Main.Init;
 	Gtk_New (GUI.Builder);
-	Discard := Add_From_File (GUI.Builder, "res/gui.glade", Error'Access);
+	Discard := Add_From_File (GUI.Builder, "res/experimental.glade", Error'Access);
 
 	-- Register Callbacks
 	Register_Handler (GUI.Builder, "window_close_handler", GUI.Window_Close_Handler'Access);
-	Register_Handler (GUI.Builder, "emblem_button_clicked_handler", GUI.Character.Emblem_Button_Clicked_Handler'Access);
-	Register_Handler (GUI.Builder, "search_changed_handler", GUI.Global.Search_Changed_Handler'Access);
-
+	GUI.Global.Set_Callbacks;
+	
+	-- Setup window
 	Window := Gtk_Window (GUI.Builder.Get_Object ("root"));
-
 	Gtk.Window.Show (Window);
 
+	-- Update and render inventory elements
 	GUI.Global.Update_Inventory;
-
-	-- Load Initial Character
-	GUI.Character.Update_For_Character (GUI.Profile.Characters.Element (0));
+	GUI.Character.Update_For_Character (GUI.Profile.Characters (0));
 	
 	Do_Connect (GUI.Builder);
-
-	declare
-		Now : Time := Clock;
-		TThen : Time;
-	begin
-		for I in 1 .. 50 loop
-			GUI.Global.Render;
-			GUI.Character.Render;
-		end loop;
-		TThen := Clock;
-		Put_Line (To_Duration (TThen - Now)'Image);
-	end;
-	-- Benchmark
+	
 	Gtk.Main.Main;
 end Inventory_Tool;
