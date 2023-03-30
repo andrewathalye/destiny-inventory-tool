@@ -2,6 +2,7 @@ pragma Ada_2022;
 
 with Ada.Streams; use Ada.Streams;
 with System;
+with Interfaces; use Interfaces;
 
 -- Gtkada
 with Gtk.Main;
@@ -11,12 +12,16 @@ with Gtk.Button; use Gtk.Button;
 with Gtk.Label; use Gtk.Label;
 with Gtk.Widget; use Gtk.Widget;
 with Gtk.Container; use Gtk.Container;
+with Gtk.Overlay; use Gtk.Overlay;
+with Gtk.Alignment; use Gtk.Alignment;
 with Gtk.Handlers; use Gtk.Handlers;
 with Gtk.Popover; use Gtk.Popover;
 
 with Gdk.Pixbuf; use Gdk.Pixbuf;
 with Glib.Error; use Glib.Error;
 use Glib;
+
+with Pango.Attributes; use Pango.Attributes;
 
 -- AWS
 with AWS.Client;
@@ -142,12 +147,15 @@ package body GUI is
 			end if;
 
 			declare
+				Overlay : Gtk_Overlay;
 				Button : Gtk_Button;
 				Image : Gtk_Image;
 			begin
+				Gtk_New (Overlay);
 				Gtk_New (Button);
 				Gtk_New (Image);
-				
+
+				-- Setup Icon and Button
 				if Has_Cached (+D.Icon_Path) then
 --					Put_Debug ("Load cached icon");
 					Set (Image, Load_Image (
@@ -173,8 +181,73 @@ package body GUI is
 					To_Marshaller (Item_Button_Clicked_Handler'Access),
 					User_Data => D);
 
-				Show (Button);
-				Bucket.Attach (Button, Left, Top);
+				Button.Show;
+
+				-- Add Button to Overlay
+				Overlay.Add (Button);
+
+				-- Add Watermark to Overlay
+				if Length (D.Watermark_Path) > 0 then
+					declare
+						Watermark : Gtk_Image;
+					begin
+						Gtk_New (Watermark);
+						if Has_Cached (+D.Watermark_Path) then
+		--					Put_Debug ("Load cached watermark");
+							Set (Watermark, Load_Image (
+								+D.Watermark_Path,
+								Get_Cached (+D.Watermark_Path)));
+						else
+							declare
+								Data : Response.Data;
+							begin
+								Put_Debug ("Get watermark");
+								Data := Client.Get (Bungie_Root & (+D.Watermark_Path));
+								Cache (+D.Watermark_Path, Response.Message_Body (Data));
+								Set (Watermark, Load_Image (
+									+D.Watermark_Path,
+									Response.Message_Body (Data)));
+							end;
+						end if;
+
+						Watermark.Show;
+						Overlay.Add_Overlay (Watermark);
+						Overlay.Set_Overlay_Pass_Through (Watermark, True);
+					end;
+				end if;
+
+				-- Setup Label if Needed
+				if D.Quantity > 1 then
+					declare
+						Label : Gtk_Label;
+						Alignment : Gtk_Alignment;
+						Attrs : Pango_Attr_List;
+					begin
+						Gdk_New (Attrs);
+						Gtk_New (Label);
+						Gtk_New (Alignment,
+							Xalign => 0.9,
+							Yalign => 1.0,
+							Xscale => 0.0,
+							Yscale => 0.0);
+
+						Attrs.Change (Attr_Background_New (65535, 65535, 65535));
+						Attrs.Change (Attr_Foreground_New (0, 0, 0));
+						Label.Set_Attributes (Attrs);
+						Label.Set_Label (D.Quantity'Image (D.Quantity'Image'First + 1 .. D.Quantity'Image'Last));
+						Label.Show;
+
+						Alignment.Add (Label);
+						Alignment.Show;
+
+						Overlay.Add_Overlay (Alignment);
+						Overlay.Set_Overlay_Pass_Through (Alignment, True);
+					end;
+				end if;
+
+				-- Display Overlay and Attach
+				Overlay.Show;
+				Bucket.Attach (Overlay, Left, Top);
 
 				Left := @ + 1;
 

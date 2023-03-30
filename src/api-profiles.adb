@@ -188,6 +188,10 @@ package body API.Profiles is
 						-- TODO Not processed currently
 						Read_Next (Reader); -- START_OBJECT
 						Wait_Until_Event (Reader, End_Object);
+					elsif VS2S (Key_Name (Reader)) = "versionNumber" then
+						Read_Next (Reader);
+						Item.Version_Number := Integer_32 (
+							As_Integer (Number_Value (Reader)));
 					else
 						Read_Next (Reader);
 					end if;

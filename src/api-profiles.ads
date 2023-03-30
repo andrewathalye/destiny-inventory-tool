@@ -64,6 +64,7 @@ package API.Profiles is
 		Override_Style_Item_Hash : Manifest_Hash := 0; -- Nullable
 			-- DestinyInventoryItemDefinition
 		Expiration_Date : Unbounded_String;
+		Version_Number : Integer_32 := -1; -- Nullable
 		-- Items Omitted
 	end record;
 

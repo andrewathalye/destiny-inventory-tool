@@ -1,5 +1,6 @@
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Containers.Ordered_Maps;
+with Ada.Containers.Vectors;
 
 -- Local Packages
 with API.Memberships;
@@ -38,6 +39,8 @@ package API.Manifest is
 		Element_Type => Destiny_Title_Name);
 	subtype Destiny_Title_Map is DTNM.Map;
 
+	package USL is new Ada.Containers.Vectors (Natural, Unbounded_String);
+	subtype Unbounded_String_List is USL.Vector;
 	type Destiny_Tier_Type is (Unknown, Currency, Basic, Common, Rare, Superior, Exotic);
 	type Destiny_Inventory_Item_Definition is record
 		Description : Unbounded_String;
@@ -48,6 +51,7 @@ package API.Manifest is
 		Item_Type_And_Tier_Display_Name : Unbounded_String;
 		Bucket_Type_Hash : Manifest_Hash;
 		Tier_Type : Destiny_Tier_Type;
+		Display_Version_Watermark_Icons : Unbounded_String_List;
 		-- Stats?
 		Default_Damage_Type_Hash : Manifest_Hash := 0; -- Nullable
 			-- DestinyDamageTypeDefinition

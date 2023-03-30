@@ -13,6 +13,7 @@ package API.Manifest.Tools is
 		State : Item_State_Type;
 		Icon_Path : Unbounded_String;
 		Watermark_Path : Unbounded_String;
+		Style_Overridden : Boolean;
 		Item_Type_And_Tier_Display_Name : Unbounded_String;
 		Tier_Type : Destiny_Tier_Type;
 	end record;

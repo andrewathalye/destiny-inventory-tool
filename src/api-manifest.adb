@@ -278,6 +278,9 @@ package body API.Manifest is
 
 		Read_Next (Reader); -- START_OBJECT
 		while Event_Kind (Reader) /= End_Object loop
+			-- Clear Lists in Surrogate Item
+			Item.Display_Version_Watermark_Icons.Clear;
+
 			Wait_Until_Key (Reader, "displayProperties");
 			Read_Next (Reader); -- START_OBJECT
 
@@ -329,6 +332,15 @@ package body API.Manifest is
 							Read_Next (Reader);
 							Item.Shelved_Watermark_Path := VS2UB (String_Value (Reader));
 							Read_Next (Reader); -- etc.
+						elsif VS2S (Key_Name (Reader)) = "displayVersionWatermarkIcons" then
+							Read_Next (Reader); -- START_ARRAY
+							Read_Next (Reader);
+
+							while Event_Kind (Reader) /= End_Array loop
+								Item.Display_Version_Watermark_Icons.Append (
+									VS2UB (String_Value (Reader)));
+								Read_Next (Reader); -- STRING_VALUE or END_ARRAY
+							end loop;
 						elsif VS2S (Key_Name (Reader)) = "hash" then
 							exit Read_Variable_Fields;
 						else

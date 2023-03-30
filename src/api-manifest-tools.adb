@@ -1,3 +1,5 @@
+pragma Ada_2022;
+
 -- Local Packages
 with Shared; use Shared;
 
@@ -22,6 +24,10 @@ package body API.Manifest.Tools is
 	is 
 		Manifest_Item : constant Destiny_Inventory_Item_Definition :=
 			M.Destiny_Inventory_Items (I.Item_Hash);
+		Override_Item : constant Destiny_Inventory_Item_Definition :=
+			(case I.Override_Style_Item_Hash is
+				when 0 => Manifest_Item,
+				when others => M.Destiny_Inventory_Items (I.Override_Style_Item_Hash));
 	begin
 		return (
 			Name => Manifest_Item.Name,
@@ -33,12 +39,13 @@ package body API.Manifest.Tools is
 			Category => M.Destiny_Inventory_Buckets (I.Bucket_Hash).Category,
 			Bucket_Order => M.Destiny_Inventory_Buckets (I.Bucket_Hash).Bucket_Order,
 			State => I.State,
-			Icon_Path => (case I.Override_Style_Item_Hash is
-				when 0 => Manifest_Item.Icon_Path,
-				when others => M.Destiny_Inventory_Items (I.Override_Style_Item_Hash).Icon_Path),
-			Watermark_Path => (case I.Override_Style_Item_Hash is
-				when 0 => Manifest_Item.Watermark_Path,
-				when others => M.Destiny_Inventory_Items (I.Override_Style_Item_Hash).Watermark_Path),
+			Icon_Path => Override_Item.Icon_Path,
+			Watermark_Path => (
+				if I.Version_Number /= -1 then
+					Manifest_Item.Display_Version_Watermark_Icons (
+						Natural (I.Version_Number))
+				else Manifest_Item.Watermark_Path),
+			Style_Overridden => I.Item_Hash = I.Override_Style_Item_Hash,
 			Item_Type_And_Tier_Display_Name => Manifest_Item.Item_Type_And_Tier_Display_Name,
 			Tier_Type => Manifest_Item.Tier_Type);
 	end Get_Description;
