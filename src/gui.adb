@@ -1,6 +1,7 @@
 pragma Ada_2022;
 
 with Ada.Streams; use Ada.Streams;
+with Ada.Containers.Hashed_Maps;
 with System;
 with Interfaces; use Interfaces;
 
@@ -35,6 +36,16 @@ package body GUI is
 	-- Instantiations
 	package User_Callback_Item_Description is new User_Callback (Gtk_Widget_Record, Manifest.Tools.Item_Description);
 	use User_Callback_Item_Description;
+
+	package Pixbuf_Hash_Maps is new Ada.Containers.Hashed_Maps (
+		Key_Type => Unbounded_String,
+		Element_Type => Gdk_Pixbuf,
+		Hash => Hash,
+		Equivalent_Keys => Equivalent_Key);
+	subtype Pixbuf_Hash_Map is Pixbuf_Hash_Maps.Map;
+
+	-- Global State
+	Global_Pixbuf_Cache : Pixbuf_Hash_Map;
 
 	-- Private Subprograms
 	-- Private-Exported
@@ -100,6 +111,31 @@ package body GUI is
 		return Convert (Pixbuf);
 	end Load_Image;
 
+	-- Cached High-Frequency Pixbufs
+	Crafted_Masterwork_Overlay : constant Gdk_Pixbuf := Load_Image ("png",
+		Get_Data ("res/crafted_masterwork_overlay.png"));
+	Crafted_Overlay : constant Gdk_Pixbuf := Load_Image ("png",
+		Get_Data ("res/crafted_overlay.png"));
+	Masterwork_Overlay : constant Gdk_Pixbuf := Load_Image ("png",
+		Get_Data ("res/masterwork_overlay.png"));
+	Normal_Overlay : constant Gdk_Pixbuf := Load_Image ("png",
+		Get_Data ("res/normal_overlay.png"));
+	Ornament_Overlay : constant Gdk_Pixbuf := Load_Image ("png",
+		Get_Data ("res/ornament_overlay.png"));
+
+	-- Caching Version of Load_Image
+	function Caching_Load_Image (File_Name : Unbounded_String; Cache_Path : String) return Gdk_Pixbuf is
+		Temp : Gdk_Pixbuf;
+	begin
+		if not Global_Pixbuf_Cache.Contains (File_Name) then
+			Temp := Load_Image (+File_Name, Get_Data (Cache_Path));
+			Global_Pixbuf_Cache.Insert (File_Name, Temp);
+			return Temp;
+		else
+			return Global_Pixbuf_Cache (File_Name);	
+		end if;
+	end Caching_Load_Image;
+
 	procedure Remove_Callback (Widget : not null access Gtk.Widget.Gtk_Widget_Record'Class; Grid : Gtk_Grid)
 	is begin
 		Grid.Remove (Widget);
@@ -150,6 +186,8 @@ package body GUI is
 				Overlay : Gtk_Overlay;
 				Button : Gtk_Button;
 				Image : Gtk_Image;
+
+				State_Overlay : Gtk_Image;
 			begin
 				Gtk_New (Overlay);
 				Gtk_New (Button);
@@ -158,9 +196,11 @@ package body GUI is
 				-- Setup Icon and Button
 				if Has_Cached (+D.Icon_Path) then
 --					Put_Debug ("Load cached icon");
-					Set (Image, Load_Image (
-						+D.Icon_Path,
-						Get_Cached (+D.Icon_Path)));
+					Set (Image, Caching_Load_Image (
+						D.Icon_Path, Get_Cache_Path (+D.Icon_Path)));
+--					Set (Image, Load_Image (
+--						+D.Icon_Path,
+--						Get_Cached (+D.Icon_Path)));
 				else
 					declare
 						Data : Response.Data;
@@ -185,7 +225,8 @@ package body GUI is
 
 				-- Add Button to Overlay
 				Overlay.Add (Button);
-
+				
+				-- First Overlay
 				-- Add Watermark to Overlay
 				if Length (D.Watermark_Path) > 0 then
 					declare
@@ -194,9 +235,13 @@ package body GUI is
 						Gtk_New (Watermark);
 						if Has_Cached (+D.Watermark_Path) then
 		--					Put_Debug ("Load cached watermark");
-							Set (Watermark, Load_Image (
-								+D.Watermark_Path,
-								Get_Cached (+D.Watermark_Path)));
+							Set (Watermark, Caching_Load_Image (
+								D.Watermark_Path,
+								Get_Cache_Path (+D.Watermark_Path)));
+
+--							Set (Watermark, Load_Image (
+--								+D.Watermark_Path,
+--								Get_Cached (+D.Watermark_Path)));
 						else
 							declare
 								Data : Response.Data;
@@ -216,7 +261,39 @@ package body GUI is
 					end;
 				end if;
 
-				-- Setup Label if Needed
+				-- Intermediate Overlay
+				-- Add Ornament Icon to Overlay
+				if D.Style_Overridden then
+					declare
+						Ornament_Overlay_GI : Gtk_Image;
+					begin
+						Gtk_New (Ornament_Overlay_GI);
+						Set (Ornament_Overlay_GI, Ornament_Overlay);
+						Ornament_Overlay_GI.Show;
+						Overlay.Add_Overlay (Ornament_Overlay_GI);
+						Overlay.Set_Overlay_Pass_Through (Ornament_Overlay_GI, True);
+					end;
+				end if;
+
+				if False then
+				-- Final Overlay
+				-- Add Masterwork / Crafted / Normal Overlay
+				Gtk_New (State_Overlay);
+				Set (State_Overlay, (
+					if D.State.Masterwork and D.State.Crafted then
+						Crafted_Masterwork_Overlay
+					elsif D.State.Masterwork then
+						Masterwork_Overlay
+					elsif D.State.Crafted then
+						Crafted_Overlay
+					else Normal_Overlay));
+
+				State_Overlay.Show;
+				Overlay.Add_Overlay (State_Overlay);
+				Overlay.Set_Overlay_Pass_Through (State_Overlay, True);
+				end if;
+
+				-- Setup Quantity Label if Needed
 				if D.Quantity > 1 then
 					declare
 						Label : Gtk_Label;

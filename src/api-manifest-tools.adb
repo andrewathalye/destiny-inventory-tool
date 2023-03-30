@@ -45,7 +45,7 @@ package body API.Manifest.Tools is
 					Manifest_Item.Display_Version_Watermark_Icons (
 						Natural (I.Version_Number))
 				else Manifest_Item.Watermark_Path),
-			Style_Overridden => I.Item_Hash = I.Override_Style_Item_Hash,
+			Style_Overridden => I.Override_Style_Item_Hash /= 0,
 			Item_Type_And_Tier_Display_Name => Manifest_Item.Item_Type_And_Tier_Display_Name,
 			Tier_Type => Manifest_Item.Tier_Type);
 	end Get_Description;

@@ -436,7 +436,7 @@ package body API.Manifest is
 			SF : File_Type;
 			S : Stream_Access;
 		begin
-			Create (SF, Out_File, "manifest.dat");
+			Create (SF, Out_File, "dat/manifest.dat");
 			S := Ada.Streams.Stream_IO.Stream (SF);
 			Unbounded_String'Write (S, Localised_Manifest_Path);
 			Manifest_Type'Write (S, Result);
@@ -478,7 +478,7 @@ package body API.Manifest is
 
 		Free (Stream);
 		
-		if Exists ("manifest.dat") then
+		if Exists ("dat/manifest.dat") then
 			Put_Debug ("Load preparsed manifest");
 			declare
 				use Ada.Streams.Stream_IO;
@@ -488,7 +488,7 @@ package body API.Manifest is
 
 				Manifest_Version : Unbounded_String;
 			begin
-				Open (SF, In_File, "manifest.dat");
+				Open (SF, In_File, "dat/manifest.dat");
 				S := Ada.Streams.Stream_IO.Stream (SF);
 				Unbounded_String'Read (S, Manifest_Version);
 				Manifest_Type'Read (S, Result);
@@ -496,7 +496,7 @@ package body API.Manifest is
 
 				if Manifest_Version /= Localised_Manifest_Path then
 					Put_Debug ("Update prepared manifest");
-					Delete_File ("manifest.dat");
+					Delete_File ("dat/manifest.dat");
 					return Fetch_Manifest (Localised_Manifest_Path);
 				end if;
 

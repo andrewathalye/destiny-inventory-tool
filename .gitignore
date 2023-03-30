@@ -6,5 +6,4 @@ obj
 json/
 cache/
 .*.swp
-refresh.dat
-manifest.dat
+dat

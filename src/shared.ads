@@ -16,14 +16,22 @@ package Shared is
 		(L = R);
 
 	-- Debug Utilities
-	procedure Put_Debug (Item : String);
+	procedure Put_Debug (Item : String)
+	with Inline;
 	function Read_File (Name : String) return String;
 
 	-- Cache Utilities
-	function Get_Cached (Name : String) return Stream_Element_Array;
-	function Has_Cached (Name : String) return Boolean;
-	procedure Cache (Name : String; Content : Stream_Element_Array);
+	-- Note: There is both an on-disk and in-memory cache
+	function Get_Cached (Name : String) return Stream_Element_Array
+	with Inline;
+	function Get_Cache_Path (Name : String) return String
+	with Inline;
 
+	-- using a raw path
+	function Get_Data (Name : String) return Stream_Element_Array;
+	function Has_Cached (Name : String) return Boolean
+	with Inline;
+	procedure Cache (Name : String; Content : Stream_Element_Array);
 
 	-- Unbounded / Bounded conversion
 	function "+" (Item : String) return Unbounded_String renames To_Unbounded_String;

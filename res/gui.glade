@@ -124,6 +124,10 @@
                                 <property name="visible">True</property>
                                 <property name="can-focus">False</property>
                                 <property name="label" translatable="yes">Title Goes Here</property>
+                                <attributes>
+                                  <attribute name="style" value="italic"/>
+                                  <attribute name="foreground" value="#c0c06161cbcb"/>
+                                </attributes>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -696,7 +700,7 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkOverlay">
+                      <object class="GtkOverlay" id="silver_overlay">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
                         <child>
@@ -2646,6 +2650,7 @@
       </object>
       <packing>
         <property name="submenu">main</property>
+        <property name="position">1</property>
       </packing>
     </child>
   </object>

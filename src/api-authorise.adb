@@ -100,6 +100,8 @@ package body API.Authorise is
 			Port => 8888,
 			Security => True); -- Enable HTTPS
 
+		Server.Set_Security (WS, "dat/cert.pem");
+
 		Authorise_Object.Get_Code (Code);
 		delay 1.0; -- Wait for response to be served
 		Server.Shutdown (WS);
@@ -166,7 +168,7 @@ package body API.Authorise is
 	function Do_Authorise return Auth_Storage_Type is
 		Auth_Storage : Auth_Storage_Type;
 	begin
-		if Exists ("refresh.dat") then -- Load token
+		if Exists ("dat/refresh.dat") then -- Load token
 			Put_Debug ("Load token");
 			-- Load refresh token
 			declare
@@ -177,7 +179,7 @@ package body API.Authorise is
 				Stream_IO.Open (
 					SF,
 					Mode => Stream_IO.In_File,
-					Name => "refresh.dat");
+					Name => "dat/refresh.dat");
 				S := Stream_IO.Stream (SF);
 				Unbounded_String'Read (S, Refresh_Token);
 				Stream_IO.Close (SF);
@@ -205,15 +207,15 @@ package body API.Authorise is
 			SF : Stream_IO.File_Type;
 			S : Stream_IO.Stream_Access;
 		begin
-			if Exists ("refresh.dat") then
+			if Exists ("dat/refresh.dat") then
 				Stream_IO.Open (
 					SF,
 					Mode => Stream_IO.Out_File,
-					Name => "refresh.dat");
+					Name => "dat/refresh.dat");
 			else
 				Stream_IO.Create (
 					SF,
-					Name => "refresh.dat");
+					Name => "dat/refresh.dat");
 			end if;
 
 			S := Stream_IO.Stream (SF);

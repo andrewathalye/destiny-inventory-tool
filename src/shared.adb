@@ -1,3 +1,5 @@
+pragma Ada_2022;
+
 with Ada.Streams.Stream_IO;
 with Ada.Text_IO;
 
@@ -30,30 +32,35 @@ package body Shared is
 
 		return Text;
 	end Read_File;
+	pragma Obsolescent (Read_File);
 
 	-- Cache Utilities
 	function Has_Cached (Name : String) return Boolean
 	is (Exists ("cache/" & URL.Encode (Name)));
 
-	function Get_Cached (Name : String) return Stream_Element_Array
-	is 
+	function Get_Data (Name : String) return Stream_Element_Array
+	is
 		use Ada.Streams.Stream_IO;
 
-		File_Name : constant String := "cache/" & URL.Encode (Name);
 		SF : File_Type;
 		S : Stream_Access;
-		SEA : Stream_Element_Array (1 .. Stream_Element_Offset (Size (File_Name)));
+		SEA : Stream_Element_Array (1 .. Stream_Element_Offset (Size (Name)));
 	begin
-		Open (SF, In_File, File_Name);
+		Open (SF, In_File, Name);
 		S := Stream (SF);
 
 		Stream_Element_Array'Read (S, SEA);
 		Close (SF);
 
 		return SEA;
-	end Get_Cached;
+	end Get_Data;
 
+	function Get_Cache_Path (Name : String) return String
+	is ("cache/" & URL.Encode (Name));
 
+	function Get_Cached (Name : String) return Stream_Element_Array
+	is (Get_Data (Get_Cache_Path (Name)));
+	
 	procedure Cache (Name : String; Content : Stream_Element_Array)
 	is
 		use Ada.Streams.Stream_IO;
@@ -69,6 +76,7 @@ package body Shared is
 			Create_Directory ("cache");
 		end if;
 
+		-- Write to disk cache
 		Create (SF, Out_File, "cache/" & URL.Encode (Name));
 		S := Stream (SF);
 		Stream_Element_Array'Write (S, Content);

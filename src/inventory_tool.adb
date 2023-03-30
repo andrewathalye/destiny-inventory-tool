@@ -1,5 +1,6 @@
 pragma Ada_2022;
 with Ada.Text_IO; use Ada.Text_IO;
+with Ada.Real_Time; use Ada.Real_Time;
 
 -- GtkAda
 with Gtk.Main;
@@ -22,12 +23,12 @@ procedure Inventory_Tool is
 	Window : Gtk_Window;
 begin
 	-- Print Welcome Message
-	Put_Line ("Destiny Inventory Tool v0.2");
+	Put_Line ("Destiny Inventory Tool v0.3");
 	
 	-- Load Interface
 	Gtk.Main.Init;
 	Gtk_New (GUI.Builder);
-	Discard := Add_From_File (GUI.Builder, "gui.glade", Error'Access);
+	Discard := Add_From_File (GUI.Builder, "res/gui.glade", Error'Access);
 
 	-- Register Callbacks
 	Register_Handler (GUI.Builder, "window_close_handler", GUI.Window_Close_Handler'Access);
@@ -44,5 +45,18 @@ begin
 	GUI.Character.Update_For_Character (GUI.Profile.Characters.Element (0));
 	
 	Do_Connect (GUI.Builder);
+
+	declare
+		Now : Time := Clock;
+		TThen : Time;
+	begin
+		for I in 1 .. 50 loop
+			GUI.Global.Render;
+			GUI.Character.Render;
+		end loop;
+		TThen := Clock;
+		Put_Line (To_Duration (TThen - Now)'Image);
+	end;
+	-- Benchmark
 	Gtk.Main.Main;
 end Inventory_Tool;
