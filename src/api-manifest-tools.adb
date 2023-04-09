@@ -37,8 +37,6 @@ package body API.Manifest.Tools is
 			Bucket_Hash => I.Bucket_Hash,
 			Default_Bucket_Hash => Manifest_Item.Bucket_Type_Hash,
 			Category => M.Destiny_Inventory_Buckets (Manifest_Item.Bucket_Type_Hash).Category,
-			Bucket_Order => M.Destiny_Inventory_Buckets (I.Bucket_Hash).Bucket_Order,
-			Default_Bucket_Order => M.Destiny_Inventory_Buckets (Manifest_Item.Bucket_Type_Hash).Bucket_Order,
 			State => I.State,
 			Icon_Path => Override_Item.Icon_Path,
 			Watermark_Path => (

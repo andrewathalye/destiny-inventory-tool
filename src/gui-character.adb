@@ -1,5 +1,7 @@
 pragma Ada_2022;
 
+with Interfaces; use Interfaces;
+
 -- Gtk
 with Gtk.Label; use Gtk.Label;
 with Gtk.Image; use Gtk.Image;
@@ -8,12 +10,10 @@ with Gtk.Button; use Gtk.Button;
 with Gtk.Widget; use Gtk.Widget;
 with Gtk.Box; use Gtk.Box;
 with Gtk.Overlay; use Gtk.Overlay;
+with Gtk.Popover; use Gtk.Popover;
 with Gtk.Alignment; use Gtk.Alignment;
 
--- AWS
-with AWS.Response;
-with AWS.Client;
-use AWS;
+with Gdk.Pixbuf; use Gdk.Pixbuf;
 
 -- Local Packages
 with API.Manifest; use API.Manifest;
@@ -25,14 +25,58 @@ package body GUI.Character is
 	Character_Items : array (Bucket_Location) of Item_Description_List;
 	Equipped_Items : array (Bucket_Location) of Manifest.Tools.Item_Description;
 
+	-- Redirections
+	procedure Render_Items (
+		List : Item_Description_List;
+		Bucket : Gtk_Grid;
+		T : Tasks.Download.Download_Task := Tasks.Download.Character_Task;
+		Max_Left : Gint := 2;
+		Max_Top : Gint := 2)
+	is begin
+		GUI.Render_Items (List, Bucket, T, Max_Left, Max_Top);
+	end Render_Items;
+
+	-- Cache
+	Placeholder_Emblem : constant Gdk_Pixbuf := Load_Image (".png",
+		Get_Data ("res/placeholder_emblem.png"));
+
+	function Item_Overlay_Entered_Handler (Widget : access Gtk_Widget_Record'Class; User_Data : Manifest.Tools.Item_Description) return GBoolean
+	is
+		Contents : constant Gtk_Popover := Gtk_Popover (Builder.Get_Object ("full_contents"));
+		Contents_Grid : constant Gtk_Grid := Gtk_Grid (Builder.Get_Object ("full_contents_grid"));
+	begin
+		Tasks.Download.Contents_Task.Clear;
+		Clear_Bucket (Contents_Grid);
+
+		-- TODO Emotes are special and only some are supported currently
+		if User_Data.Bucket_Hash = Emote_Collection'Enum_Rep then
+			Render_Items (
+				Character_Items (Special_Emote),
+				Contents_Grid,
+				Tasks.Download.Contents_Task);
+		else
+			Render_Items (
+				Character_Items (
+					Bucket_Location'Enum_Val (
+						User_Data.Bucket_Hash)),
+				Contents_Grid,
+				Tasks.Download.Contents_Task);
+		end if;
+
+		Contents.Set_Relative_To (Widget);
+		Contents.Popup;
+
+		return 1; -- Propagate further signals
+	end Item_Overlay_Entered_Handler;
+
 	type Item_Alignment_Type is (Left, Centre, Right);
 	procedure Render_Item (
 		D : Manifest.Tools.Item_Description;
 		Box : Gtk_Box;
 		Item_Alignment : Item_Alignment_Type := Centre)
 	is
-		Overlay : Gtk_Overlay := Get_Overlay (D);
-		Alignment : Gtk_Alignment := Gtk_Alignment_New (
+		Overlay : constant Gtk_Overlay := Get_Overlay (D, Tasks.Download.Character_Task);
+		Alignment : constant Gtk_Alignment := Gtk_Alignment_New (
 			Xalign => (case Item_Alignment is
 				when Left => 0.0,
 				when Centre => 0.5,
@@ -41,6 +85,11 @@ package body GUI.Character is
 			Xscale => 0.0,
 			Yscale => 0.0);
 	begin
+		Connect (Widget_List.Get_Data (Widget_List.First (Overlay.Get_Children)),
+			"enter-notify-event",
+			To_Marshaller (Item_Overlay_Entered_Handler'Access),
+			User_Data => D);
+
 		Overlay.Show;
 
 		-- Note: The alignment ensures the button is the same size as the icon
@@ -50,16 +99,9 @@ package body GUI.Character is
 	end Render_Item;
 
 	procedure Render is
-		-- Buckets (Grids) that need to be updated
---		Kinetic_Bucket : constant Gtk_Grid := Gtk_Grid (Builder.Get_Object ("kinetic"));
---		Energy_Bucket : constant Gtk_Grid := Gtk_Grid (Builder.Get_Object ("energy"));
---		Power_Bucket : constant Gtk_Grid := Gtk_Grid (Builder.Get_Object ("power"));
+		Postmaster_Grid : constant Gtk_Grid := Gtk_Grid (Builder.Get_Object ("postmaster"));
 
---		Helmet_Bucket : constant Gtk_Grid := Gtk_Grid (Builder.Get_Object ("helmet"));
---		Gauntlets_Bucket : constant Gtk_Grid := Gtk_Grid (Builder.Get_Object ("gauntlets"));
---		Chest_Bucket : constant Gtk_Grid := Gtk_Grid (Builder.Get_Object ("chest"));
---		Leg_Bucket : constant Gtk_Grid := Gtk_Grid (Builder.Get_Object ("leg"));
---		Class_Bucket : constant Gtk_Grid := Gtk_Grid (Builder.Get_Object ("class"));
+		Subclass_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("subclass"));
 
 		Kinetic_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("kinetic"));
 		Energy_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("energy"));
@@ -78,50 +120,54 @@ package body GUI.Character is
 		Ship_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("ship"));
 
 		Finisher_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("finisher"));
+		Emote_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("emote"));
 	begin
+		Clear_Bucket (Postmaster_Grid);
+		Render_Items (
+			Character_Items (Postmaster),
+			Postmaster_Grid, 
+			Tasks.Download.Character_Task,
+			6,
+			2);
+
+		Clear_Bucket (Subclass_Box);
+		Render_Item (Equipped_Items (Subclass), Subclass_Box, Right);
+
+		Clear_Bucket (Kinetic_Box);
+		Clear_Bucket (Energy_Box);
+		Clear_Bucket (Power_Box);
+		Clear_Bucket (Shell_Box);
+		Clear_Bucket (Artefact_Box);
 		Render_Item (Equipped_Items (Kinetic), Kinetic_Box, Right);
 		Render_Item (Equipped_Items (Energy), Energy_Box, Right);
 		Render_Item (Equipped_Items (Power), Power_Box, Right);
 		Render_Item (Equipped_Items (Shell), Shell_Box, Right);
 		Render_Item (Equipped_Items (Artefact), Artefact_Box, Right);
 
+		Clear_Bucket (Helmet_Box);
+		Clear_Bucket (Gauntlets_Box);
+		Clear_Bucket (Chest_Box);
+		Clear_Bucket (Leg_Box);
+		Clear_Bucket (Class_Box);
 		Render_Item (Equipped_Items (Helmet), Helmet_Box, Left);
 		Render_Item (Equipped_Items (Gauntlets), Gauntlets_Box, Left);
 		Render_Item (Equipped_Items (Chest), Chest_Box, Left);
 		Render_Item (Equipped_Items (Leg), Leg_Box, Left);
 		Render_Item (Equipped_Items (Class), Class_Box, Left);
 
+		Clear_Bucket (Emblem_Box);
+		Clear_Bucket (Sparrow_Box);
+		Clear_Bucket (Ship_Box);
 		Render_Item (Equipped_Items (Emblem), Emblem_Box, Right);
 		Render_Item (Equipped_Items (Sparrow), Sparrow_Box, Right);
 		Render_Item (Equipped_Items (Ship), Ship_Box, Right);
 
+		Clear_Bucket (Finisher_Box);
+		Clear_Bucket (Emote_Box);
 		Render_Item (Equipped_Items (Finisher), Finisher_Box, Left);
+		Render_Item (Equipped_Items (Emote_Collection), Emote_Box, Left);
 
---		Clear_Bucket (Kinetic_Bucket);
---		Render_Items (Character_Items (Kinetic), Kinetic_Bucket);
-
---		Clear_Bucket (Energy_Bucket);
---		Render_Items (Character_Items (Energy), Energy_Bucket);
-
---		Clear_Bucket (Power_Bucket);
---		Render_Items (Character_Items (Power), Power_Bucket);
-
---		Clear_Bucket (Helmet_Bucket);
---		Render_Items (Character_Items (Helmet), Helmet_Bucket);
-
---		Clear_Bucket (Gauntlets_Bucket);
---		Render_Items (Character_Items (Gauntlets), Gauntlets_Bucket);
-
---		Clear_Bucket (Chest_Bucket);
---		Render_Items (Character_Items (Chest), Chest_Bucket);
-
---		Clear_Bucket (Leg_Bucket);
---		Render_Items (Character_Items (Leg), Leg_Bucket);
-
---		Clear_Bucket (Class_Bucket);
---		Render_Items (Character_Items (Class), Class_Bucket);
-
-		-- TODO: Render engrams and postmaster, render equipped items
+		-- TODO: Render engrams
 	end Render;
 
 	procedure Update_For_Character (Character : Profiles.Character_Type) is
@@ -139,21 +185,13 @@ package body GUI.Character is
 
 		-- Update Emblem (technically a Global UI element) todo
 		Gtk_New (Emblem);
-		if Has_Cached (+Character.Emblem_Background_Path) then
+		if Global_Pixbuf_Cache.Contains (Character.Emblem_Background_Path) then
 --			Put_Debug ("Load cached emblem");
-			Set (Emblem, Caching_Load_Image (Character.Emblem_Background_Path,
-				Get_Cache_Path (+Character.Emblem_Background_Path)));
+			Emblem.Set (Global_Pixbuf_Cache.Element (Character.Emblem_Background_Path));
 		else
-			declare
-				Data : Response.Data;
-			begin
-				Put_Debug ("Get emblem");
-				Data := Client.Get (Bungie_Root & (+Character.Emblem_Background_Path));
-				Cache (+Character.Emblem_Background_Path, Response.Message_Body (Data));
-				Set (Emblem, Load_Image (
-					+Character.Emblem_Background_Path,
-					Response.Message_Body (Data)));
-			end;
+--			Put_Debug ("Get emblem");
+			Emblem.Set (Placeholder_Emblem);
+			Tasks.Download.Character_Task.Download (Character.Emblem_Background_Path, Gtk_Widget (Emblem));
 		end if;
 
 		Emblem_Button.Set_Image (Emblem);
@@ -168,9 +206,7 @@ package body GUI.Character is
 			declare
 				D : constant Manifest.Tools.Item_Description := Manifest.Tools.Get_Description (The_Manifest, I);
 			begin
-				if D.Category = Manifest.Equippable then
-					Character_Items (Bucket_Location'Enum_Val (D.Bucket_Order)).Append (D);	
-				end if;
+				Character_Items (Bucket_Location'Enum_Val (I.Bucket_Hash)).Append (D);	
 			exception
 				when Constraint_Error =>
 					Character_Items (Unknown).Append (D);
@@ -181,16 +217,43 @@ package body GUI.Character is
 			declare
 				D : constant Manifest.Tools.Item_Description := Manifest.Tools.Get_Description (The_Manifest, I);
 			begin
-				if D.Category = Manifest.Equippable then
-					Equipped_Items (Bucket_Location'Enum_Val (D.Bucket_Order)) := D;	
-				end if;
+				Equipped_Items (Bucket_Location'Enum_Val (I.Bucket_Hash)) := D;	
 			exception
-				when Constraint_Error => null;
-				-- raise Program_Error with "Equipment parse failed";
+				when Constraint_Error =>
+					raise Program_Error with "Equipment parse failed";
 			end;
-
 		end loop;
 
 		Render;
 	end Update_For_Character;
+
+	procedure Tick is
+		Download_Data : Tasks.Download.Download_Data_Type;
+	begin
+		select
+			Tasks.Download.Character_Task.Complete (Download_Data);
+			GUI.Image_Callback (Download_Data.Path, Download_Data.Widget, Download_Data.Data.all);
+			Tasks.Download.Free (Download_Data.Data);
+		else
+			select
+				Tasks.Download.Character_Task.Execute;
+			else
+				null;
+			end select;
+		end select;
+
+		select
+			Tasks.Download.Contents_Task.Complete (Download_Data);
+			GUI.Image_Callback (Download_Data.Path, Download_Data.Widget, Download_Data.Data.all);
+			Tasks.Download.Free (Download_Data.Data);
+		else
+			select
+				Tasks.Download.Contents_Task.Execute;
+			else
+				null;
+			end select;
+		end select;
+
+	end Tick;
+
 end GUI.Character;

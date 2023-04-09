@@ -16,18 +16,19 @@ with GUI.Character;
 
 procedure Inventory_Tool is
 	-- Constants
-	Discard : Guint;
+	Discard_G : Guint;
+	Discard_B : Boolean;
 	Error : aliased GError;
 
 	Window : Gtk_Window;
 begin
 	-- Print Welcome Message
-	Put_Line ("Destiny Inventory Tool v0.3");
+	Put_Line ("Destiny Inventory Tool v0.5");
 	
 	-- Load Interface
 	Gtk.Main.Init;
 	Gtk_New (GUI.Builder);
-	Discard := Add_From_File (GUI.Builder, "res/experimental.glade", Error'Access);
+	Discard_G := Add_From_File (GUI.Builder, "res/experimental.glade", Error'Access);
 
 	-- Register Callbacks
 	Register_Handler (GUI.Builder, "window_close_handler", GUI.Window_Close_Handler'Access);
@@ -42,6 +43,11 @@ begin
 	GUI.Character.Update_For_Character (GUI.Profile.Characters (0));
 	
 	Do_Connect (GUI.Builder);
-	
-	Gtk.Main.Main;
+
+	-- Accept GTK events and update internal data (downloads, etc.)
+	loop
+		GUI.Global.Tick;
+		GUI.Character.Tick;
+		Discard_B := Gtk.Main.Main_Iteration_Do (Blocking => False);
+	end loop;
 end Inventory_Tool;

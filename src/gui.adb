@@ -5,17 +5,16 @@ with Ada.Containers.Hashed_Maps;
 with System;
 with Interfaces; use Interfaces;
 
+with GNAT.OS_Lib; use GNAT.OS_Lib;
+
 -- Gtkada
-with Gtk.Main;
 with Gtk.Image; use Gtk.Image;
-with Gtk.Grid; use Gtk.Grid;
 with Gtk.Button; use Gtk.Button;
 with Gtk.Label; use Gtk.Label;
 with Gtk.Widget; use Gtk.Widget;
 with Gtk.Container; use Gtk.Container;
 with Gtk.Overlay; use Gtk.Overlay;
 with Gtk.Alignment; use Gtk.Alignment;
-with Gtk.Handlers; use Gtk.Handlers;
 with Gtk.Popover; use Gtk.Popover;
 
 with Gdk.Pixbuf; use Gdk.Pixbuf;
@@ -24,29 +23,10 @@ use Glib;
 
 with Pango.Attributes; use Pango.Attributes;
 
--- AWS
-with AWS.Client;
-with AWS.Response;
-use AWS;
-
 -- Local Packages
 with Shared; use Shared;
 
 package body GUI is
-	-- Instantiations
-	package User_Callback_Item_Description is new User_Callback (Gtk_Widget_Record, Manifest.Tools.Item_Description);
-	use User_Callback_Item_Description;
-
-	package Pixbuf_Hash_Maps is new Ada.Containers.Hashed_Maps (
-		Key_Type => Unbounded_String,
-		Element_Type => Gdk_Pixbuf,
-		Hash => Hash,
-		Equivalent_Keys => Equivalent_Key);
-	subtype Pixbuf_Hash_Map is Pixbuf_Hash_Maps.Map;
-
-	-- Global State
-	Global_Pixbuf_Cache : Pixbuf_Hash_Map;
-
 	-- Private Subprograms
 	-- Private-Exported
 	-- Exclusively for JPEG / PNG format images
@@ -111,7 +91,28 @@ package body GUI is
 		return Convert (Pixbuf);
 	end Load_Image;
 
+	-- Called by Inventory_Tool after data has been downloaded
+	procedure Image_Callback (
+		File_Name : Unbounded_String;
+		Widget : Gtk_Widget;
+		Data : Stream_Element_Array)
+	is
+		Temp : constant Gdk_Pixbuf := Load_Image (+File_Name, Data);
+	begin
+		if Global_Pixbuf_Cache.Contains (File_Name) then
+			Gtk_Image (Widget).Set (Temp);
+			return;
+		end if;
+
+		-- Cache Pixbuf
+		Global_Pixbuf_Cache.Insert (File_Name, Temp);
+
+		Gtk_Image (Widget).Set (Temp);
+	end Image_Callback;
+
 	-- Cached High-Frequency Pixbufs
+	Placeholder_Icon : constant Gdk_Pixbuf := Load_Image ("png",
+		Get_Data ("res/placeholder_icon.png"));
 	Crafted_Masterwork_Overlay : constant Gdk_Pixbuf := Load_Image ("png",
 		Get_Data ("res/crafted_masterwork_overlay.png"));
 	Crafted_Overlay : constant Gdk_Pixbuf := Load_Image ("png",
@@ -123,30 +124,21 @@ package body GUI is
 	Ornament_Overlay : constant Gdk_Pixbuf := Load_Image ("png",
 		Get_Data ("res/ornament_overlay.png"));
 
-	-- Caching Version of Load_Image
-	function Caching_Load_Image (File_Name : Unbounded_String; Cache_Path : String) return Gdk_Pixbuf is
-		Temp : Gdk_Pixbuf;
-	begin
-		if not Global_Pixbuf_Cache.Contains (File_Name) then
-			Temp := Load_Image (+File_Name, Get_Data (Cache_Path));
-			Global_Pixbuf_Cache.Insert (File_Name, Temp);
-			return Temp;
-		else
-			return Global_Pixbuf_Cache (File_Name);	
-		end if;
-	end Caching_Load_Image;
-
-	procedure Remove_Callback (Widget : not null access Gtk.Widget.Gtk_Widget_Record'Class; Grid : Gtk_Grid)
+	package FUD_Container is new Gtk.Container.Foreach_User_Data (Gtk_Container);
+	procedure Remove_Callback (Widget : not null access Gtk.Widget.Gtk_Widget_Record'Class; Container : Gtk_Container)
 	is begin
-		Grid.Remove (Widget);
+		Container.Remove (Widget);
 	end Remove_Callback;
 
 	-- Private-Exported
 	procedure Clear_Bucket (G : Gtk_Grid)
-	is 
-		package FUD_Grid is new Gtk.Container.Foreach_User_Data (Gtk_Grid);
-	begin
-		FUD_Grid.Foreach (G, Remove_Callback'Access, G);
+	is begin
+		FUD_Container.Foreach (Gtk_Container (G), Remove_Callback'Access, Gtk_Container (G));
+	end Clear_Bucket;
+
+	procedure Clear_Bucket (B : Gtk_Box)
+	is begin
+		FUD_Container.Foreach (Gtk_Container (B), Remove_Callback'Access, Gtk_Container (B));
 	end Clear_Bucket;
 
 	procedure Item_Button_Clicked_Handler (Widget : access Gtk_Widget_Record'Class; User_Data : Manifest.Tools.Item_Description)
@@ -162,7 +154,10 @@ package body GUI is
 		Transfer_Menu.Popup;
 	end Item_Button_Clicked_Handler;
 
-	function Get_Overlay (D : Manifest.Tools.Item_Description) return Gtk_Overlay is
+	function Get_Overlay (
+		D : Manifest.Tools.Item_Description;
+		T : Tasks.Download.Download_Task) return Gtk_Overlay
+	is
 		Overlay : Gtk_Overlay;
 		Button : Gtk_Button;
 		Image : Gtk_Image;
@@ -173,24 +168,13 @@ package body GUI is
 		Gtk_New (Image);
 
 		-- Setup Icon and Button
-		if Has_Cached (+D.Icon_Path) then
+		if Global_Pixbuf_Cache.Contains (D.Icon_Path) then
+			Image.Set (Global_Pixbuf_Cache.Element (D.Icon_Path));
 --					Put_Debug ("Load cached icon");
-			Set (Image, Caching_Load_Image (
-				D.Icon_Path, Get_Cache_Path (+D.Icon_Path)));
---					Set (Image, Load_Image (
---						+D.Icon_Path,
---						Get_Cached (+D.Icon_Path)));
-		else
-			declare
-				Data : Response.Data;
-			begin
-				Put_Debug ("Get icon");
-				Data := Client.Get (Bungie_Root & (+D.Icon_Path));
-				Cache (+D.Icon_Path, Response.Message_Body (Data));
-				Set (Image, Load_Image (
-					+D.Icon_Path,
-					Response.Message_Body (Data)));
-			end;
+		else -- Asynchronously download the icon
+--			Put_Debug ("Get icon");
+			Image.Set (Placeholder_Icon);
+			T.Download (D.Icon_Path, Gtk_Widget (Image));
 		end if;
 
 		Set_Image (Button, Image);
@@ -212,26 +196,12 @@ package body GUI is
 				Watermark : Gtk_Image;
 			begin
 				Gtk_New (Watermark);
-				if Has_Cached (+D.Watermark_Path) then
+				if Global_Pixbuf_Cache.Contains (D.Watermark_Path) then
 --					Put_Debug ("Load cached watermark");
-					Set (Watermark, Caching_Load_Image (
-						D.Watermark_Path,
-						Get_Cache_Path (+D.Watermark_Path)));
-
---							Set (Watermark, Load_Image (
---								+D.Watermark_Path,
---								Get_Cached (+D.Watermark_Path)));
-				else
-					declare
-						Data : Response.Data;
-					begin
-						Put_Debug ("Get watermark");
-						Data := Client.Get (Bungie_Root & (+D.Watermark_Path));
-						Cache (+D.Watermark_Path, Response.Message_Body (Data));
-						Set (Watermark, Load_Image (
-							+D.Watermark_Path,
-							Response.Message_Body (Data)));
-					end;
+					Watermark.Set (Global_Pixbuf_Cache.Element (D.Watermark_Path));
+				else -- Asynchronously download the watermark
+--					Put_Debug ("Get watermark");
+					T.Download (D.Watermark_Path, Gtk_Widget (Watermark));
 				end if;
 
 				Watermark.Show;
@@ -306,6 +276,7 @@ package body GUI is
 	procedure Render_Items (
 		List : Item_Description_List;
 		Bucket : Gtk_Grid;
+		T : Tasks.Download.Download_Task;
 		Max_Left : Gint := 2;
 		Max_Top : Gint := 2)
 	is
@@ -323,9 +294,8 @@ package body GUI is
 			end if;
 
 			declare
-				Overlay : constant Gtk_Overlay := Get_Overlay (D);
+				Overlay : constant Gtk_Overlay := Get_Overlay (D, T);
 			begin
-				
 				-- Display Overlay and Attach
 				Overlay.Show;
 				Bucket.Attach (Overlay, Left, Top);
@@ -338,7 +308,8 @@ package body GUI is
 				end if;
 
 				if Top > Max_Top then
-					raise Program_Error;
+					null;
+					--raise Program_Error;
 				end if;
 			end;
 
@@ -354,7 +325,7 @@ package body GUI is
 	pragma Warnings (Off, "is not referenced");
 	procedure Window_Close_Handler (Builder : access Gtkada_Builder_Record'Class) is
 	begin
-		GTK.Main.Main_Quit;
+		OS_Exit (0);
 	end Window_Close_Handler;
 	pragma Warnings (On, "is not referenced");
 end GUI;

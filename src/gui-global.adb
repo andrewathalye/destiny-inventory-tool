@@ -10,10 +10,7 @@ with Gtk.Popover; use Gtk.Popover;
 with Gtk.Image; use Gtk.Image;
 with Gtk.Button; use Gtk.Button;
 
--- AWS
-with AWS.Client;
-with AWS.Response;
-use AWS;
+with Gdk.Pixbuf; use Gdk.Pixbuf;
 
 -- Local Packages
 with Shared; use Shared;
@@ -28,6 +25,21 @@ package body GUI.Global is
 	use User_Callback_Natural;
 
 	Vault_Inventory : array (Bucket_Location) of Item_Description_List;
+
+	-- Cache
+	Placeholder_Icon : constant Gdk_Pixbuf := Load_Image ("png",
+							Get_Data ("res/placeholder_icon.png"));
+
+	-- Redirections
+	procedure Render_Items (
+		List : Item_Description_List;
+		Bucket : Gtk_Grid;
+		Max_Left : Gint := 2;
+		Max_Top : Gint := 2;
+		T : Tasks.Download.Download_Task := Tasks.Download.Global_Task)
+	is begin
+		GUI.Render_Items (List, Bucket, T, Max_Left, Max_Top);
+	end Render_Items;
 
 	-- Private Subprograms
 	-- Global UI Callbacks
@@ -57,9 +69,37 @@ package body GUI.Global is
 		Character_Menu : constant Gtk_Popover := Gtk_Popover (GUI.Builder.Get_Object ("character_menu"));
 	begin
 		Character_Menu.Popdown;
+		Tasks.Download.Character_Task.Clear;
 		Character.Update_For_Character (Profile.Characters (User_Data));
 	end Character_Menu_Button_Clicked_Handler;
 	pragma Warnings (On, "is not referenced");
+
+	Entries : Natural := 0;
+
+	procedure Contents_Closed_Handler (Builder : access Gtkada_Builder_Record'Class)
+	is begin
+		Entries := 0;
+	end Contents_Closed_Handler;
+
+	function Contents_Leave_Handler (Builder : access Gtkada_Builder_Record'Class) return Boolean
+	is
+		Contents : constant Gtk_Popover := Gtk_Popover (Builder.Get_Object ("full_contents"));
+		Contents_Grid : constant Gtk_Grid := Gtk_Grid (Builder.Get_Object ("full_contents_grid"));
+	begin
+		if Entries > 1 then
+			Contents.Popdown;
+
+			Entries := 0;
+		end if;
+
+		return False; -- Do not execute other handlers
+	end Contents_Leave_Handler;
+
+	function Contents_Enter_Handler (Builder : access Gtkada_Builder_Record'Class) return Boolean
+	is begin
+		Entries := @ + 1;
+		return True; -- Do not execute other handlers
+	end Contents_Enter_Handler;
 
 	-- Global UI Setup
 	procedure Setup_Character_Menu is
@@ -75,26 +115,19 @@ package body GUI.Global is
 			declare
 				Image : Gtk_Image;
 				Button : Gtk_Button;
-
-				Data : Response.Data;
 			begin
 				Gtk_New (Image);
 				Gtk_New (Button, Manifest.Tools.Get_Description (The_Manifest, C));
 
 				-- Load emblem
-				if Has_Cached (+C.Emblem_Path) then
-					Image.Set (
-						Load_Image (
-							+C.Emblem_Path,
-							Get_Cached (+C.Emblem_Path)));
+				if Global_Pixbuf_Cache.Contains (C.Emblem_Path) then
+					Image.Set (Global_Pixbuf_Cache.Element (C.Emblem_Path));
 				else
-					Put_Debug ("Get mini emblem");
-					Data := Client.Get (Bungie_Root & (+C.Emblem_Path));
-					Cache (+C.Emblem_Path, Response.Message_Body (Data));
-					Image.Set (
-						Load_Image (
-							+C.Emblem_Path,
-							Response.Message_Body (Data)));
+--					Put_Debug ("Get mini emblem");
+					Image.Set (Placeholder_Icon);
+					Tasks.Download.Global_Task.Download (
+						C.Emblem_Path,
+						Gtk_Widget (Image));
 				end if;
 
 				Connect (Button,
@@ -124,25 +157,20 @@ package body GUI.Global is
 			declare
 				Image : Gtk_Image;
 				Button : Gtk_Button;
-
-				Data : Response.Data;
 			begin
 				Gtk_New (Image);
 				Gtk_New (Button, Manifest.Tools.Get_Description (The_Manifest, C));
 
 				-- Load emblem
-				if Has_Cached (+C.Emblem_Path) then
-					Image.Set (
-						Caching_Load_Image (C.Emblem_Path,
-							Get_Cache_Path (+C.Emblem_Path)));
+				if Global_Pixbuf_Cache.Contains (C.Emblem_Path) then
+					Image.Set (Global_Pixbuf_Cache.Element (C.Emblem_Path));
 				else
-					Put_Debug ("Get mini emblem");
-					Data := Client.Get (Bungie_Root & (+C.Emblem_Path));
-					Cache (+C.Emblem_Path, Response.Message_Body (Data));
-					Image.Set (
-						Load_Image (
-							+C.Emblem_Path,
-							Response.Message_Body (Data)));
+--					Put_Debug ("Get mini emblem");
+					Image.Set (Placeholder_Icon);
+						
+					Tasks.Download.Global_Task.Download (
+						C.Emblem_Path,
+						Gtk_Widget (Image));
 				end if;
 
 				Image.Show;
@@ -225,21 +253,12 @@ package body GUI.Global is
 	begin
 		Register_Handler (Builder, "emblem_button_clicked_handler", Emblem_Button_Clicked_Handler'Access);
 		Register_Handler (Builder, "search_changed_handler", Search_Changed_Handler'Access);
+		Register_Handler (GUI.Builder, "contents_leave_handler", Contents_Leave_Handler'Access);
+		Register_Handler (GUI.Builder, "contents_enter_handler", Contents_Enter_Handler'Access);
+		Register_Handler (GUI.Builder, "contents_closed_handler", Contents_Closed_Handler'Access);
 	end Set_Callbacks;
 
 	procedure Setup_Descriptions is
-		Kinetic_Hash : constant := 1498876634;
-		Energy_Hash : constant := 2465295065;
-		Power_Hash : constant := 953998645;
-		Shell_Hash : constant := 4023194814;
-		Artefact_Hash : constant := 1506418338;
-
-		Helmet_Hash : constant := 3448274439;
-		Gauntlets_Hash : constant := 3551918588;
-		Chest_Hash : constant := 14239492;
-		Leg_Hash : constant := 20886954;
-		Class_Hash : constant := 1585787867;
-
 		function Make_Label (Hash : Manifest.Manifest_Hash) return Gtk_Label is
 			Result : Gtk_Label;
 		begin
@@ -250,18 +269,20 @@ package body GUI.Global is
 
 		Descriptions : constant Gtk_Grid := Gtk_Grid (GUI.Builder.Get_Object ("descriptions"));
 	begin
-		Descriptions.Attach (Make_Label (Kinetic_Hash), 0, 0);
-		Descriptions.Attach (Make_Label (Energy_Hash), 0, 1);
-		Descriptions.Attach (Make_Label (Power_Hash), 0, 2);
-		Descriptions.Attach (Make_Label (Shell_Hash), 0, 3);
-		Descriptions.Attach (Make_Label (Artefact_Hash), 0, 4);
+		Descriptions.Attach (Make_Label (Subclass'Enum_Rep), 0, 0);
+
+		Descriptions.Attach (Make_Label (Kinetic'Enum_Rep), 0, 1);
+		Descriptions.Attach (Make_Label (Energy'Enum_Rep), 0, 2);
+		Descriptions.Attach (Make_Label (Power'Enum_Rep), 0, 3);
+		Descriptions.Attach (Make_Label (Shell'Enum_Rep), 0, 4);
+		Descriptions.Attach (Make_Label (Artefact'Enum_Rep), 0, 5);
 
 
-		Descriptions.Attach (Make_Label (Helmet_Hash), 1, 0);
-		Descriptions.Attach (Make_Label (Gauntlets_Hash), 1, 1);
-		Descriptions.Attach (Make_Label (Chest_Hash), 1, 2);
-		Descriptions.Attach (Make_Label (Leg_Hash), 1, 3);
-		Descriptions.Attach (Make_Label (Class_Hash), 1, 4);
+		Descriptions.Attach (Make_Label (Helmet'Enum_Rep), 1, 1);
+		Descriptions.Attach (Make_Label (Gauntlets'Enum_Rep), 1, 2);
+		Descriptions.Attach (Make_Label (Chest'Enum_Rep), 1, 3);
+		Descriptions.Attach (Make_Label (Leg'Enum_Rep), 1, 4);
+		Descriptions.Attach (Make_Label (Class'Enum_Rep), 1, 5);
 	end Setup_Descriptions;
 
 	-- Global Update_Inventory
@@ -284,11 +305,7 @@ package body GUI.Global is
 						The_Manifest,
 						I);
 				begin
-					if D.Category = Manifest.Equippable then
-						Vault_Inventory (Bucket_Location'Enum_Val (D.Default_Bucket_Order)).Append (D);
-					else
-						Vault_Inventory (Unknown).Append (D);
-					end if;
+					Vault_Inventory (Bucket_Location'Enum_Val (D.Default_Bucket_Hash)).Append (D);
 				exception
 					when Constraint_Error =>
 						Vault_Inventory (Unknown).Append (D);
@@ -299,4 +316,20 @@ package body GUI.Global is
 		-- Draw global inventories
 		Render;
 	end Update_Inventory;
+
+	procedure Tick is
+		Download_Data : Tasks.Download.Download_Data_Type;
+	begin
+		select
+			Tasks.Download.Global_Task.Complete (Download_Data);
+			GUI.Image_Callback (Download_Data.Path, Download_Data.Widget, Download_Data.Data.all);
+			Tasks.Download.Free (Download_Data.Data);
+		else
+			select
+				Tasks.Download.Global_Task.Execute;
+			else
+				null;
+			end select;
+		end select;
+	end Tick;
 end GUI.Global;

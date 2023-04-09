@@ -36,12 +36,19 @@
     </child>
   </object>
   <object class="GtkPopover" id="full_contents">
-    <property name="can-focus">False</property>
+    <property name="can-focus">True</property>
+    <property name="position">left</property>
+    <property name="transitions-enabled">False</property>
+    <signal name="closed" handler="contents_closed_handler" swapped="no"/>
+    <signal name="enter-notify-event" handler="contents_enter_handler" swapped="no"/>
+    <signal name="leave-notify-event" handler="contents_leave_handler" swapped="no"/>
     <child>
       <!-- n-columns=3 n-rows=3 -->
-      <object class="GtkGrid" id="full_contents_box">
+      <object class="GtkGrid" id="full_contents_grid">
         <property name="visible">True</property>
         <property name="can-focus">False</property>
+        <property name="row-homogeneous">True</property>
+        <property name="column-homogeneous">True</property>
         <child>
           <placeholder/>
         </child>
@@ -264,7 +271,82 @@
                         <property name="can-focus">False</property>
                         <property name="orientation">vertical</property>
                         <property name="spacing">50</property>
-                        <property name="homogeneous">True</property>
+                        <child>
+                          <!-- n-columns=7 n-rows=3 -->
+                          <object class="GtkGrid" id="postmaster">
+                            <property name="visible">True</property>
+                            <property name="can-focus">False</property>
+                            <property name="row-homogeneous">True</property>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">False</property>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
                         <child>
                           <object class="GtkBox" id="inventory">
                             <property name="visible">True</property>
@@ -279,7 +361,7 @@
                                 <property name="spacing">10</property>
                                 <property name="homogeneous">True</property>
                                 <child>
-                                  <object class="GtkBox" id="kinetic">
+                                  <object class="GtkBox" id="subclass">
                                     <property name="visible">True</property>
                                     <property name="can-focus">False</property>
                                     <property name="orientation">vertical</property>
@@ -294,7 +376,7 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkBox" id="energy">
+                                  <object class="GtkBox" id="kinetic">
                                     <property name="visible">True</property>
                                     <property name="can-focus">False</property>
                                     <property name="orientation">vertical</property>
@@ -309,7 +391,7 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkBox" id="power">
+                                  <object class="GtkBox" id="energy">
                                     <property name="visible">True</property>
                                     <property name="can-focus">False</property>
                                     <property name="orientation">vertical</property>
@@ -324,7 +406,7 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkBox" id="shell">
+                                  <object class="GtkBox" id="power">
                                     <property name="visible">True</property>
                                     <property name="can-focus">False</property>
                                     <property name="orientation">vertical</property>
@@ -339,7 +421,7 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkBox" id="artefact">
+                                  <object class="GtkBox" id="shell">
                                     <property name="visible">True</property>
                                     <property name="can-focus">False</property>
                                     <property name="orientation">vertical</property>
@@ -353,6 +435,21 @@
                                     <property name="position">4</property>
                                   </packing>
                                 </child>
+                                <child>
+                                  <object class="GtkBox" id="artefact">
+                                    <property name="visible">True</property>
+                                    <property name="can-focus">False</property>
+                                    <property name="orientation">vertical</property>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">True</property>
+                                    <property name="position">5</property>
+                                  </packing>
+                                </child>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -361,7 +458,7 @@
                               </packing>
                             </child>
                             <child>
-                              <!-- n-columns=2 n-rows=5 -->
+                              <!-- n-columns=2 n-rows=6 -->
                               <object class="GtkGrid" id="descriptions">
                                 <property name="visible">True</property>
                                 <property name="can-focus">False</property>
@@ -369,6 +466,12 @@
                                 <property name="column-spacing">10</property>
                                 <property name="row-homogeneous">True</property>
                                 <property name="column-homogeneous">True</property>
+                                <child>
+                                  <placeholder/>
+                                </child>
+                                <child>
+                                  <placeholder/>
+                                </child>
                                 <child>
                                   <placeholder/>
                                 </child>
@@ -414,7 +517,7 @@
                                 <property name="spacing">10</property>
                                 <property name="homogeneous">True</property>
                                 <child>
-                                  <object class="GtkBox" id="helmet">
+                                  <object class="GtkBox" id="armour_spacer">
                                     <property name="visible">True</property>
                                     <property name="can-focus">False</property>
                                     <property name="orientation">vertical</property>
@@ -429,7 +532,7 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkBox" id="gauntlets">
+                                  <object class="GtkBox" id="helmet">
                                     <property name="visible">True</property>
                                     <property name="can-focus">False</property>
                                     <property name="orientation">vertical</property>
@@ -444,7 +547,7 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkBox" id="chest">
+                                  <object class="GtkBox" id="gauntlets">
                                     <property name="visible">True</property>
                                     <property name="can-focus">False</property>
                                     <property name="orientation">vertical</property>
@@ -459,7 +562,7 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkBox" id="leg">
+                                  <object class="GtkBox" id="chest">
                                     <property name="visible">True</property>
                                     <property name="can-focus">False</property>
                                     <property name="orientation">vertical</property>
@@ -474,7 +577,7 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkBox" id="class">
+                                  <object class="GtkBox" id="leg">
                                     <property name="visible">True</property>
                                     <property name="can-focus">False</property>
                                     <property name="orientation">vertical</property>
@@ -488,6 +591,21 @@
                                     <property name="position">4</property>
                                   </packing>
                                 </child>
+                                <child>
+                                  <object class="GtkBox" id="class">
+                                    <property name="visible">True</property>
+                                    <property name="can-focus">False</property>
+                                    <property name="orientation">vertical</property>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">True</property>
+                                    <property name="position">5</property>
+                                  </packing>
+                                </child>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -499,7 +617,7 @@
                           <packing>
                             <property name="expand">False</property>
                             <property name="fill">True</property>
-                            <property name="position">0</property>
+                            <property name="position">1</property>
                           </packing>
                         </child>
                         <child>
@@ -603,7 +721,19 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <placeholder/>
+                                  <object class="GtkBox" id="emote">
+                                    <property name="visible">True</property>
+                                    <property name="can-focus">False</property>
+                                    <property name="orientation">vertical</property>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">True</property>
+                                    <property name="position">1</property>
+                                  </packing>
                                 </child>
                                 <child>
                                   <placeholder/>
@@ -619,7 +749,7 @@
                           <packing>
                             <property name="expand">False</property>
                             <property name="fill">True</property>
-                            <property name="position">1</property>
+                            <property name="position">2</property>
                           </packing>
                         </child>
                       </object>

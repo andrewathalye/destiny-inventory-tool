@@ -46,7 +46,7 @@ package body Shared is
 		S : Stream_Access;
 		SEA : Stream_Element_Array (1 .. Stream_Element_Offset (Size (Name)));
 	begin
-		Open (SF, In_File, Name);
+		Open (SF, In_File, Name, "shared=yes");
 		S := Stream (SF);
 
 		Stream_Element_Array'Read (S, SEA);

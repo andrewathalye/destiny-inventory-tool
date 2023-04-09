@@ -9,8 +9,6 @@ package API.Manifest.Tools is
 		Bucket_Hash, Default_Bucket_Hash : Manifest_Hash;
 			-- DestinyInventoryBucketDefinition
 		Category : Destiny_Inventory_Bucket_Category;
-		Bucket_Order : Integer_32;
-		Default_Bucket_Order : Integer_32;
 		State : Item_State_Type;
 		Icon_Path : Unbounded_String;
 		Watermark_Path : Unbounded_String;

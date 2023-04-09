@@ -372,6 +372,7 @@ package body API.Profiles is
 		Read_Next (Reader); -- START_OBJECT
 		Read_Next (Reader); -- Character ID / END_OBJECT
 		
+		-- TODO May need to be realigned as per above (might skip objects)
 		while Event_Kind (Reader) /= End_Object loop
 			declare
 				Character_ID : Unbounded_String;
@@ -410,6 +411,7 @@ package body API.Profiles is
 				Character_ID := VS2UB (Key_Name (Reader));	
 				Read_Inventory (Reader, Inventory);
 				Result.Character_Equipment.Insert (Character_ID, Inventory);
+				Read_Next (Reader); -- END_OBJECT
 				Read_Next (Reader); -- START_OBJECT / END_OBJECT
 			end;
 		end loop;
