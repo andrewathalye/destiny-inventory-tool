@@ -3,8 +3,9 @@ private with Ada.Strings.Unbounded;
 with Interfaces; use Interfaces;
 
 -- AWS
-private with AWS.Response;
+with AWS.Response;
 with AWS.Headers;
+use AWS;
 
 package API is
 	-- Constants
@@ -26,11 +27,9 @@ package API is
 
 	-- Subprograms
 	function Create_Headers (Auth_Data : Auth_Storage_Type) return Auth_Header_Type;
+	procedure Check_Status (Data : Response.Data);
 private
 	use Ada.Strings.Unbounded;
-	use AWS;
-
-	procedure Check_Status (Data : Response.Data);
 
 	API_Root : constant String := Bungie_Root & "/Platform";
 	API_Key : constant String := "ba586a1fd8f94cccb485ed6ad880fefc";

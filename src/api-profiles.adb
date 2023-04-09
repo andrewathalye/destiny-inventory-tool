@@ -3,7 +3,6 @@ pragma Ada_2022;
 -- AWS
 with AWS.Client;
 with AWS.Response;
-use AWS;
 
 -- VSS
 with VSS.JSON.Pull_Readers.Simple; use VSS.JSON.Pull_Readers.Simple;

@@ -2,7 +2,6 @@ pragma Ada_2022;
 
 -- AWS
 with AWS.Messages;
-use AWS;
 
 -- Local Packages
 with Shared; use Shared;

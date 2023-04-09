@@ -35,10 +35,9 @@ package body GUI.Global is
 		List : Item_Description_List;
 		Bucket : Gtk_Grid;
 		Max_Left : Gint := 2;
-		Max_Top : Gint := 2;
 		T : Tasks.Download.Download_Task := Tasks.Download.Global_Task)
 	is begin
-		GUI.Render_Items (List, Bucket, T, Max_Left, Max_Top);
+		GUI.Render_Items (List, Bucket, T, Max_Left);
 	end Render_Items;
 
 	-- Private Subprograms
@@ -69,7 +68,6 @@ package body GUI.Global is
 		Character_Menu : constant Gtk_Popover := Gtk_Popover (GUI.Builder.Get_Object ("character_menu"));
 	begin
 		Character_Menu.Popdown;
-		Tasks.Download.Character_Task.Clear;
 		Character.Update_For_Character (Profile.Characters (User_Data));
 	end Character_Menu_Button_Clicked_Handler;
 	pragma Warnings (On, "is not referenced");
@@ -84,7 +82,6 @@ package body GUI.Global is
 	function Contents_Leave_Handler (Builder : access Gtkada_Builder_Record'Class) return Boolean
 	is
 		Contents : constant Gtk_Popover := Gtk_Popover (Builder.Get_Object ("full_contents"));
-		Contents_Grid : constant Gtk_Grid := Gtk_Grid (Builder.Get_Object ("full_contents_grid"));
 	begin
 		if Entries > 1 then
 			Contents.Popdown;
@@ -227,23 +224,23 @@ package body GUI.Global is
 
 		Clear_Bucket (Vault_Other);
 
-		Render_Items (Vault_Inventory (Kinetic), Vault_Kinetic, 10, 60);
-		Render_Items (Vault_Inventory (Energy), Vault_Energy, 10, 60);
-		Render_Items (Vault_Inventory (Power), Vault_Power, 10, 60);
-		Render_Items (Vault_Inventory (Shell), Vault_Shell, 10, 60);
-		Render_Items (Vault_Inventory (Artefact), Vault_Artefact, 10, 60);
+		Render_Items (Vault_Inventory (Kinetic), Vault_Kinetic, 10);
+		Render_Items (Vault_Inventory (Energy), Vault_Energy, 10);
+		Render_Items (Vault_Inventory (Power), Vault_Power, 10);
+		Render_Items (Vault_Inventory (Shell), Vault_Shell, 10);
+		Render_Items (Vault_Inventory (Artefact), Vault_Artefact, 10);
 
-		Render_Items (Vault_Inventory (Helmet), Vault_Helmet, 10, 60);
-		Render_Items (Vault_Inventory (Gauntlets), Vault_Gauntlets, 10, 60);
-		Render_Items (Vault_Inventory (Chest), Vault_Chest, 10, 60);
-		Render_Items (Vault_Inventory (Leg), Vault_Leg, 10, 60);
-		Render_Items (Vault_Inventory (Class), Vault_Class, 10, 60);
+		Render_Items (Vault_Inventory (Helmet), Vault_Helmet, 10);
+		Render_Items (Vault_Inventory (Gauntlets), Vault_Gauntlets, 10);
+		Render_Items (Vault_Inventory (Chest), Vault_Chest, 10);
+		Render_Items (Vault_Inventory (Leg), Vault_Leg, 10);
+		Render_Items (Vault_Inventory (Class), Vault_Class, 10);
 
-		Render_Items (Vault_Inventory (Emblem), Vault_Emblem, 10, 60);
-		Render_Items (Vault_Inventory (Sparrow), Vault_Sparrow, 10, 60);
-		Render_Items (Vault_Inventory (Ship), Vault_Ship, 10, 60);
+		Render_Items (Vault_Inventory (Emblem), Vault_Emblem, 10);
+		Render_Items (Vault_Inventory (Sparrow), Vault_Sparrow, 10);
+		Render_Items (Vault_Inventory (Ship), Vault_Ship, 10);
 
-		Render_Items (Vault_Inventory (Unknown), Vault_Other, 10, 60);
+		Render_Items (Vault_Inventory (Unknown), Vault_Other, 10);
 	end Render;
 
 	-- Public Subprograms
@@ -269,7 +266,7 @@ package body GUI.Global is
 
 		Descriptions : constant Gtk_Grid := Gtk_Grid (GUI.Builder.Get_Object ("descriptions"));
 	begin
-		Descriptions.Attach (Make_Label (Subclass'Enum_Rep), 0, 0);
+		Descriptions.Attach (Make_Label (GUI.Subclass'Enum_Rep), 0, 0);
 
 		Descriptions.Attach (Make_Label (Kinetic'Enum_Rep), 0, 1);
 		Descriptions.Attach (Make_Label (Energy'Enum_Rep), 0, 2);
@@ -322,8 +319,7 @@ package body GUI.Global is
 	begin
 		select
 			Tasks.Download.Global_Task.Complete (Download_Data);
-			GUI.Image_Callback (Download_Data.Path, Download_Data.Widget, Download_Data.Data.all);
-			Tasks.Download.Free (Download_Data.Data);
+			GUI.Image_Callback (Download_Data.Path, Download_Data.Widget, Download_Data.Data);
 		else
 			select
 				Tasks.Download.Global_Task.Execute;

@@ -30,10 +30,9 @@ package body GUI.Character is
 		List : Item_Description_List;
 		Bucket : Gtk_Grid;
 		T : Tasks.Download.Download_Task := Tasks.Download.Character_Task;
-		Max_Left : Gint := 2;
-		Max_Top : Gint := 2)
+		Max_Left : Gint := 2)
 	is begin
-		GUI.Render_Items (List, Bucket, T, Max_Left, Max_Top);
+		GUI.Render_Items (List, Bucket, T, Max_Left);
 	end Render_Items;
 
 	-- Cache
@@ -45,7 +44,6 @@ package body GUI.Character is
 		Contents : constant Gtk_Popover := Gtk_Popover (Builder.Get_Object ("full_contents"));
 		Contents_Grid : constant Gtk_Grid := Gtk_Grid (Builder.Get_Object ("full_contents_grid"));
 	begin
-		Tasks.Download.Contents_Task.Clear;
 		Clear_Bucket (Contents_Grid);
 
 		-- TODO Emotes are special and only some are supported currently
@@ -75,7 +73,7 @@ package body GUI.Character is
 		Box : Gtk_Box;
 		Item_Alignment : Item_Alignment_Type := Centre)
 	is
-		Overlay : constant Gtk_Overlay := Get_Overlay (D, Tasks.Download.Character_Task);
+		Overlay : Gtk_Overlay;
 		Alignment : constant Gtk_Alignment := Gtk_Alignment_New (
 			Xalign => (case Item_Alignment is
 				when Left => 0.0,
@@ -85,6 +83,13 @@ package body GUI.Character is
 			Xscale => 0.0,
 			Yscale => 0.0);
 	begin
+		-- Skip rendering the item if the bucket is empty
+		if Length (D.Name) = 0 then
+			return;
+		end if;
+
+		Overlay := Get_Overlay (D, Tasks.Download.Character_Task);
+
 		Connect (Widget_List.Get_Data (Widget_List.First (Overlay.Get_Children)),
 			"enter-notify-event",
 			To_Marshaller (Item_Overlay_Entered_Handler'Access),
@@ -127,8 +132,7 @@ package body GUI.Character is
 			Character_Items (Postmaster),
 			Postmaster_Grid, 
 			Tasks.Download.Character_Task,
-			6,
-			2);
+			6);
 
 		Clear_Bucket (Subclass_Box);
 		Render_Item (Equipped_Items (Subclass), Subclass_Box, Right);
@@ -232,8 +236,7 @@ package body GUI.Character is
 	begin
 		select
 			Tasks.Download.Character_Task.Complete (Download_Data);
-			GUI.Image_Callback (Download_Data.Path, Download_Data.Widget, Download_Data.Data.all);
-			Tasks.Download.Free (Download_Data.Data);
+			GUI.Image_Callback (Download_Data.Path, Download_Data.Widget, Download_Data.Data);
 		else
 			select
 				Tasks.Download.Character_Task.Execute;
@@ -244,8 +247,7 @@ package body GUI.Character is
 
 		select
 			Tasks.Download.Contents_Task.Complete (Download_Data);
-			GUI.Image_Callback (Download_Data.Path, Download_Data.Widget, Download_Data.Data.all);
-			Tasks.Download.Free (Download_Data.Data);
+			GUI.Image_Callback (Download_Data.Path, Download_Data.Widget, Download_Data.Data);
 		else
 			select
 				Tasks.Download.Contents_Task.Execute;

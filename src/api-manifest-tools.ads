@@ -13,8 +13,9 @@ package API.Manifest.Tools is
 		Icon_Path : Unbounded_String;
 		Watermark_Path : Unbounded_String;
 		Style_Overridden : Boolean;
-		Item_Type_And_Tier_Display_Name : Unbounded_String;
+		Item_Type : Destiny_Item_Type;
 		Tier_Type : Destiny_Tier_Type;
+		Item_Type_And_Tier_Display_Name : Unbounded_String;
 	end record;
 
 	function Get_Description (

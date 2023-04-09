@@ -45,8 +45,9 @@ package body API.Manifest.Tools is
 						Natural (I.Version_Number))
 				else Manifest_Item.Watermark_Path),
 			Style_Overridden => I.Override_Style_Item_Hash /= 0,
-			Item_Type_And_Tier_Display_Name => Manifest_Item.Item_Type_And_Tier_Display_Name,
-			Tier_Type => Manifest_Item.Tier_Type);
+			Item_Type => Manifest_Item.Item_Type,
+			Tier_Type => Manifest_Item.Tier_Type,
+			Item_Type_And_Tier_Display_Name => Manifest_Item.Item_Type_And_Tier_Display_Name);
 	end Get_Description;
 
 	function Get_Title (

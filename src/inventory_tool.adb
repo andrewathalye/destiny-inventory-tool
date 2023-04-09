@@ -23,7 +23,7 @@ procedure Inventory_Tool is
 	Window : Gtk_Window;
 begin
 	-- Print Welcome Message
-	Put_Line ("Destiny Inventory Tool v0.5");
+	Put_Line ("Destiny Inventory Tool v0.6");
 	
 	-- Load Interface
 	Gtk.Main.Init;
@@ -48,6 +48,6 @@ begin
 	loop
 		GUI.Global.Tick;
 		GUI.Character.Tick;
-		Discard_B := Gtk.Main.Main_Iteration_Do (Blocking => False);
+		Discard_B := Gtk.Main.Main_Iteration;
 	end loop;
 end Inventory_Tool;

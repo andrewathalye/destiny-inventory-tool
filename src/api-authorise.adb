@@ -3,8 +3,8 @@ pragma Ada_2022;
 with Ada.Text_IO;
 with Ada.Streams.Stream_IO; use Ada.Streams;
 with Ada.Numerics.Discrete_Random;
-use Ada;
 with Ada.Directories; use Ada.Directories;
+use Ada;
 
 -- AWS
 with AWS.Client;
@@ -12,7 +12,6 @@ with AWS.Server;
 with AWS.Response;
 with AWS.Status; use AWS.Status;
 with AWS.Messages;
-use AWS;
 
 -- Local Packages
 with JSON; use JSON;

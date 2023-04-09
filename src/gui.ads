@@ -135,6 +135,5 @@ private
 		List : Item_Description_List;
 		Bucket : Gtk_Grid;
 		T : Tasks.Download.Download_Task;
-		Max_Left : Gint := 2;
-		Max_Top : Gint := 2);
+		Max_Left : Gint := 2);
 end GUI;

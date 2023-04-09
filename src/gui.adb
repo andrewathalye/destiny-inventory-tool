@@ -158,6 +158,24 @@ package body GUI is
 		D : Manifest.Tools.Item_Description;
 		T : Tasks.Download.Download_Task) return Gtk_Overlay
 	is
+		-- Subprograms
+		-- TODO: Not 100% game accurate, but fast
+		function Should_Watermark (D : Manifest.Tools.Item_Description) return Boolean is
+			(case D.Item_Type is
+				when Manifest.Emblem
+					| Manifest.Subclass
+					| Manifest.Consumable
+					| Manifest.DIT_Mod
+					| Manifest.Dummy
+					| Manifest.None => False,
+				when others => True) with Inline;
+
+		function Should_State_Overlay (D : Manifest.Tools.Item_Description) return Boolean is
+			(case D.Item_Type is
+				when Manifest.Subclass => False,
+				when others => True) with Inline;
+
+		-- Variables
 		Overlay : Gtk_Overlay;
 		Button : Gtk_Button;
 		Image : Gtk_Image;
@@ -170,9 +188,7 @@ package body GUI is
 		-- Setup Icon and Button
 		if Global_Pixbuf_Cache.Contains (D.Icon_Path) then
 			Image.Set (Global_Pixbuf_Cache.Element (D.Icon_Path));
---					Put_Debug ("Load cached icon");
 		else -- Asynchronously download the icon
---			Put_Debug ("Get icon");
 			Image.Set (Placeholder_Icon);
 			T.Download (D.Icon_Path, Gtk_Widget (Image));
 		end if;
@@ -189,25 +205,25 @@ package body GUI is
 		-- Add Button to Overlay
 		Overlay.Add (Button);
 		
-		-- First Overlay
-		-- Add Watermark to Overlay
-		if Length (D.Watermark_Path) > 0 then
-			declare
-				Watermark : Gtk_Image;
-			begin
-				Gtk_New (Watermark);
-				if Global_Pixbuf_Cache.Contains (D.Watermark_Path) then
---					Put_Debug ("Load cached watermark");
-					Watermark.Set (Global_Pixbuf_Cache.Element (D.Watermark_Path));
-				else -- Asynchronously download the watermark
---					Put_Debug ("Get watermark");
-					T.Download (D.Watermark_Path, Gtk_Widget (Watermark));
-				end if;
+		if Should_Watermark (D) then
+			-- First Overlay
+			-- Add Watermark to Overlay
+			if Length (D.Watermark_Path) > 0 then
+				declare
+					Watermark : Gtk_Image;
+				begin
+					Gtk_New (Watermark);
+					if Global_Pixbuf_Cache.Contains (D.Watermark_Path) then
+						Watermark.Set (Global_Pixbuf_Cache.Element (D.Watermark_Path));
+					else -- Asynchronously download the watermark
+						T.Download (D.Watermark_Path, Gtk_Widget (Watermark));
+					end if;
 
-				Watermark.Show;
-				Overlay.Add_Overlay (Watermark);
-				Overlay.Set_Overlay_Pass_Through (Watermark, True);
-			end;
+					Watermark.Show;
+					Overlay.Add_Overlay (Watermark);
+					Overlay.Set_Overlay_Pass_Through (Watermark, True);
+				end;
+			end if;
 		end if;
 
 		-- Intermediate Overlay
@@ -224,21 +240,23 @@ package body GUI is
 			end;
 		end if;
 
-		-- Final Overlay
-		-- Add Masterwork / Crafted / Normal Overlay
-		Gtk_New (State_Overlay);
-		Set (State_Overlay, (
-			if D.State.Masterwork and D.State.Crafted then
-				Crafted_Masterwork_Overlay
-			elsif D.State.Masterwork then
-				Masterwork_Overlay
-			elsif D.State.Crafted then
-				Crafted_Overlay
-			else Normal_Overlay));
+		if Should_State_Overlay (D) then
+			-- Final Overlay
+			-- Add Masterwork / Crafted / Normal Overlay
+			Gtk_New (State_Overlay);
+			Set (State_Overlay, (
+				if D.State.Masterwork and D.State.Crafted then
+					Crafted_Masterwork_Overlay
+				elsif D.State.Masterwork then
+					Masterwork_Overlay
+				elsif D.State.Crafted then
+					Crafted_Overlay
+				else Normal_Overlay));
 
-		State_Overlay.Show;
-		Overlay.Add_Overlay (State_Overlay);
-		Overlay.Set_Overlay_Pass_Through (State_Overlay, True);
+			State_Overlay.Show;
+			Overlay.Add_Overlay (State_Overlay);
+			Overlay.Set_Overlay_Pass_Through (State_Overlay, True);
+		end if;
 
 		-- Setup Quantity Label if Needed
 		if D.Quantity > 1 then
@@ -277,8 +295,7 @@ package body GUI is
 		List : Item_Description_List;
 		Bucket : Gtk_Grid;
 		T : Tasks.Download.Download_Task;
-		Max_Left : Gint := 2;
-		Max_Top : Gint := 2)
+		Max_Left : Gint := 2)
 	is
 		Left : Gint := 0;
 		Top : Gint := 0;
@@ -305,11 +322,6 @@ package body GUI is
 				if Left > Max_Left then
 					Left := 0;
 					Top := @ + 1;
-				end if;
-
-				if Top > Max_Top then
-					null;
-					--raise Program_Error;
 				end if;
 			end;
 

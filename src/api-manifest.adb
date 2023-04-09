@@ -3,11 +3,6 @@ pragma Ada_2022;
 with Ada.Streams.Stream_IO;
 with Ada.Directories; use Ada.Directories;
 
--- AWS
-with AWS.Client;
-with AWS.Response;
-use AWS;
-
 -- VSS
 with VSS.JSON.Pull_Readers.Simple; use VSS.JSON.Pull_Readers.Simple;
 with VSS.Text_Streams; use VSS.Text_Streams;
@@ -19,6 +14,7 @@ use VSS.JSON;
 -- Local Packages
 with JSON; use JSON;
 with Shared; use Shared;
+with Tasks.Download;
 
 package body API.Manifest is
 	-- Note Seek to "DestinyGenderDefinition"
@@ -316,22 +312,32 @@ package body API.Manifest is
 								As_Integer (
 									Number_Value (Reader)));
 
+						elsif VS2S (Key_Name (Reader)) = "itemType" then
+							Read_Next (Reader);
+							Item.Item_Type := Destiny_Item_Type'Enum_Val (
+								As_Integer (
+									Number_Value (Reader)));
+
 						elsif VS2S (Key_Name (Reader)) = "defaultDamageTypeHash" then
 							Read_Next (Reader);
 							Item.Default_Damage_Type_Hash := Manifest_Hash (
 								As_Integer (
 									Number_Value (Reader)));
+
 						elsif VS2S (Key_Name (Reader)) = "collectibleHash" then
 							Read_Next (Reader); -- value ignored TODO
 							Read_Next (Reader); -- "iconWatermark", "iconWatermarkShelved", etc.
+
 						elsif VS2S (Key_Name (Reader)) = "iconWatermark" then
 							Read_Next (Reader);
 							Item.Watermark_Path := VS2UB (String_Value (Reader));
 							Read_Next (Reader); -- "iconWatermarkShelved", etc.
+
 						elsif VS2S (Key_Name (Reader)) = "iconWatermarkShelved" then
 							Read_Next (Reader);
 							Item.Shelved_Watermark_Path := VS2UB (String_Value (Reader));
 							Read_Next (Reader); -- etc.
+
 						elsif VS2S (Key_Name (Reader)) = "displayVersionWatermarkIcons" then
 							Read_Next (Reader); -- START_ARRAY
 							Read_Next (Reader);
@@ -341,6 +347,7 @@ package body API.Manifest is
 									VS2UB (String_Value (Reader)));
 								Read_Next (Reader); -- STRING_VALUE or END_ARRAY
 							end loop;
+
 						elsif VS2S (Key_Name (Reader)) = "hash" then
 							exit Read_Variable_Fields;
 						else
@@ -367,27 +374,14 @@ package body API.Manifest is
 	end Read_Inventory_Items;
 
 	function Fetch_Manifest (Localised_Manifest_Path : Unbounded_String) return Manifest_Type is
-		Data : Response.Data;
-
 		Result : Manifest_Type;
 
 		Stream : Memory_UTF8_Input_Stream_Access := new Memory_UTF8_Input_Stream;
 		Reader : JSON_Simple_Pull_Reader;
 	begin
 		Put_Debug ("Fetch and parse manifest");
-		if Has_Cached (+Localised_Manifest_Path) then
-			Put_Debug ("Loaded cached localised manifest");
-			Set_Data (Stream.all, To_Stream_Element_Vector (
-				Get_Cached (+Localised_Manifest_Path)));
-		else
-			Put_Debug ("Get localised manifest");
-			Data := Client.Get (
-				Bungie_Root & (+Localised_Manifest_Path));
-			Check_Status (Data);
-			Cache (+Localised_Manifest_Path, Response.Message_Body (Data));
-			Set_Data (Stream.all, To_Stream_Element_Vector (
-				Response.Message_Body (Data)));
-		end if;
+		Set_Data (Stream.all, To_Stream_Element_Vector (
+			Tasks.Download.Download (Localised_Manifest_Path)));
 
 		-- Read Fields from Manifest
 		Set_Stream (Reader, Input_Text_Stream_Access (Stream));
@@ -453,20 +447,18 @@ package body API.Manifest is
 
 		-- Requests
 		Data : Response.Data;
-		Stream : Memory_UTF8_Input_Stream_Access;
+		Stream : Memory_UTF8_Input_Stream_Access := new Memory_UTF8_Input_Stream;
 
 		-- Parsing
 		Reader : JSON_Simple_Pull_Reader;
 		Result : Manifest_Type;
 	begin
 		Put_Debug ("Get manifest");
---		Data := Client.Get (
---			API_Root & "/Destiny2/Manifest/");
---		Check_Status (Data);
---		Put_Debug (Response.Message_Body (Data));
 
---		Stream := Get_Stream (Response.Message_Body (Data));
-		Stream := Get_Stream (+Read_File ("json/manifest.json"));
+		Set_Data (Stream.all,
+			To_Stream_Element_Vector (
+				Tasks.Download.Download (
+					+("/Platform/Destiny2/Manifest/"))));
 
 		Set_Stream (Reader, Input_Text_Stream_Access (Stream));
 

@@ -41,7 +41,68 @@ package API.Manifest is
 
 	package USL is new Ada.Containers.Vectors (Natural, Unbounded_String);
 	subtype Unbounded_String_List is USL.Vector;
+
 	type Destiny_Tier_Type is (Unknown, Currency, Basic, Common, Rare, Superior, Exotic);
+	type Destiny_Item_Type is (
+		None,
+		Currency,
+		Armor,
+		Weapon,
+		Message,
+		Engram,
+		Consumable,
+		Exchange_Material,
+		Mission_Reward,
+		Quest_Step,
+		Quest_Step_Complete,
+		Emblem,
+		Quest,
+		Subclass,
+		Clan_Banner,
+		Aura,
+		DIT_Mod,
+		Dummy,
+		Ship,
+		Vehicle,
+		Emote,
+		Ghost,
+		DIT_Package,
+		Bounty,
+		Wrapper,
+		Seasonal_Artefact,
+		Finisher,
+		Pattern);
+
+	for Destiny_Item_Type use (
+		None => 0,
+		Currency => 1,
+		Armor => 2,
+		Weapon => 3,
+		Message => 7,
+		Engram => 8,
+		Consumable => 9,
+		Exchange_Material => 10,
+		Mission_Reward => 11,
+		Quest_Step => 12,
+		Quest_Step_Complete => 13,
+		Emblem => 14,
+		Quest => 15,
+		Subclass => 16,
+		Clan_Banner => 17,
+		Aura => 18,
+		DIT_Mod => 19,
+		Dummy => 20,
+		Ship => 21,
+		Vehicle => 22,
+		Emote => 23,
+		Ghost => 24,
+		DIT_Package => 25,
+		Bounty => 26,
+		Wrapper => 27,
+		Seasonal_Artefact => 28,
+		Finisher => 29,
+		Pattern => 30);
+
 	type Destiny_Inventory_Item_Definition is record
 		Description : Unbounded_String;
 		Name : Unbounded_String;
@@ -53,6 +114,7 @@ package API.Manifest is
 		Tier_Type : Destiny_Tier_Type;
 		Display_Version_Watermark_Icons : Unbounded_String_List;
 		-- Stats?
+		Item_Type : Destiny_Item_Type;
 		Default_Damage_Type_Hash : Manifest_Hash := 0; -- Nullable
 			-- DestinyDamageTypeDefinition
 	end record;

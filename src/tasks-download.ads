@@ -1,4 +1,5 @@
 with Ada.Streams; use Ada.Streams;
+with Ada.Finalization;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Unchecked_Deallocation;
 
@@ -12,14 +13,16 @@ package Tasks.Download is
 
 	-- Returned to the calling task
 	-- to determine relevant object
-	type Download_Data_Type is record
-		Path : Unbounded_String;
-		Widget : Gtk_Widget;
-		Data : Stream_Element_Array_Access;
-	end record;
+	type Download_Data_Type is new Ada.Finalization.Limited_Controlled with private;
+	function Path (Self : Download_Data_Type) return Unbounded_String with Inline;
+	function Widget (Self : Download_Data_Type) return Gtk_Widget with Inline;
+	function Data (Self : Download_Data_Type) return Stream_Element_Array with Inline;
 
-	-- TODO: Download data must be freed by the _caller_
-	-- Make Download_Data_Type a controlled type to avoid this
+	-- Internal procedures
+--	procedure Initialize (Object : in out Download_Data_Type) is null;
+	procedure Finalize (Object : in out Download_Data_Type);
+
+	-- Task
 	task type Download_Task is
 		entry Download (
 			Path : Unbounded_String;
@@ -40,4 +43,14 @@ package Tasks.Download is
 	function Download (
 		Path : Unbounded_String;
 		Needs_Auth : Boolean := False) return Stream_Element_Array;
+private
+	type Download_Data_Internal is record
+		Path : Unbounded_String;
+		Widget : Gtk_Widget;
+		Data : Stream_Element_Array_Access;
+	end record;
+
+	type Download_Data_Type is new Ada.Finalization.Limited_Controlled with record
+		Internal : Download_Data_Internal;
+	end record;
 end Tasks.Download;
