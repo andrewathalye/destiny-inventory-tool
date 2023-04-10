@@ -1,11 +1,10 @@
 pragma Ada_2022;
 
-with Interfaces; use Interfaces;
-
 -- Gtk
 with Gtk.Label; use Gtk.Label;
 with Gtk.Image; use Gtk.Image;
 with Gtk.Grid; use Gtk.Grid;
+with Gtk.Handlers; use Gtk.Handlers;
 with Gtk.Button; use Gtk.Button;
 with Gtk.Widget; use Gtk.Widget;
 with Gtk.Box; use Gtk.Box;
@@ -16,14 +15,18 @@ with Gtk.Alignment; use Gtk.Alignment;
 with Gdk.Pixbuf; use Gdk.Pixbuf;
 
 -- Local Packages
-with API.Manifest; use API.Manifest;
+with API.Manifest.Tools; use API.Manifest.Tools; -- Only for enums
+use API.Manifest; -- Only for '='
 use API;
 with Shared; use Shared;
 
 package body GUI.Character is
+	-- Instantiations
+	package User_Return_Callback_Item_Description is new User_Return_Callback (Gtk_Widget_Record, GBoolean, Manifest.Tools.Item_Description);
+
 	-- State
-	Character_Items : array (Bucket_Location) of Item_Description_List;
-	Equipped_Items : array (Bucket_Location) of Manifest.Tools.Item_Description;
+--	Character_Items : array (Bucket_Location_Type) of Item_Description_List;
+--	Equipped_Items : array (Bucket_Location_Type) of Manifest.Tools.Item_Description;
 
 	-- Redirections
 	procedure Render_Items (
@@ -46,17 +49,15 @@ package body GUI.Character is
 	begin
 		Clear_Bucket (Contents_Grid);
 
-		-- TODO Emotes are special and only some are supported currently
-		if User_Data.Bucket_Hash = Emote_Collection'Enum_Rep then
+		-- Emotes are a special case here
+		if User_Data.Bucket_Location = Emote_Collection then
 			Render_Items (
-				Character_Items (Special_Emote),
+				Character_Items (Emote),
 				Contents_Grid,
 				Tasks.Download.Contents_Task);
 		else
 			Render_Items (
-				Character_Items (
-					Bucket_Location'Enum_Val (
-						User_Data.Bucket_Hash)),
+				Character_Items (User_Data.Bucket_Location),
 				Contents_Grid,
 				Tasks.Download.Contents_Task);
 		end if;
@@ -90,9 +91,11 @@ package body GUI.Character is
 
 		Overlay := Get_Overlay (D, Tasks.Download.Character_Task);
 
-		Connect (Widget_List.Get_Data (Widget_List.First (Overlay.Get_Children)),
+		User_Return_Callback_Item_Description.Connect (
+			Widget_List.Get_Data (Widget_List.First (Overlay.Get_Children)),
 			"enter-notify-event",
-			To_Marshaller (Item_Overlay_Entered_Handler'Access),
+			User_Return_Callback_Item_Description.To_Marshaller (
+				Item_Overlay_Entered_Handler'Access),
 			User_Data => D);
 
 		Overlay.Show;
@@ -183,17 +186,17 @@ package body GUI.Character is
 
 		Emblem : Gtk_Image;
 	begin
+		Current_Character := Character;
+
 		-- Update Labels
 		Set_Label (Title, +Manifest.Tools.Get_Title (The_Manifest, Character));
 		Set_Label (Light, Character.Light'Image);
 
-		-- Update Emblem (technically a Global UI element) todo
+		-- Update Emblem
 		Gtk_New (Emblem);
 		if Global_Pixbuf_Cache.Contains (Character.Emblem_Background_Path) then
---			Put_Debug ("Load cached emblem");
 			Emblem.Set (Global_Pixbuf_Cache.Element (Character.Emblem_Background_Path));
 		else
---			Put_Debug ("Get emblem");
 			Emblem.Set (Placeholder_Emblem);
 			Tasks.Download.Character_Task.Download (Character.Emblem_Background_Path, Gtk_Widget (Emblem));
 		end if;
@@ -210,10 +213,7 @@ package body GUI.Character is
 			declare
 				D : constant Manifest.Tools.Item_Description := Manifest.Tools.Get_Description (The_Manifest, I);
 			begin
-				Character_Items (Bucket_Location'Enum_Val (I.Bucket_Hash)).Append (D);	
-			exception
-				when Constraint_Error =>
-					Character_Items (Unknown).Append (D);
+				Character_Items (D.Bucket_Location).Append (D);	
 			end;
 		end loop;
 
@@ -221,10 +221,7 @@ package body GUI.Character is
 			declare
 				D : constant Manifest.Tools.Item_Description := Manifest.Tools.Get_Description (The_Manifest, I);
 			begin
-				Equipped_Items (Bucket_Location'Enum_Val (I.Bucket_Hash)) := D;	
-			exception
-				when Constraint_Error =>
-					raise Program_Error with "Equipment parse failed";
+				Equipped_Items (D.Bucket_Location) := D;	
 			end;
 		end loop;
 
@@ -257,5 +254,4 @@ package body GUI.Character is
 		end select;
 
 	end Tick;
-
 end GUI.Character;

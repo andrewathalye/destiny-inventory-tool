@@ -8,7 +8,6 @@ with Gtkada.Builder; use Gtkada.Builder;
 private with Gtk.Grid;
 private with Gtk.Box;
 private with Gtk.Overlay;
-private with Gtk.Handlers;
 with Gtk.Widget; use Gtk.Widget;
 
 private with Gdk.Pixbuf;
@@ -26,8 +25,7 @@ private with Tasks.Download;
 
 package GUI is
 	-- Variables
---	Auth_Data : constant Auth_Storage_Type := Authorise.Do_Authorise;
-	Auth_Data : Auth_Storage_Type;
+	Auth_Data : constant Auth_Storage_Type := Authorise.Do_Authorise;
 	Headers : constant Auth_Header_Type := Create_Headers (Auth_Data);
 
 	Membership : constant Memberships.Membership_Type := Memberships.Get_Memberships (Headers);
@@ -37,7 +35,6 @@ package GUI is
 	Builder : Gtkada_Builder; -- Left unitialised
 
 	-- Subprograms
-	procedure Window_Close_Handler (Builder : access Gtkada_Builder_Record'Class);
 	procedure Image_Callback (
 		File_Name : Unbounded_String;
 		Widget : Gtk_Widget;
@@ -46,7 +43,6 @@ private
 	use Gtk.Grid;
 	use Gtk.Box;
 	use Gtk.Overlay;
-	use Gtk.Handlers;
 
 	use Gdk.Pixbuf;
 	use Glib;
@@ -61,16 +57,6 @@ private
 		Equivalent_Keys => Equivalent_Key);
 	subtype Pixbuf_Hash_Map is Pixbuf_Hash_Maps.Map;
 
-	package User_Callback_Item_Description is new User_Callback (Gtk_Widget_Record, Manifest.Tools.Item_Description);
-	use User_Callback_Item_Description;
-
-	package User_Return_Callback_Item_Description is new User_Return_Callback (Gtk_Widget_Record, GBoolean, Manifest.Tools.Item_Description);
-	use User_Return_Callback_Item_Description;
-
-	-- Global State
-	Global_Pixbuf_Cache : Pixbuf_Hash_Map;
-	Search_Query : Unbounded_String;
-
 	-- Types for use in GUI. child packages
 	pragma Warnings (Off, "is not referenced");
 	function "=" (L, R : Manifest.Tools.Item_Description) return Boolean is (False);
@@ -78,51 +64,15 @@ private
 
 	package IDV is new Ada.Containers.Vectors (Natural, Manifest.Tools.Item_Description);
 	subtype Item_Description_List is IDV.Vector;
-	Bucket_Items : Item_Description_List;
 
-	type Bucket_Location is (
-		Unknown,
-		Chest,
-		Leg,
-		Postmaster,
-		Ship,
-		Power,
-		Emote_Collection,
-		Kinetic,
-		Artefact,
-		Class,
-		Sparrow,
-		Special_Emote,
-		Energy,
-		Subclass,
-		Helmet,
-		Gauntlets,
-		Finisher,
-		Shell,
-		Emblem,
-		Clan_Banner);
+	-- Global State
+	Global_Pixbuf_Cache : Pixbuf_Hash_Map;
+	Current_Item : Manifest.Tools.Item_Description;
+	Search_Query : Unbounded_String;
 
-	for Bucket_Location use (
-		Unknown => 0,
-		Chest => 14239492,
-		Leg => 20886954,
-		Postmaster => 215593132,
-		Ship => 284967655,
-		Power => 953998645,
-		Emote_Collection => 1107761855,
-		Kinetic => 1498876634,
-		Artefact => 1506418338,
-		Class => 1585787867,
-		Sparrow => 2025709351,
-		Special_Emote => 2401704334,
-		Energy => 2465295065,
-		Subclass => 3284755031,
-		Helmet => 3448274439,
-		Gauntlets => 3551918588,
-		Finisher => 3683254069,
-		Shell => 4023194814,
-		Emblem => 4274335291,
-		Clan_Banner => 4292445962);
+	Vault_Inventory : array (API.Manifest.Tools.Bucket_Location_Type) of Item_Description_List;
+	Character_Items : array (API.Manifest.Tools.Bucket_Location_Type) of Item_Description_List;
+	Equipped_Items : array (API.Manifest.Tools.Bucket_Location_Type) of Manifest.Tools.Item_Description;
 
 	-- Private-Exported Subprograms
 	function Load_Image (File_Name : String; Data : Stream_Element_Array) return Gdk_Pixbuf;

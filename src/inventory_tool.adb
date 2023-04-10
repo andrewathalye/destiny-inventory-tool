@@ -13,6 +13,7 @@ use GLib;
 with GUI;
 with GUI.Global;
 with GUI.Character;
+with GUI.Handlers;
 
 procedure Inventory_Tool is
 	-- Constants
@@ -23,16 +24,14 @@ procedure Inventory_Tool is
 	Window : Gtk_Window;
 begin
 	-- Print Welcome Message
-	Put_Line ("Destiny Inventory Tool v0.6");
+	Put_Line ("Destiny Inventory Tool v0.8");
 	
 	-- Load Interface
 	Gtk.Main.Init;
 	Gtk_New (GUI.Builder);
 	Discard_G := Add_From_File (GUI.Builder, "res/experimental.glade", Error'Access);
 
-	-- Register Callbacks
-	Register_Handler (GUI.Builder, "window_close_handler", GUI.Window_Close_Handler'Access);
-	GUI.Global.Set_Callbacks;
+	GUI.Handlers.Set_Handlers;
 	
 	-- Setup window
 	Window := Gtk_Window (GUI.Builder.Get_Object ("root"));

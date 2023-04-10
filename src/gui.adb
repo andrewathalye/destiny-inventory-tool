@@ -1,21 +1,16 @@
 pragma Ada_2022;
 
-with Ada.Streams; use Ada.Streams;
-with Ada.Containers.Hashed_Maps;
 with System;
 with Interfaces; use Interfaces;
-
-with GNAT.OS_Lib; use GNAT.OS_Lib;
 
 -- Gtkada
 with Gtk.Image; use Gtk.Image;
 with Gtk.Button; use Gtk.Button;
 with Gtk.Label; use Gtk.Label;
-with Gtk.Widget; use Gtk.Widget;
 with Gtk.Container; use Gtk.Container;
-with Gtk.Overlay; use Gtk.Overlay;
 with Gtk.Alignment; use Gtk.Alignment;
 with Gtk.Popover; use Gtk.Popover;
+with Gtk.Handlers; use Gtk.Handlers;
 
 with Gdk.Pixbuf; use Gdk.Pixbuf;
 with Glib.Error; use Glib.Error;
@@ -27,6 +22,9 @@ with Pango.Attributes; use Pango.Attributes;
 with Shared; use Shared;
 
 package body GUI is
+	-- Instantiations
+	package User_Callback_Item_Description is new User_Callback (Gtk_Widget_Record, Manifest.Tools.Item_Description);
+
 	-- Private Subprograms
 	-- Private-Exported
 	-- Exclusively for JPEG / PNG format images
@@ -150,10 +148,12 @@ package body GUI is
 		Transfer_Name.Set_Label (+User_Data.Name);
 		Transfer_Type.Set_Label (+User_Data.Item_Type_And_Tier_Display_Name);
 
+		Current_Item := User_Data;
+
 		Transfer_Menu.Set_Relative_To (Widget);
 		Transfer_Menu.Popup;
 	end Item_Button_Clicked_Handler;
-
+	
 	function Get_Overlay (
 		D : Manifest.Tools.Item_Description;
 		T : Tasks.Download.Download_Task) return Gtk_Overlay
@@ -195,9 +195,11 @@ package body GUI is
 
 		Set_Image (Button, Image);
 
-		Connect (Button,
+		User_Callback_Item_Description.Connect (
+			Button,
 			"clicked",
-			To_Marshaller (Item_Button_Clicked_Handler'Access),
+			User_Callback_Item_Description.To_Marshaller (
+				Item_Button_Clicked_Handler'Access),
 			User_Data => D);
 
 		Button.Show;
@@ -333,11 +335,4 @@ package body GUI is
 		-- TODO: Render light level for weapons / armour instead of quantity?
 	end Render_Items;
 
-	-- Public Subprograms
-	pragma Warnings (Off, "is not referenced");
-	procedure Window_Close_Handler (Builder : access Gtkada_Builder_Record'Class) is
-	begin
-		OS_Exit (0);
-	end Window_Close_Handler;
-	pragma Warnings (On, "is not referenced");
-end GUI;
+	end GUI;

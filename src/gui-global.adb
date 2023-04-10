@@ -2,7 +2,6 @@ pragma Ada_2022;
 
 -- Gtkada
 with Gtk.Label; use Gtk.Label;
-with Gtk.Search_Entry; use Gtk.Search_Entry;
 with Gtk.Handlers; use Gtk.Handlers;
 with Gtk.Widget; use Gtk.Widget;
 with Gtk.Popover; use Gtk.Popover;
@@ -14,17 +13,20 @@ with Gdk.Pixbuf; use Gdk.Pixbuf;
 
 -- Local Packages
 with Shared; use Shared;
-with GUI.Character;
+
+with GUI.Handlers;
+
 with API.Profiles; use API.Profiles;
-with API.Manifest.Tools;
-use API.Manifest;
+with API.Manifest.Tools; use API.Manifest.Tools; -- For enums
+use API.Manifest; -- For '='
 
 package body GUI.Global is
 	-- Instantiations
 	package User_Callback_Natural is new User_Callback (Gtk_Widget_Record, Natural);
-	use User_Callback_Natural;
+	package User_Callback_Character is new User_Callback (Gtk_Widget_Record, Profiles.Character_Type);
+	package Widget_Callback is new Callback (Gtk_Widget_Record);
 
-	Vault_Inventory : array (Bucket_Location) of Item_Description_List;
+--	Vault_Inventory : array (Bucket_Location_Type) of Item_Description_List;
 
 	-- Cache
 	Placeholder_Icon : constant Gdk_Pixbuf := Load_Image ("png",
@@ -41,63 +43,6 @@ package body GUI.Global is
 	end Render_Items;
 
 	-- Private Subprograms
-	-- Global UI Callbacks
-	pragma Warnings (Off, "is not referenced");
-	procedure Search_Changed_Handler (Builder : access Gtkada_Builder_Record'Class) is
-		Search : constant Gtk_Search_Entry := Gtk_Search_Entry (GUI.Builder.Get_Object ("search"));
-	begin
-		GUI.Search_Query := +Search.Get_Chars (0);
-		Render;
-		GUI.Character.Render;
-	end Search_Changed_Handler;
-	pragma Warnings (On, "is not referenced");
-
-	pragma Warnings (Off, "is not referenced");
-	procedure Emblem_Button_Clicked_Handler (Builder : access Gtkada_Builder_Record'Class) is
-		Character_Menu : constant Gtk_Popover := Gtk_Popover (GUI.Builder.Get_Object ("character_menu"));
-	begin
-		Character_Menu.Popup;
-	end Emblem_Button_Clicked_Handler;
-	pragma Warnings (On, "is not referenced");
-
-	pragma Warnings (Off, "is not referenced");
-	procedure Character_Menu_Button_Clicked_Handler (
-		Button : access Gtk_Widget_Record'Class;
-		User_Data : Natural)
-	is
-		Character_Menu : constant Gtk_Popover := Gtk_Popover (GUI.Builder.Get_Object ("character_menu"));
-	begin
-		Character_Menu.Popdown;
-		Character.Update_For_Character (Profile.Characters (User_Data));
-	end Character_Menu_Button_Clicked_Handler;
-	pragma Warnings (On, "is not referenced");
-
-	Entries : Natural := 0;
-
-	procedure Contents_Closed_Handler (Builder : access Gtkada_Builder_Record'Class)
-	is begin
-		Entries := 0;
-	end Contents_Closed_Handler;
-
-	function Contents_Leave_Handler (Builder : access Gtkada_Builder_Record'Class) return Boolean
-	is
-		Contents : constant Gtk_Popover := Gtk_Popover (Builder.Get_Object ("full_contents"));
-	begin
-		if Entries > 1 then
-			Contents.Popdown;
-
-			Entries := 0;
-		end if;
-
-		return False; -- Do not execute other handlers
-	end Contents_Leave_Handler;
-
-	function Contents_Enter_Handler (Builder : access Gtkada_Builder_Record'Class) return Boolean
-	is begin
-		Entries := @ + 1;
-		return True; -- Do not execute other handlers
-	end Contents_Enter_Handler;
-
 	-- Global UI Setup
 	procedure Setup_Character_Menu is
 		Character_Grid : constant Gtk_Grid := Gtk_Grid (GUI.Builder.Get_Object ("character_grid"));
@@ -127,9 +72,10 @@ package body GUI.Global is
 						Gtk_Widget (Image));
 				end if;
 
-				Connect (Button,
+				User_Callback_Natural.Connect (Button,
 					"clicked",
-					To_Marshaller (Character_Menu_Button_Clicked_Handler'Access),
+					User_Callback_Natural.To_Marshaller (
+						Handlers.Character_Menu_Button_Clicked_Handler'Access),
 					User_Data => Natural (Count));
 
 				Image.Show;
@@ -171,6 +117,12 @@ package body GUI.Global is
 				end if;
 
 				Image.Show;
+				User_Callback_Character.Connect (
+					Button,
+					"clicked",
+					User_Callback_Character.To_Marshaller (
+						Handlers.Transfer_Handler'Access),
+					C);
 				Button.Show;
 					
 				Transfer_Grid.Attach (Image, 0, Count);
@@ -181,6 +133,11 @@ package body GUI.Global is
 		end loop;
 
 		Gtk_New (Vault_Button, "Vault");
+		Widget_Callback.Connect (
+			Vault_Button,
+			"clicked",
+			Widget_Callback.To_Marshaller (
+				Handlers.Vault_Handler'Access));
 		Vault_Button.Show;
 
 		Transfer_Grid.Attach (Vault_Button, 1, Count);
@@ -204,6 +161,9 @@ package body GUI.Global is
 		Vault_Sparrow : constant Gtk_Grid := Gtk_Grid (GUI.Builder.Get_Object ("vault_sparrow"));
 		Vault_Ship : constant Gtk_Grid := Gtk_Grid (GUI.Builder.Get_Object ("vault_ship"));
 
+		Vault_Consumable : constant Gtk_Grid := Gtk_Grid (GUI.Builder.Get_Object ("vault_consumable"));
+		Vault_Modification : constant Gtk_Grid := Gtk_Grid (GUI.Builder.Get_Object ("vault_modification"));
+
 		Vault_Other : constant Gtk_Grid := Gtk_Grid (GUI.Builder.Get_Object ("vault_other"));
 	begin
 		Clear_Bucket (Vault_Kinetic);
@@ -212,23 +172,17 @@ package body GUI.Global is
 		Clear_Bucket (Vault_Shell);
 		Clear_Bucket (Vault_Artefact);
 
-		Clear_Bucket (Vault_Helmet);
-		Clear_Bucket (Vault_Gauntlets);
-		Clear_Bucket (Vault_Chest);
-		Clear_Bucket (Vault_Leg);
-		Clear_Bucket (Vault_Class);
-
-		Clear_Bucket (Vault_Emblem);
-		Clear_Bucket (Vault_Sparrow);
-		Clear_Bucket (Vault_Ship);
-
-		Clear_Bucket (Vault_Other);
-
 		Render_Items (Vault_Inventory (Kinetic), Vault_Kinetic, 10);
 		Render_Items (Vault_Inventory (Energy), Vault_Energy, 10);
 		Render_Items (Vault_Inventory (Power), Vault_Power, 10);
 		Render_Items (Vault_Inventory (Shell), Vault_Shell, 10);
 		Render_Items (Vault_Inventory (Artefact), Vault_Artefact, 10);
+
+		Clear_Bucket (Vault_Helmet);
+		Clear_Bucket (Vault_Gauntlets);
+		Clear_Bucket (Vault_Chest);
+		Clear_Bucket (Vault_Leg);
+		Clear_Bucket (Vault_Class);
 
 		Render_Items (Vault_Inventory (Helmet), Vault_Helmet, 10);
 		Render_Items (Vault_Inventory (Gauntlets), Vault_Gauntlets, 10);
@@ -236,25 +190,29 @@ package body GUI.Global is
 		Render_Items (Vault_Inventory (Leg), Vault_Leg, 10);
 		Render_Items (Vault_Inventory (Class), Vault_Class, 10);
 
+		Clear_Bucket (Vault_Emblem);
+		Clear_Bucket (Vault_Sparrow);
+		Clear_Bucket (Vault_Ship);
+
 		Render_Items (Vault_Inventory (Emblem), Vault_Emblem, 10);
 		Render_Items (Vault_Inventory (Sparrow), Vault_Sparrow, 10);
 		Render_Items (Vault_Inventory (Ship), Vault_Ship, 10);
 
+		Clear_Bucket (Vault_Consumable);
+		Clear_Bucket (Vault_Modification);
+
+		Render_Items (Vault_Inventory (Consumable), Vault_Consumable, 10);
+		Render_Items (Vault_Inventory (Modification), Vault_Modification, 10);
+
+		-- Theoretically, no items should appear here.
+		Clear_Bucket (Vault_Other);
 		Render_Items (Vault_Inventory (Unknown), Vault_Other, 10);
 	end Render;
 
 	-- Public Subprograms
 
 	-- Global Set_Callbacks
-	procedure Set_Callbacks is
-	begin
-		Register_Handler (Builder, "emblem_button_clicked_handler", Emblem_Button_Clicked_Handler'Access);
-		Register_Handler (Builder, "search_changed_handler", Search_Changed_Handler'Access);
-		Register_Handler (GUI.Builder, "contents_leave_handler", Contents_Leave_Handler'Access);
-		Register_Handler (GUI.Builder, "contents_enter_handler", Contents_Enter_Handler'Access);
-		Register_Handler (GUI.Builder, "contents_closed_handler", Contents_Closed_Handler'Access);
-	end Set_Callbacks;
-
+	
 	procedure Setup_Descriptions is
 		function Make_Label (Hash : Manifest.Manifest_Hash) return Gtk_Label is
 			Result : Gtk_Label;
@@ -266,7 +224,7 @@ package body GUI.Global is
 
 		Descriptions : constant Gtk_Grid := Gtk_Grid (GUI.Builder.Get_Object ("descriptions"));
 	begin
-		Descriptions.Attach (Make_Label (GUI.Subclass'Enum_Rep), 0, 0);
+		Descriptions.Attach (Make_Label (Manifest.Tools.Subclass'Enum_Rep), 0, 0);
 
 		Descriptions.Attach (Make_Label (Kinetic'Enum_Rep), 0, 1);
 		Descriptions.Attach (Make_Label (Energy'Enum_Rep), 0, 2);
@@ -302,10 +260,7 @@ package body GUI.Global is
 						The_Manifest,
 						I);
 				begin
-					Vault_Inventory (Bucket_Location'Enum_Val (D.Default_Bucket_Hash)).Append (D);
-				exception
-					when Constraint_Error =>
-						Vault_Inventory (Unknown).Append (D);
+					Vault_Inventory (D.Default_Bucket_Location).Append (D);
 				end;
 			end if;
 		end loop;
