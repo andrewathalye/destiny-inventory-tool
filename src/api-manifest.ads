@@ -115,6 +115,7 @@ package API.Manifest is
 		Display_Version_Watermark_Icons : Unbounded_String_List;
 		-- Stats?
 		Allow_Actions : Boolean;
+		Postmaster_Pull_Has_Side_Effects : Boolean;
 		Item_Type : Destiny_Item_Type;
 		Default_Damage_Type_Hash : Manifest_Hash := 0; -- Nullable
 			-- DestinyDamageTypeDefinition

@@ -86,7 +86,9 @@ package body GUI.Character is
 	is
 		Contents : constant Gtk_Popover := Gtk_Popover (Builder.Get_Object ("full_contents"));
 	begin
+		GUI.Lock_Object.Unlock;
 		Tasks.Download.Contents_Task.Interrupt;
+		GUI.Lock_Object.Lock;
 
 		-- Emotes are a special case here
 		if User_Data.Bucket_Location = Emote_Collection then
@@ -150,6 +152,7 @@ package body GUI.Character is
 		Modified_Item.Bucket_Location := Item.Default_Bucket_Location;
 			-- Item is not vaulted (any longer), so ensure Bucket_Location
 			-- is updated
+		Modified_Item.Bucket_Hash := Item.Default_Bucket_Hash;
 		Modified_Item.Transfer_Status := Can_Transfer;
 
 		Relevant_Items.Append (Modified_Item);
@@ -165,12 +168,11 @@ package body GUI.Character is
 		for I in Relevant_Items.First_Index .. Relevant_Items.Last_Index loop
 			if Relevant_Items (I) = Item then
 				Relevant_Items.Delete (I);
-				goto Done;
+				return;
 			end if;
 		end loop;
 
 		raise Program_Error with "GUI.Character: Virtual remove failed";
-		<<Done>>
 	end Remove_Item;
 
 	procedure Equip_Item (
@@ -224,7 +226,9 @@ package body GUI.Character is
 		Finisher_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("finisher"));
 		Emote_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("emote"));
 	begin
+		GUI.Lock_Object.Unlock;
 		Tasks.Download.Character_Task.Interrupt;
+		GUI.Lock_Object.Lock;
 
 		-- Update Buckets
 		Base.Clear_Bucket (Postmaster_Grid);

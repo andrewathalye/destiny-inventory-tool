@@ -326,6 +326,10 @@ package body API.Manifest is
 								As_Integer (
 									Number_Value (Reader)));
 
+						elsif VS2S (Key_Name (Reader)) = "doesPostmasterPullHaveSideEffects" then
+							Read_Next (Reader);
+							Item.Postmaster_Pull_Has_Side_Effects := Boolean_Value (Reader);
+
 						elsif VS2S (Key_Name (Reader)) = "itemType" then
 							Read_Next (Reader);
 							Item.Item_Type := Destiny_Item_Type'Enum_Val (

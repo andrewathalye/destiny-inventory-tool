@@ -68,7 +68,7 @@ package API.Manifest.Tools is
 	-- Intended to store sufficient information about an
 	-- item to display it without further Manifest lookups
 	--
-	-- Location, Bucket_Location, and Transfer_Status should
+	-- Location, Bucket_Location, Bucket_Hash, and Transfer_Status should
 	-- be modified if the item is to be virtually moved
 	type Item_Description is record
 		Name : Unbounded_String;
@@ -95,6 +95,7 @@ package API.Manifest.Tools is
 
 		Style_Overridden : Boolean;
 
+		Postmaster_Pull_Has_Side_Effects : Boolean;
 		Item_Type : Destiny_Item_Type;
 		Tier_Type : Destiny_Tier_Type;
 		Item_Type_And_Tier_Display_Name : Unbounded_String;

@@ -64,6 +64,7 @@ package body API.Manifest.Tools is
 
 			Style_Overridden => I.Override_Style_Item_Hash /= 0,
 
+			Postmaster_Pull_Has_Side_Effects => Manifest_Item.Postmaster_Pull_Has_Side_Effects,
 			Item_Type => Manifest_Item.Item_Type,
 			Tier_Type => Manifest_Item.Tier_Type,
 			Item_Type_And_Tier_Display_Name => Manifest_Item.Item_Type_And_Tier_Display_Name);

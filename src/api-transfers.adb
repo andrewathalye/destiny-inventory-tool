@@ -40,8 +40,6 @@ package body API.Transfers is
 	begin
 		Set_Stream (Reader, Input_Text_Stream_Access (Stream));
 
-		Check_Status (Data);
-
 		-- Check passes if S200 returned
 		if Query_Status (Data) then
 			Free (Stream);
@@ -136,9 +134,6 @@ package body API.Transfers is
 	begin
 		Put_Debug ("(Un)Vault item");
 
-		Put_Debug ("Item = " & D'Image);
-		Put_Debug ("Source = " & Source'Image);
-		Put_Debug ("Vault = " & Vault'Image);
 		Put_Debug ("{"
 					& '"' & "itemReferenceHash" & '"' & ':'
 						& D.Item_Hash'Image & ','
@@ -153,7 +148,6 @@ package body API.Transfers is
 					& '"' & "membershipType" & '"' & ':'
 						& Memberships.Find_Default_Platform_ID (GUI.Membership)
 				& "}");
-		return;
 
 		-- Local Check
 		-- An exception will be raised if any of these fail

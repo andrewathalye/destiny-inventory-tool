@@ -215,12 +215,8 @@ package body GUI.Handlers is
 				return;
 		end;
 
-		Put_Debug ("Vault Complete");
-
 		GUI.Character.Remove_Item (GUI.Character.Current_Character, GUI.Current_Item);
 		GUI.Global.Add_Item (GUI.Current_Item);
-
-		Put_Debug ("Virtual Moves Complete");
 
 		GUI.Global.Render;
 
@@ -249,7 +245,7 @@ package body GUI.Handlers is
 		if User_Data.Transfer_Status /= Can_Transfer then
 			-- It is often possible to transfer items
 			-- in the postmaster to the Vault
-			if User_Data.Bucket_Location = Postmaster then
+			if User_Data.Bucket_Location = Postmaster and not User_Data.Postmaster_Pull_Has_Side_Effects then
 				Vault_Menu.Set_Relative_To (Widget);
 				Vault_Menu.Popup;
 			end if;

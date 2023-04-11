@@ -186,6 +186,7 @@ package body GUI.Global is
 	begin
 		Modified_Item.Location := Vault;
 		Modified_Item.Bucket_Location := General; -- The item is now in the Vault
+		Modified_Item.Bucket_Hash := Manifest.Tools.General'Enum_Rep; -- ^^
 		Modified_Item.Transfer_Status := Can_Transfer;
 
 		Vault_Inventory (Item.Default_Bucket_Location).Append (Modified_Item);
@@ -196,7 +197,7 @@ package body GUI.Global is
 		for I in Vault_Inventory (Item.Default_Bucket_Location).First_Index .. Vault_Inventory (Item.Default_Bucket_Location).Last_Index loop
 			if Vault_Inventory (Item.Default_Bucket_Location) (I) = Item then
 				Vault_Inventory (Item.Default_Bucket_Location).Delete (I);
-				exit;
+				return;
 			end if;
 		end loop;
 		raise Program_Error with "GUI.Global: Virtual remove failed";
@@ -262,7 +263,9 @@ package body GUI.Global is
 
 		Vault_Other : constant Gtk_Grid := Gtk_Grid (GUI.Builder.Get_Object ("vault_other"));
 	begin
+		GUI.Lock_Object.Unlock;
 		Tasks.Download.Global_Task.Interrupt;
+		GUI.Lock_Object.Lock;
 
 		Base.Clear_Bucket (Vault_Kinetic);
 		Base.Clear_Bucket (Vault_Energy);
