@@ -39,7 +39,4 @@ package GUI.Character is
 		-- Load all Character data into internal format
 	procedure Update_For_Character (Character : Profiles.Character_Type);
 		-- Update UI elements for the new Character and Render
-	
-	-- Internal Callbacks
-	procedure Tick;
 end GUI.Character;

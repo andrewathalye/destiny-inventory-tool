@@ -4,9 +4,6 @@ with Ada.Containers.Vectors;
 
 with Interfaces; use Interfaces;
 
--- Local Packages
-with API.Memberships;
-
 package API.Manifest is
 	-- Types
 	subtype Manifest_Hash is Unsigned_32;
@@ -175,5 +172,5 @@ package API.Manifest is
 	end record;
 
 	-- Subprograms
-	function Get_Manifest (M : Memberships.Membership_Type) return Manifest_Type;
+	function Get_Manifest return Manifest_Type;
 end API.Manifest;

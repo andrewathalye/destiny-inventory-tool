@@ -398,6 +398,7 @@ package body API.Manifest is
 		Reader : JSON_Simple_Pull_Reader;
 	begin
 		Put_Debug ("Fetch and parse manifest");
+
 		Set_Data (Stream.all, To_Stream_Element_Vector (
 			Tasks.Download.Download (Localised_Manifest_Path)));
 
@@ -458,13 +459,12 @@ package body API.Manifest is
 		return Result;
 	end Fetch_Manifest;
 
-	function Get_Manifest (M : Memberships.Membership_Type) return Manifest_Type
+	function Get_Manifest return Manifest_Type
 	is
 		-- Storage
 		Localised_Manifest_Path : Unbounded_String;
 
 		-- Requests
-		Data : Response.Data;
 		Stream : Memory_UTF8_Input_Stream_Access := new Memory_UTF8_Input_Stream;
 
 		-- Parsing
@@ -476,7 +476,8 @@ package body API.Manifest is
 		Set_Data (Stream.all,
 			To_Stream_Element_Vector (
 				Tasks.Download.Download (
-					+("/Platform/Destiny2/Manifest/"))));
+					+("/Platform/Destiny2/Manifest/"),
+					Caching => True)));
 
 		Set_Stream (Reader, Input_Text_Stream_Access (Stream));
 

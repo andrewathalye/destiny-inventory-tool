@@ -146,7 +146,5 @@ package API.Profiles is
 	end record;
 
 	-- Subprograms
-	function Get_Profile (
-		Headers : Auth_Header_Type;
-		M : Membership_Type) return Profile_Type;
+	function Get_Profile (M : Membership_Type) return Profile_Type;
 end API.Profiles;

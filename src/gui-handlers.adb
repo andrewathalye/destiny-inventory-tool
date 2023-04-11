@@ -215,8 +215,12 @@ package body GUI.Handlers is
 				return;
 		end;
 
+		Put_Debug ("Vault Complete");
+
 		GUI.Character.Remove_Item (GUI.Character.Current_Character, GUI.Current_Item);
 		GUI.Global.Add_Item (GUI.Current_Item);
+
+		Put_Debug ("Virtual Moves Complete");
 
 		GUI.Global.Render;
 

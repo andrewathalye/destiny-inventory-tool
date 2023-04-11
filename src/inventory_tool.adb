@@ -3,15 +3,11 @@ with Ada.Text_IO; use Ada.Text_IO;
 
 -- GtkAda
 with Gtk.Main;
-with Gtk.Window; use Gtk.Window;
 with Gtkada.Builder; use Gtkada.Builder;
 with GLib.Error; use GLib.Error;
-with GLib.Object; use GLib.Object;
 use GLib;
 
 -- Local Packages
-with GUI.Global;
-with GUI.Character;
 with GUI.Base;
 with GUI.Handlers;
 
@@ -20,11 +16,9 @@ procedure Inventory_Tool is
 	Discard_G : Guint;
 	Discard_B : Boolean;
 	Error : aliased GError;
-
-	Window : Gtk_Window;
 begin
 	-- Print Welcome Message
-	Put_Line ("Destiny Inventory Tool v0.9");
+	Put_Line ("Destiny Inventory Tool v0.11");
 	
 	-- Load Interface
 	Gtk.Main.Init;
@@ -34,17 +28,17 @@ begin
 	GUI.Handlers.Set_Handlers;
 	Do_Connect (GUI.Builder);
 	
-	-- Setup window
-	Window := Gtk_Window (GUI.Builder.Get_Object ("root"));
-	Gtk.Window.Show (Window);
-
 	-- Update GUI data
 	GUI.Base.Reload_Data;
 
-	-- Accept GTK events and update internal data (downloads, etc.)
+	-- Maintain an exclusive lock over the GUI
+	-- while executing the main loop.
+	--
+	-- Download_Tasks would otherwise attempt to
+	-- edit widgets while they are being drawn
 	loop
-		GUI.Global.Tick;
-		GUI.Character.Tick;
+		GUI.Lock_Object.Lock;
 		Discard_B := Gtk.Main.Main_Iteration;
+		GUI.Lock_Object.Unlock;
 	end loop;
 end Inventory_Tool;

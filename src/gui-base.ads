@@ -47,6 +47,9 @@ package GUI.Base is
 		T : Tasks.Download.Download_Task;
 		Max_Left : Gint := 2);
 	
+	-- Note: The below functions require GUI.Lock_Object to be in the unlocked position or they
+	-- will block until the lock is released
+	
 	-- Reloads all data used by the GUI _excluding_ the Manifest and auth data
 	-- If these need to be reloaded too, use Reload_Data instead
 	procedure Reload_Profile_Data;

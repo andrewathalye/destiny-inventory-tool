@@ -5,6 +5,8 @@ with Interfaces; use Interfaces;
 -- Gtk
 with Gtk.Container; use Gtk.Container;
 with Gtk.Button; use Gtk.Button;
+with Gtk.Window; use Gtk.Window;
+with Gtk.Main;
 with Gtk.Image; use Gtk.Image;
 with Gtk.Label; use Gtk.Label;
 with Gtk.Alignment; use Gtk.Alignment;
@@ -75,6 +77,7 @@ package body GUI.Base is
 		function Should_State_Overlay (D : Manifest.Tools.Item_Description) return Boolean is
 			(case D.Item_Type is
 				when Manifest.Subclass => False,
+				when Manifest.Engram => False,
 				when others => True) with Inline;
 
 		-- Variables
@@ -193,7 +196,6 @@ package body GUI.Base is
 		Overlay.Set_Tooltip_Text (
 			(+D.Name) & ASCII.LF
 			& (+D.Item_Type_And_Tier_Display_Name));
-
 		return Overlay;
 	end Get_Overlay;
 
@@ -243,26 +245,99 @@ package body GUI.Base is
 		-- TODO: Render light level for weapons / armour instead of quantity?
 	end Render_Items;
 
+	task Status_Task is
+		entry Start;
+		entry Update (Text : String);
+		entry Stop;
+	end Status_Task;
+
+	task body Status_Task is
+		Window : Gtk_Window;
+		Status_Window : Gtk_Window;
+		Status_Name : Gtk_Label;
+
+		Discard : Boolean;
+	begin
+		loop
+			select
+				accept Start;
+
+				Window := Gtk_Window (Builder.Get_Object ("root"));
+				Status_Window := Gtk_Window (Builder.Get_Object ("status_window"));
+				Status_Name := Gtk_Label (Builder.Get_Object ("status_name"));
+
+				accept Update (Text : String) do
+					Status_Name.Set_Label (Text);
+				end Update;
+
+				Window.Hide;
+				Status_Window.Show;
+				
+				Main_Loop : loop
+					select
+						accept Stop do
+							Status_Window.Hide;
+							Window.Show;
+						end Stop;
+
+						exit Main_Loop;
+					else
+						select
+							accept Update (Text : String) do
+								Status_Name.Set_Label (Text);
+							end Update;
+						else
+							Discard := Gtk.Main.Main_Iteration_Do (Blocking => False);
+						end select;
+					end select;
+				end loop Main_Loop;
+			or
+				terminate;
+			end select;
+		end loop;
+	end Status_Task;
+
 	-- Public Subprograms
 	procedure Reload_Profile_Data is
 	begin
-		Put_Debug ("Reloading profile data");
-		Profile := Profiles.Get_Profile (Headers, Membership);
+		GUI.Lock_Object.Lock;
+		Status_Task.Start;
 
+		Put_Debug ("Reloading profile data");
+
+		Status_Task.Update ("Loading profile...");
+		Profile := Profiles.Get_Profile (Membership);
+
+		Status_Task.Update ("Loading vault...");
 		GUI.Global.Update_Inventory;
+
+		Status_Task.Update ("Loading character inventories...");
 		GUI.Character.Update_Characters (GUI.Profile);
+
 		GUI.Character.Update_For_Character (GUI.Profile.Characters (0));
+		Status_Task.Stop;
+		GUI.Lock_Object.Unlock;
 	end Reload_Profile_Data;
 
 	procedure Reload_Data is
 	begin
+		GUI.Lock_Object.Lock;
+		Status_Task.Start;
 		Put_Debug ("Reloading all data");
+
+		Status_Task.Update ("Authorising...");
 		Auth_Data := Authorise.Do_Authorise;
 		Headers := Create_Headers (Auth_Data);
 
-		Membership := Memberships.Get_Memberships (Headers);
-		The_Manifest := Manifest.Get_Manifest (Membership);
+		Status_Task.Update ("Loading memberships...");
+		Membership := Memberships.Get_Memberships;
 
+		Status_Task.Update ("Loading manifest... (this can take a bit)");
+		The_Manifest := Manifest.Get_Manifest;
+
+		Status_Task.Stop;
+
+		GUI.Lock_Object.Unlock;
 		Reload_Profile_Data;
 	end Reload_Data;
 end GUI.Base;

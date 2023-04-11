@@ -1,12 +1,16 @@
 pragma Ada_2022;
 
-with Ada.Text_IO;
 with Ada.Streams.Stream_IO; use Ada.Streams;
 with Ada.Numerics.Discrete_Random;
 with Ada.Directories; use Ada.Directories;
 use Ada;
 
 with Interfaces; use Interfaces;
+
+-- Gtk
+with Gtk.Window; use Gtk.Window;
+with Gtk.GEntry; use Gtk.GEntry;
+with Gtk.Main;
 
 -- AWS
 with AWS.Client;
@@ -18,9 +22,9 @@ with AWS.Messages;
 -- Local Packages
 with JSON; use JSON;
 with Shared; use Shared;
+with GUI; use GUI;
 
 package body API.Authorise is
-	
 	-- Global Variables
 	function Generate_State return String is
 		package Unsigned_64_Random is new Ada.Numerics.Discrete_Random (Unsigned_64);
@@ -37,7 +41,52 @@ package body API.Authorise is
 
 	State : constant String := Generate_State;
 
-	-- Subprograms
+	-- Tasking
+	task Auth_Loop is
+		entry Start;
+		entry Close;
+		entry Stop;
+	end Auth_Loop;
+
+	task body Auth_Loop is
+		Auth_Window : Gtk_Window;
+		Auth_URL : Gtk_Entry;
+		Discard : Boolean;
+	begin
+		loop
+			select
+				accept Start;
+
+				Auth_Window := Gtk_Window (GUI.Builder.Get_Object ("auth_window"));
+				Auth_URL := Gtk_Entry (GUI.Builder.Get_Object ("auth_url"));
+
+				Auth_URL.Set_Text (
+					OAuth_Authorise_Endpoint
+					& "?client_id=" & Client_ID
+					& "&response_type=code"
+					& "&state=" & State);
+
+				Auth_Window.Show;
+
+				Gtk_Main_Loop : loop
+					select
+						accept Stop;
+						exit Gtk_Main_Loop;
+					else
+						select
+							accept Close;
+							Auth_Window.Hide;
+						else
+							Discard := Gtk.Main.Main_Iteration;
+						end select;
+					end select;
+				end loop Gtk_Main_Loop;
+			or
+				terminate;
+			end select;
+		end loop;
+	end Auth_Loop;
+
 	protected Authorise_Object is
 		procedure Set_Code (Input : String);
 		entry Get_Code (Result : out Unbounded_String);
@@ -66,6 +115,7 @@ package body API.Authorise is
 		end Reset;
 	end Authorise_Object;
 
+	-- Subprograms
 	function Code_Callback (Request : Status.Data) return Response.Data
 	is begin
 		if Status.Method (Request) = Status.GET then
@@ -82,7 +132,7 @@ package body API.Authorise is
 					Request,
 					Name => "code"));
 
-			return Response.Acknowledge (Messages.S200, "Code received, you may close this tab.");
+			return Response.Acknowledge (Messages.S200, "");
 		else
 			return Response.Acknowledge (Messages.S400, "Unsupported method.");
 		end if;
@@ -93,6 +143,8 @@ package body API.Authorise is
 		WS : Server.HTTP;
 		Code : Unbounded_String;
 	begin
+		Server.Set_Security (WS, "dat/cert.pem");
+
 		Server.Start (
 			WS,
 			Name => "Code Callback",
@@ -101,10 +153,7 @@ package body API.Authorise is
 			Port => 8888,
 			Security => True); -- Enable HTTPS
 
-		Server.Set_Security (WS, "dat/cert.pem");
-
 		Authorise_Object.Get_Code (Code);
-		delay 1.0; -- Wait for response to be served
 		Server.Shutdown (WS);
 
 		Authorise_Object.Reset;
@@ -190,16 +239,17 @@ package body API.Authorise is
 			end;
 		else -- Fetch token
 			Put_Debug ("Fetch token");
+
 			-- Get Authorisation Code
-			Text_IO.Put_Line ("Open the following URL in a browser: "
-				& OAuth_Authorise_Endpoint
-				& "?client_id=" & Client_ID
-				& "&response_type=code"
-				& "&state=" & State);
-			Text_IO.Put_Line ("Please note that you may need to accept an invalid certificate for localhost");
+			
+			-- Displays window and processes events for it
+			Auth_Loop.Start;
 
 			-- Get Access Token and Refresh Token
 			Auth_Storage := Get_Initial_Token (Get_Code);
+
+			Auth_Loop.Close;
+			Auth_Loop.Stop;
 		end if;
 
 		-- Save refresh token

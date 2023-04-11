@@ -86,12 +86,16 @@ package body GUI.Character is
 	is
 		Contents : constant Gtk_Popover := Gtk_Popover (Builder.Get_Object ("full_contents"));
 	begin
+		Tasks.Download.Contents_Task.Interrupt;
+
 		-- Emotes are a special case here
 		if User_Data.Bucket_Location = Emote_Collection then
 			Render_Contents (Emote);
 		else
 			Render_Contents (User_Data.Bucket_Location);
 		end if;
+
+		Tasks.Download.Contents_Task.Execute (GUI.Image_Callback'Access);
 
 		Contents.Set_Relative_To (Widget);
 		Contents.Popup;
@@ -220,6 +224,8 @@ package body GUI.Character is
 		Finisher_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("finisher"));
 		Emote_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("emote"));
 	begin
+		Tasks.Download.Character_Task.Interrupt;
+
 		-- Update Buckets
 		Base.Clear_Bucket (Postmaster_Grid);
 		Render_Items (
@@ -265,7 +271,10 @@ package body GUI.Character is
 		Render_Item (Equipped_Items (Finisher), Finisher_Box, Left);
 		Render_Item (Equipped_Items (Emote_Collection), Emote_Box, Left);
 
-		-- TODO: Render engrams?
+		-- TODO: Render engrams?	
+
+		-- Complete downloads queued by Render calls
+		Tasks.Download.Character_Task.Execute (GUI.Image_Callback'Access);
 	end Render;
 
 	-- Update UI elements for new character
@@ -298,10 +307,12 @@ package body GUI.Character is
 	end Update_For_Character;
 
 	-- Update inventory data for characters
+	-- TODO: Identify source of earlier memory corruption
 	procedure Update_Characters (Profile : Profiles.Profile_Type)
 	is
-		Blank_IDL_BLT_Array : IDL_BLT_Array;
-		Blank_ID_BLT_Array : ID_BLT_Array;
+		C1 : IDL_BLT_Array_Maps.Cursor;
+		C2 : ID_BLT_Array_Maps.Cursor;
+		B : Boolean;
 	begin
 		Put_Debug ("Update character inventories");
 
@@ -309,11 +320,14 @@ package body GUI.Character is
 		All_Character_Items.Clear;
 		All_Equipped_Items.Clear;
 
+		All_Character_Items.Reserve_Capacity (3);
+		All_Equipped_Items.Reserve_Capacity (3);
+
 		-- Add character data
 		Add_Characters :
 		for C of Profile.Characters loop
-			All_Character_Items.Insert (C.Character_ID, Blank_IDL_BLT_Array);
-			All_Equipped_Items.Insert (C.Character_ID, Blank_ID_BLT_Array);
+			All_Character_Items.Insert (C.Character_ID, C1, B);
+			All_Equipped_Items.Insert (C.Character_ID, C2, B);
 
 			-- Inventory Items (not equipped)
 			for I of Profile.Character_Inventories (C.Character_ID) loop
@@ -333,32 +347,4 @@ package body GUI.Character is
 			end loop;
 		end loop Add_Characters;
 	end Update_Characters;
-	
-	-- Internal Callbacks
-	procedure Tick is
-		Download_Data : Tasks.Download.Download_Data_Type;
-	begin
-		select
-			Tasks.Download.Character_Task.Complete (Download_Data);
-			GUI.Image_Callback (Download_Data.Path, Download_Data.Widget, Download_Data.Data);
-		else
-			select
-				Tasks.Download.Character_Task.Execute;
-			else
-				null;
-			end select;
-		end select;
-
-		select
-			Tasks.Download.Contents_Task.Complete (Download_Data);
-			GUI.Image_Callback (Download_Data.Path, Download_Data.Widget, Download_Data.Data);
-		else
-			select
-				Tasks.Download.Contents_Task.Execute;
-			else
-				null;
-			end select;
-		end select;
-
-	end Tick;
 end GUI.Character;

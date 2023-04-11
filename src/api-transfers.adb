@@ -1,3 +1,5 @@
+pragma Ada_2022;
+
 with Interfaces; use Interfaces;
 with Ada.Text_IO; use Ada.Text_IO;
 
@@ -38,6 +40,8 @@ package body API.Transfers is
 	begin
 		Set_Stream (Reader, Input_Text_Stream_Access (Stream));
 
+		Check_Status (Data);
+
 		-- Check passes if S200 returned
 		if Query_Status (Data) then
 			Free (Stream);
@@ -57,7 +61,9 @@ package body API.Transfers is
 			& " after passing all local checks");
 
 		-- Wipe profile data and reload
+		GUI.Lock_Object.Unlock;
 		GUI.Base.Reload_Profile_Data;
+		GUI.Lock_Object.Lock;
 				
 		case Error_Code is
 			when DestinyNoRoomInDestination =>
@@ -130,6 +136,25 @@ package body API.Transfers is
 	begin
 		Put_Debug ("(Un)Vault item");
 
+		Put_Debug ("Item = " & D'Image);
+		Put_Debug ("Source = " & Source'Image);
+		Put_Debug ("Vault = " & Vault'Image);
+		Put_Debug ("{"
+					& '"' & "itemReferenceHash" & '"' & ':'
+						& D.Item_Hash'Image & ','
+					& '"' & "stackSize" & '"' & ':'
+						& D.Quantity'Image & ','
+					& '"' & "transferToVault" & '"' & ':'
+						& ' ' & (if Vault then "true" else "false") & ','
+					& '"' & "itemId" & '"' & ':'
+						& ' ' & (+D.Item_Instance_ID) & ','
+					& '"' & "characterId" & '"' & ':'
+						& ' ' & (+Source.Character_ID) & ','
+					& '"' & "membershipType" & '"' & ':'
+						& Memberships.Find_Default_Platform_ID (GUI.Membership)
+				& "}");
+		return;
+
 		-- Local Check
 		-- An exception will be raised if any of these fail
 
@@ -145,8 +170,8 @@ package body API.Transfers is
 			Check_Vault_Has_Room (D);
 
 			-- Check_Item_Not_Vaulted
-			case D.Bucket_Location is
-				when General => raise Already_Here;
+			case D.Location is
+				when Manifest.Vault => raise Already_Here;
 				when others => null;
 			end case;
 
@@ -164,7 +189,7 @@ package body API.Transfers is
 		end if;
 
 		Data := Client.Post (
-			URL => API_Root & "/Destiny2/Actions/Items/TransferItem/",
+			URL => Bungie_Root & API_Root & "/Destiny2/Actions/Items/TransferItem/",
 			Data =>
 				"{"
 					& '"' & "itemReferenceHash" & '"' & ':'
@@ -224,7 +249,7 @@ package body API.Transfers is
 		end if;
 
 		Data := Client.Post (
-			URL => API_Root & "/Destiny2/Actions/Items/PullFromPostmaster/",
+			URL => Bungie_Root & API_Root & "/Destiny2/Actions/Items/PullFromPostmaster/",
 			Data =>
 				"{"
 					& '"' & "itemReferenceHash" & '"' & ':'
@@ -255,7 +280,7 @@ package body API.Transfers is
 		Check_Actions_Permitted (D);
 
 		Data := Client.Post (
-			URL => API_Root & "/Destiny2/Actions/Items/EquipItem/",
+			URL => Bungie_Root & API_Root & "/Destiny2/Actions/Items/EquipItem/",
 			Data =>
 				"{"
 					& '"' & "itemId" & '"' & ':'

@@ -1,17 +1,19 @@
 pragma Ada_2022;
 
--- AWS
-with AWS.Client;
-with AWS.Response;
-
 -- VSS
+with VSS.Text_Streams.Memory_UTF8_Input; use VSS.Text_Streams.Memory_UTF8_Input;
+use VSS.Text_Streams;
+
 with VSS.JSON.Pull_Readers.Simple; use VSS.JSON.Pull_Readers.Simple;
-with VSS.Text_Streams; use VSS.Text_Streams;
 use VSS.JSON.Pull_Readers;
 use VSS.JSON;
 
+with VSS.Stream_Element_Vectors.Conversions; use VSS.Stream_Element_Vectors.Conversions;
+
 -- Local Packages
 with JSON; use JSON;
+
+with Tasks.Download;
 
 package body API.Profiles is
 	-- Note: Position Reader before "data"	
@@ -289,28 +291,26 @@ package body API.Profiles is
 		end loop;
 	end Read_Loadout;
 
-	function Get_Profile (
-		Headers : Auth_Header_Type;
-		M : Membership_Type) return Profile_Type
+	function Get_Profile (M : Membership_Type) return Profile_Type
 	is
 		Result : Profile_Type;
 
-		Data : Response.Data;
-		Stream : Memory_UTF8_Input_Stream_Access;
+		Stream : Memory_UTF8_Input_Stream_Access := new Memory_UTF8_Input_Stream;
 		Reader : JSON_Simple_Pull_Reader;
 	begin
 		Put_Debug ("Get profiles");
---		Data := Client.Get (
---			API_Root & "/Destiny2/"
---				& Memberships.Find_Default_Platform_ID (M)
---				& "/Profile/" & (+M.Primary_Membership_ID)
---				& "/" & "?components=ProfileInventories,ProfileCurrencies,PlatformSilver,Characters,CharacterInventories,CharacterProgressions,CharacterEquipment,CharacterLoadouts",
---			Headers => Headers);
---		Check_Status (Data);
---		Put_Debug (Response.Message_Body (Data));
 
---		Stream := Get_Stream (Response.Message_Body (Data));
-		Stream := Get_Stream (+Read_File ("json/profiles.json"));
+		-- Get live profile
+		Set_Data (Stream.all, To_Stream_Element_Vector (
+			Tasks.Download.Download (
+				+(
+					API_Root & "/Destiny2/"
+						& Memberships.Find_Default_Platform_ID (M)
+						& "/Profile/" & (+M.Primary_Membership_ID)
+						& "/" & "?components=ProfileInventories,ProfileCurrencies,PlatformSilver,Characters,CharacterInventories,CharacterProgressions,CharacterEquipment,CharacterLoadouts"),
+				Needs_Auth => True,
+				Caching => True)));
+
 		Set_Stream (Reader, Input_Text_Stream_Access (Stream));
 
 		Wait_Until_Key (Reader, "profileInventory");

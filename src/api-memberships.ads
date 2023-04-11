@@ -34,5 +34,5 @@ package API.Memberships is
 	-- Subprograms
 	function Find_Default_Platform (M : Membership_Type) return Bungie_Platform_Type;
 	function Find_Default_Platform_ID (M : Membership_Type) return String;
-	function Get_Memberships (Headers : Auth_Header_Type) return Membership_Type;
+	function Get_Memberships return Membership_Type;
 end API.Memberships;

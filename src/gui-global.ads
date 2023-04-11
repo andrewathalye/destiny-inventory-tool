@@ -31,7 +31,4 @@ package GUI.Global is
 	-- Status Updates
 	procedure Update_Inventory;
 	procedure Render;
-
-	-- Internal Callbacks
-	procedure Tick;
 end GUI.Global;

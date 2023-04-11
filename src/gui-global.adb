@@ -262,6 +262,8 @@ package body GUI.Global is
 
 		Vault_Other : constant Gtk_Grid := Gtk_Grid (GUI.Builder.Get_Object ("vault_other"));
 	begin
+		Tasks.Download.Global_Task.Interrupt;
+
 		Base.Clear_Bucket (Vault_Kinetic);
 		Base.Clear_Bucket (Vault_Energy);
 		Base.Clear_Bucket (Vault_Power);
@@ -303,6 +305,9 @@ package body GUI.Global is
 		-- Theoretically, no items should appear here.
 		Base.Clear_Bucket (Vault_Other);
 		Render_Items (Vault_Inventory (Unknown), Vault_Other, 10);
+
+		-- Complete downloads queued by Render calls
+		Tasks.Download.Global_Task.Execute (GUI.Image_Callback'Access);
 	end Render;
 
 	-- Global Update_Inventory
@@ -316,6 +321,11 @@ package body GUI.Global is
 		Setup_Transfer_Menu;
 		Setup_Character_Menu;
 		Setup_Descriptions;
+
+		-- Clear any old vault items
+		for IDL of Vault_Inventory loop
+			IDL.Clear;
+		end loop;
 
 		-- Load vault inventory
 		for I of Profile.Profile_Inventory loop
@@ -333,19 +343,4 @@ package body GUI.Global is
 		-- Draw global inventories
 		Render;
 	end Update_Inventory;
-
-	procedure Tick is
-		Download_Data : Tasks.Download.Download_Data_Type;
-	begin
-		select
-			Tasks.Download.Global_Task.Complete (Download_Data);
-			GUI.Image_Callback (Download_Data.Path, Download_Data.Widget, Download_Data.Data);
-		else
-			select
-				Tasks.Download.Global_Task.Execute;
-			else
-				null;
-			end select;
-		end select;
-	end Tick;
 end GUI.Global;

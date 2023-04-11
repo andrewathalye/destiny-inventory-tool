@@ -28,6 +28,9 @@ package Shared is
 	with Inline;
 
 	-- using a raw path
+	-- Note: These subprograms REQUIRE the program to be compiled with "-O2"
+	-- Au cas échéant, they try to allocate too much memory on the stack and
+	-- the program hangs.
 	function Get_Data (Name : String) return Stream_Element_Array;
 	function Has_Cached (Name : String) return Boolean
 	with Inline;

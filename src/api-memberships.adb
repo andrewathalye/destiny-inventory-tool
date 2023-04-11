@@ -1,18 +1,20 @@
 pragma Ada_2022;
 
--- AWS
-with AWS.Client;
-with AWS.Response;
-
 -- VSS
 with VSS.JSON.Pull_Readers.Simple; use VSS.JSON.Pull_Readers.Simple;
 use VSS.JSON.Pull_Readers;
 use VSS.JSON;
-with VSS.Text_Streams; use VSS.Text_Streams;
+
+with VSS.Text_Streams.Memory_UTF8_Input; use VSS.Text_Streams.Memory_UTF8_Input;
+use VSS.Text_Streams;
+
+with VSS.Stream_Element_Vectors.Conversions; use VSS.Stream_Element_Vectors.Conversions;
 
 -- Local Packages
 with JSON; use JSON;
 with Shared; use Shared;
+
+with Tasks.Download;
 
 package body API.Memberships is
 	function Find_Default_Platform (M : Membership_Type) return Bungie_Platform_Type is
@@ -32,25 +34,21 @@ package body API.Memberships is
 		return Result (Result'First + 1 .. Result'Last);
 	end Find_Default_Platform_ID;
 
-	function Get_Memberships (Headers : Auth_Header_Type) return Membership_Type is
+	function Get_Memberships return Membership_Type is
 		Reader : JSON_Simple_Pull_Reader;
-		Data : Response.Data;
 
-		Stream : Memory_UTF8_Input_Stream_Access;
+		Stream : Memory_UTF8_Input_Stream_Access := new Memory_UTF8_Input_Stream;
 
 		Result : Membership_Type;
 	begin
 		Put_Debug ("Get memberships");
---		Data := Client.Get (
---			API_Root & "/User/GetMembershipsForCurrentUser/",
---			Headers => Headers);
---		Check_Status (Data);
 
---		Put_Debug (Response.Message_Body (Data));
-
---		Stream := Get_Stream (Response.Message_Body (Data));
-
-		Stream := Get_Stream (+Read_File ("json/memberships.json"));
+		Set_Data (Stream.all,
+			To_Stream_Element_Vector (
+				Tasks.Download.Download (
+					+(API_Root & "/User/GetMembershipsForCurrentUser/"),
+					Needs_Auth => True,
+					Caching => True)));
 
 		Set_Stream (Reader, Input_Text_Stream_Access (Stream));
 
@@ -188,6 +186,7 @@ package body API.Memberships is
 			when others => raise Program_Error;
 		end case;
 
+		Free (Stream);
 		return Result;
 	end Get_Memberships;
 end API.Memberships;

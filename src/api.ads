@@ -24,7 +24,7 @@ package API is
 private
 	use Ada.Strings.Unbounded;
 
-	API_Root : constant String := Bungie_Root & "/Platform";
+	API_Root : constant String := "/Platform";
 	API_Key : constant String := "ba586a1fd8f94cccb485ed6ad880fefc";
 
 	type Auth_Storage_Type is record

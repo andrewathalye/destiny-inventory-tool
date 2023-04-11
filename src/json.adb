@@ -24,7 +24,6 @@ package body JSON is
 		Stream : Memory_UTF8_Input_Stream_Access := Get_Stream (JSON_Data);
 		Reader : JSON_Simple_Pull_Reader;
 	begin
-		Put_Debug ("Parse JSON (Pull)");
 		Set_Stream (Reader, Input_Text_Stream_Access (Stream));
 
 		while not At_End (Reader) loop

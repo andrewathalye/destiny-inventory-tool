@@ -1,6 +1,7 @@
 private with Ada.Containers.Hashed_Maps;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
-private with Ada.Streams;
+-- private with Ada.Streams;
+with Ada.Streams; use Ada.Streams;
 
 -- Gtkada
 with Gtkada.Builder; use Gtkada.Builder;
@@ -28,6 +29,13 @@ package GUI is
 	Membership : Memberships.Membership_Type;
 	Profile : Profiles.Profile_Type;
 	The_Manifest : Manifest.Manifest_Type;
+
+	protected Lock_Object is
+		entry Lock;
+		procedure Unlock;
+	private
+		Locked : Boolean := False;
+	end Lock_Object;
 private
 	use Ada.Streams;
 
