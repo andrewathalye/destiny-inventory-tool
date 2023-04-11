@@ -2,6 +2,8 @@ with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Containers.Ordered_Maps;
 with Ada.Containers.Vectors;
 
+with Interfaces; use Interfaces;
+
 -- Local Packages
 with API.Memberships;
 
@@ -110,10 +112,12 @@ package API.Manifest is
 		Watermark_Path : Unbounded_String;
 		Shelved_Watermark_Path : Unbounded_String;
 		Item_Type_And_Tier_Display_Name : Unbounded_String;
+		Max_Stack_Size : Integer_32;
 		Bucket_Type_Hash : Manifest_Hash;
 		Tier_Type : Destiny_Tier_Type;
 		Display_Version_Watermark_Icons : Unbounded_String_List;
 		-- Stats?
+		Allow_Actions : Boolean;
 		Item_Type : Destiny_Item_Type;
 		Default_Damage_Type_Hash : Manifest_Hash := 0; -- Nullable
 			-- DestinyDamageTypeDefinition
@@ -135,12 +139,16 @@ package API.Manifest is
 	subtype Destiny_Damage_Type_Map is DDTDM.Map;
 
 	type Destiny_Inventory_Bucket_Category is (Invisible, Item, Currency, Equippable, Ignored);
+	type Item_Location_Type is (Unknown, Inventory, Vault, Vendor, Postmaster);
+	-- Note: "Postmaster" seems to not be used anymore, so check the bucket location instead
+
 	type Destiny_Inventory_Bucket_Definition is record
 		Description : Unbounded_String;
 		Name : Unbounded_String;
 		Category: Destiny_Inventory_Bucket_Category;
 		Bucket_Order : Integer_32;
 		Item_Count : Integer_32;
+		Location : Item_Location_Type;
 		FIFO : Boolean;
 	end record;
 	package DIBDM is new Ada.Containers.Ordered_Maps (

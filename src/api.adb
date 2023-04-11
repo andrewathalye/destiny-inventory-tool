@@ -16,13 +16,19 @@ package body API is
 		return List;
 	end Create_Headers;
 
-	procedure Check_Status (Data : Response.Data) is
-		use AWS.Messages;	
+	function Query_Status (Data : Response.Data) return Boolean is
+		use AWS.Messages;
 	begin
-		if AWS.Response.Status_Code (Data) /= AWS.Messages.S200 then
+		return AWS.Response.Status_Code (Data) = AWS.Messages.S200;
+	end Query_Status;
+
+	procedure Check_Status (Data : Response.Data) is
+	begin
+		if not Query_Status (Data) then
 			Put_Debug (AWS.Response.Status_Code (Data)'Image);
 			Headers.Debug (True);
 			Headers.Debug_Print (AWS.Response.Header (Data));
+			Headers.Debug (False);
 			Put_Debug (AWS.Response.Message_Body (Data));
 			raise Program_Error with "Request failed.";
 		end if;

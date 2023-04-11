@@ -33,27 +33,37 @@ package body API.Manifest.Tools is
 	begin
 		return (
 			Name => Manifest_Item.Name,
-			Item_Hash => I.Item_Hash,
 			Description => Manifest_Item.Description,
+			Item_Hash => I.Item_Hash,
 			Item_Instance_ID => I.Item_Instance_ID,
+
 			Quantity => I.Quantity,
+			Max_Stack_Size => Manifest_Item.Max_Stack_Size,
+			Location => I.Location,
+
 			Bucket_Hash => I.Bucket_Hash,
 			Default_Bucket_Hash => Manifest_Item.Bucket_Type_Hash,
 			Bucket_Location =>
 				Bucket_Location_Type'Enum_Val (I.Bucket_Hash),
 			Default_Bucket_Location =>
 				Bucket_Location_Type'Enum_Val (Manifest_Item.Bucket_Type_Hash),
+
 			Category =>
 				M.Destiny_Inventory_Buckets (
 					Manifest_Item.Bucket_Type_Hash).Category,
 			State => I.State,
+			Allow_Actions => Manifest_Item.Allow_Actions,
+			Transfer_Status => I.Transfer_Status,
+
 			Icon_Path => Override_Item.Icon_Path,
 			Watermark_Path => (
 				if I.Version_Number /= -1 then
 					Manifest_Item.Display_Version_Watermark_Icons (
 						Natural (I.Version_Number))
 				else Manifest_Item.Watermark_Path),
+
 			Style_Overridden => I.Override_Style_Item_Hash /= 0,
+
 			Item_Type => Manifest_Item.Item_Type,
 			Tier_Type => Manifest_Item.Tier_Type,
 			Item_Type_And_Tier_Display_Name => Manifest_Item.Item_Type_And_Tier_Display_Name);

@@ -36,6 +36,7 @@ package JSON is
 	function Get_Strings (
 		JSON_Data : Unbounded_String;
 		Keys : Unbounded_String_Array) return Unbounded_String_List;
+	pragma Obsolescent (Get_Strings);
 
 	procedure Wait_Until_Key (Reader : in out JSON_Simple_Pull_Reader; Key : String);
 	procedure Wait_Until_Event (Reader : in out JSON_Simple_Pull_Reader; Event : JSON_Event_Kind);

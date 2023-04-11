@@ -1,8 +1,9 @@
 with Ada.Containers.Hashed_Maps;
 with Ada.Containers.Ordered_Maps;
 with Ada.Containers.Vectors;
-
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
+
+with Interfaces; use Interfaces;
 
 -- Local Packages
 with Shared; use Shared;
@@ -39,7 +40,6 @@ package API.Profiles is
 
 	-- Inventories
 	type Bind_Status_Type is (Not_Bound, Bound_To_Character, Bound_To_Account, Bound_To_Guild);
-	type Item_Location_type is (Unknown, Inventory, Vault, Vendor, Postmaster);
 	type Transfer_Status_Type is (Can_Transfer, Item_Is_Equipped, Not_Transferable, No_Room_In_Destination);
 	type Item_State_Type is record
 		Locked : Boolean;

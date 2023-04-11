@@ -198,6 +198,12 @@ package body API.Manifest is
 				As_Integer (
 					Number_Value (Reader)));
 
+			Read_Next (Reader); -- "location"
+			Read_Next (Reader);
+			Bucket.Location := Item_Location_Type'Enum_Val (
+				As_Integer (
+					Number_Value (Reader)));
+
 			Wait_Until_Key (Reader, "fifo");
 			Read_Next (Reader);
 			Bucket.FIFO := Boolean_Value (Reader);
@@ -301,11 +307,19 @@ package body API.Manifest is
 						if VS2S (Key_Name (Reader)) = "itemTypeAndTierDisplayName" then
 							Read_Next (Reader);
 							Item.Item_Type_And_Tier_Display_Name := VS2UB (String_Value (Reader));
+
+						elsif VS2S (Key_Name (Reader)) = "maxStackSize" then
+							Read_Next (Reader);
+							Item.Max_Stack_Size := Integer_32 (
+								As_Integer (
+									Number_Value (Reader)));
+
 						elsif VS2S (Key_Name (Reader)) = "bucketTypeHash" then
 							Read_Next (Reader);
 							Item.Bucket_Type_Hash := Manifest_Hash (
 								As_Integer (
 									Number_Value (Reader)));
+
 						elsif VS2S (Key_Name (Reader)) = "tierType" then
 							Read_Next (Reader);
 							Item.Tier_Type := Destiny_Tier_Type'Enum_Val (
@@ -317,6 +331,10 @@ package body API.Manifest is
 							Item.Item_Type := Destiny_Item_Type'Enum_Val (
 								As_Integer (
 									Number_Value (Reader)));
+
+						elsif VS2S (Key_Name (Reader)) = "allowActions" then
+							Read_Next (Reader);
+							Item.Allow_Actions := Boolean_Value (Reader);
 
 						elsif VS2S (Key_Name (Reader)) = "defaultDamageTypeHash" then
 							Read_Next (Reader);

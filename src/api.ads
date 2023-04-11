@@ -1,7 +1,5 @@
 private with Ada.Strings.Unbounded;
 
-with Interfaces; use Interfaces;
-
 -- AWS
 with AWS.Response;
 with AWS.Headers;
@@ -15,18 +13,13 @@ package API is
 	type Auth_Storage_Type is private;
 	subtype Auth_Header_Type is AWS.Headers.List;
 
-	-- Nullable Types
-	type Nullable_Integer_64 (Empty : Boolean := True) is record
-		case Empty is
-			when True =>
-				null;
-			when False =>
-				Value : Integer_64;
-		end case;
-	end record;
-
 	-- Subprograms
 	function Create_Headers (Auth_Data : Auth_Storage_Type) return Auth_Header_Type;
+	function Query_Status (Data : Response.Data) return Boolean;
+
+	-- Note: Will raise an exception if the status was not successful
+	-- Use Query_Status if you wish to see if the Response was successful
+	-- and handle the error state yourself
 	procedure Check_Status (Data : Response.Data);
 private
 	use Ada.Strings.Unbounded;

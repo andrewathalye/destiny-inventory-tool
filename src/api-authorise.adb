@@ -6,6 +6,8 @@ with Ada.Numerics.Discrete_Random;
 with Ada.Directories; use Ada.Directories;
 use Ada;
 
+with Interfaces; use Interfaces;
+
 -- AWS
 with AWS.Client;
 with AWS.Server;

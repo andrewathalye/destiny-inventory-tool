@@ -10,9 +10,9 @@ with GLib.Object; use GLib.Object;
 use GLib;
 
 -- Local Packages
-with GUI;
 with GUI.Global;
 with GUI.Character;
+with GUI.Base;
 with GUI.Handlers;
 
 procedure Inventory_Tool is
@@ -24,7 +24,7 @@ procedure Inventory_Tool is
 	Window : Gtk_Window;
 begin
 	-- Print Welcome Message
-	Put_Line ("Destiny Inventory Tool v0.8");
+	Put_Line ("Destiny Inventory Tool v0.9");
 	
 	-- Load Interface
 	Gtk.Main.Init;
@@ -32,16 +32,14 @@ begin
 	Discard_G := Add_From_File (GUI.Builder, "res/experimental.glade", Error'Access);
 
 	GUI.Handlers.Set_Handlers;
+	Do_Connect (GUI.Builder);
 	
 	-- Setup window
 	Window := Gtk_Window (GUI.Builder.Get_Object ("root"));
 	Gtk.Window.Show (Window);
 
-	-- Update and render inventory elements
-	GUI.Global.Update_Inventory;
-	GUI.Character.Update_For_Character (GUI.Profile.Characters (0));
-	
-	Do_Connect (GUI.Builder);
+	-- Update GUI data
+	GUI.Base.Reload_Data;
 
 	-- Accept GTK events and update internal data (downloads, etc.)
 	loop

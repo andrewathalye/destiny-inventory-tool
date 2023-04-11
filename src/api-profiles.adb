@@ -300,17 +300,17 @@ package body API.Profiles is
 		Reader : JSON_Simple_Pull_Reader;
 	begin
 		Put_Debug ("Get profiles");
-		Data := Client.Get (
-			API_Root & "/Destiny2/"
-				& Memberships.Find_Default_Platform_ID (M)
-				& "/Profile/" & (+M.Primary_Membership_ID)
-				& "/" & "?components=ProfileInventories,ProfileCurrencies,PlatformSilver,Characters,CharacterInventories,CharacterProgressions,CharacterEquipment,CharacterLoadouts",
-			Headers => Headers);
-		Check_Status (Data);
+--		Data := Client.Get (
+--			API_Root & "/Destiny2/"
+--				& Memberships.Find_Default_Platform_ID (M)
+--				& "/Profile/" & (+M.Primary_Membership_ID)
+--				& "/" & "?components=ProfileInventories,ProfileCurrencies,PlatformSilver,Characters,CharacterInventories,CharacterProgressions,CharacterEquipment,CharacterLoadouts",
+--			Headers => Headers);
+--		Check_Status (Data);
 --		Put_Debug (Response.Message_Body (Data));
 
-		Stream := Get_Stream (Response.Message_Body (Data));
---		Stream := Get_Stream (+Read_File ("json/profiles.json"));
+--		Stream := Get_Stream (Response.Message_Body (Data));
+		Stream := Get_Stream (+Read_File ("json/profiles.json"));
 		Set_Stream (Reader, Input_Text_Stream_Access (Stream));
 
 		Wait_Until_Key (Reader, "profileInventory");

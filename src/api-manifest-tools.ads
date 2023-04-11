@@ -67,21 +67,34 @@ package API.Manifest.Tools is
 
 	-- Intended to store sufficient information about an
 	-- item to display it without further Manifest lookups
+	--
+	-- Location, Bucket_Location, and Transfer_Status should
+	-- be modified if the item is to be virtually moved
 	type Item_Description is record
 		Name : Unbounded_String;
+		Description : Unbounded_String;
 		Item_Hash : Manifest_Hash;
 			-- DestinyInventoryItemDefinition
-		Description : Unbounded_String;
 		Item_Instance_ID : Unbounded_String;
+
 		Quantity : Integer_32;
+		Max_Stack_Size : Integer_32;
+		Location : Item_Location_Type;
+
 		Bucket_Hash, Default_Bucket_Hash : Manifest_Hash;
 			-- DestinyInventoryBucketDefinition
 		Bucket_Location, Default_Bucket_Location : Bucket_Location_Type;
+
 		Category : Destiny_Inventory_Bucket_Category;
 		State : Item_State_Type;
+		Allow_Actions : Boolean;
+		Transfer_Status : Transfer_Status_Type;
+
 		Icon_Path : Unbounded_String;
 		Watermark_Path : Unbounded_String;
+
 		Style_Overridden : Boolean;
+
 		Item_Type : Destiny_Item_Type;
 		Tier_Type : Destiny_Tier_Type;
 		Item_Type_And_Tier_Display_Name : Unbounded_String;

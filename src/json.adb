@@ -32,7 +32,6 @@ package body JSON is
 				when Key_Name =>
 					for K of Keys loop
 						if To_Unbounded_UTF_8_String (Key_Name (Reader)) = K then
-							Put_Debug ("Found " & To_String (K));
 							Read_Next (Reader);
 							if List.Contains (K) then
 								raise Program_Error with "Duplicate key in JSON parse";

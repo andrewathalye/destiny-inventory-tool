@@ -1,7 +1,6 @@
 pragma Ada_2022;
 
 with GNAT.OS_Lib; use GNAT.OS_Lib;
-with Interfaces;
 
 -- Gtk
 with Gtk.Search_Entry; use Gtk.Search_Entry;
@@ -10,11 +9,14 @@ with Gtk.Popover; use Gtk.Popover;
 -- Local Packages
 with GUI.Character;
 with GUI.Global;
+with GUI.Base;
+
 with API.Transfers;
 with API.Manifest.Tools; use API.Manifest.Tools; -- For enums
 with API.Profiles; use API.Profiles; -- For '='
 with API.Manifest; use API.Manifest; -- For '='
 use API;
+
 with Shared; use Shared;
 
 package body GUI.Handlers is
@@ -34,41 +36,37 @@ package body GUI.Handlers is
 	procedure Search_Changed_Handler (Builder : access Gtkada_Builder_Record'Class) is
 		Search : constant Gtk_Search_Entry := Gtk_Search_Entry (GUI.Builder.Get_Object ("search"));
 	begin
-		GUI.Search_Query := +Search.Get_Chars (0);
+		Base.Search_Query := +Search.Get_Chars (0);
 		GUI.Global.Render;
 		GUI.Character.Render;
 	end Search_Changed_Handler;
 	
-	-- TODO: Find a better setup
-	Entries : Natural := 0;
-
-	procedure Contents_Closed_Handler (Builder : access Gtkada_Builder_Record'Class)
+	procedure Postmaster_Vault_Handler (Button : access Gtk_Widget_Record'Class)
 	is begin
-		Entries := 0;
-	end Contents_Closed_Handler;
+		Put_Debug ("Postmaster Vault Item");
 
-	function Contents_Leave_Handler (Builder : access Gtkada_Builder_Record'Class) return Boolean
-	is
-		Contents : constant Gtk_Popover := Gtk_Popover (Builder.Get_Object ("full_contents"));
-	begin
-		if Entries > 1 then
-			Contents.Popdown;
+		begin
+			Transfers.Postmaster_Pull (
+				GUI.Current_Item,
+				GUI.Character.Current_Character);
+		exception
+			when Transfers.Out_Of_Space =>
+				Put_Debug ("Out of Vault space, aborting attempt");
+				return;
+		end;
 
-			Entries := 0;
-		end if;
+		-- Update UI State
+		GUI.Character.Remove_Item (GUI.Character.Current_Character, GUI.Current_Item);
+		GUI.Global.Add_Item (GUI.Current_Item);
 
-		return False; -- Do not execute other handlers
-	end Contents_Leave_Handler;
-
-	function Contents_Enter_Handler (Builder : access Gtkada_Builder_Record'Class) return Boolean
-	is begin
-		Entries := @ + 1;
-		return True; -- Do not execute other handlers
-	end Contents_Enter_Handler;
+		GUI.Global.Render;
+		GUI.Character.Render;
+	end Postmaster_Vault_Handler;
 	pragma Warnings (On, "is not referenced");
 
 	-- Install Handlers
 	procedure Set_Handlers is
+		Vault_Button : constant Gtk_Widget := Gtk_Widget (Builder.Get_Object ("vault_button"));
 	begin
 		Register_Handler (GUI.Builder, "window_close_handler", Window_Close_Handler'Access);
 
@@ -76,9 +74,12 @@ package body GUI.Handlers is
 
 		Register_Handler (Builder, "search_changed_handler", Search_Changed_Handler'Access);
 
-		Register_Handler (GUI.Builder, "contents_closed_handler", Contents_Closed_Handler'Access);
-		Register_Handler (GUI.Builder, "contents_leave_handler", Contents_Leave_Handler'Access);
-		Register_Handler (GUI.Builder, "contents_enter_handler", Contents_Enter_Handler'Access);
+		Widget_Callback.Connect (
+			Vault_Button,
+			"clicked",
+			Widget_Callback.To_Marshaller (
+				Postmaster_Vault_Handler'Access));
+
 	end Set_Handlers;
 
 	-- Dynamic Handlers (Public)
@@ -92,77 +93,72 @@ package body GUI.Handlers is
 		Character_Menu.Popdown;
 		Character.Update_For_Character (Profile.Characters (User_Data));
 	end Character_Menu_Button_Clicked_Handler;
-
-	procedure Switch_Item (
-		D : Item_Description;
-		New_Bucket_Location : Bucket_Location_Type;
-		Source : in out Item_Description_List;
-		Target : in out Item_Description_List)
-	is
-		use Interfaces;
-
-		Modified_D : Item_Description := D;
-		Idx : Integer := -1;
-	begin
-		for I in Source.First_Index .. Source.Last_Index loop
-			if 
-				Source (I).Item_Hash = D.Item_Hash
-				and Source (I).Item_Instance_ID = D.Item_Instance_ID
-			then
-				Idx := I;
-			end if;
-		end loop;
-
-		if Idx /= -1 then
-			Source.Delete (Natural (Idx));
-		end if;
-
-		Modified_D.Bucket_Location := New_Bucket_Location;
-
-		Target.Append (Modified_D);
-	end Switch_Item;
-
+	
 	-- The two handlers below are additionally responsible for simulating the
 	-- transfer clientside
-	-- TODO none of this is safe for multiple characters yet
 	procedure Transfer_Handler (
 		Button : access Gtk_Widget_Record'Class;
 		Target : Profiles.Character_Type)
 	is begin
+		Put_Debug ("Item Transfer");
+		Put_Debug ("Source: " & Manifest.Tools.Get_Description (
+			The_Manifest,
+			GUI.Character.Current_Character));
+		Put_Debug ("Target: " & Manifest.Tools.Get_Description (
+			The_Manifest,
+			Target));
+
 		-- Unvault
-		if GUI.Current_Item.Bucket_Location = General then
---			Transfers.Unvault (GUI.Current_Item, Target);
+		if GUI.Current_Item.Location = Vault then
+			Put_Debug ("Method: Unvault");
+			begin
+				Transfers.Unvault (GUI.Current_Item, Target);
+			exception
+				when Transfers.Out_Of_Space =>
+					Put_Debug ("Couldn't unvault because the destination is out of space");
+					return;
+				when Transfers.Already_Here =>
+					Put_Debug ("Couldn't unvault is already where it would have been sent");
+					return;
+			end;
 
-			Switch_Item (
-				GUI.Current_Item,
-				GUI.Current_Item.Default_Bucket_Location,
-				Vault_Inventory (GUI.Current_Item.Default_Bucket_Location),
-				Character_Items (GUI.Current_Item.Default_Bucket_Location));
-
+			-- Update UI State
+			GUI.Global.Remove_Item (GUI.Current_Item);
+			GUI.Character.Add_Item (Target, GUI.Current_Item);
 			GUI.Global.Render;
 			return;
 		end if;
 
 		-- Retrieve from Postmaster
+		-- Note: Can't check Location because Postmaster isn't always returned for that
 		if GUI.Current_Item.Bucket_Location = Postmaster then
---			Transfers.Postmaster_Pull (
---				GUI.Current_Item,
---				GUI.Character.Current_Character);
+			Put_Debug ("Method: Postmaster_Pull");
+			begin
+				Transfers.Postmaster_Pull (
+					GUI.Current_Item,
+					GUI.Character.Current_Character);
+			exception
+				when Transfers.Out_Of_Space =>
+					Put_Debug ("Failed to pull from postmaster: out of space");
+					return;
+			end;
 
 			-- Transfer to correct character
---			if GUI.Character.Current_Character /= Target then
---				Transfers.Transfer (
---					GUI.Current_Item,
---					GUI.Character.Current_Character,
---					Target);
---			end if;
+			if GUI.Character.Current_Character /= Target then
+				begin
+					Transfers.Transfer (
+						GUI.Current_Item,
+						GUI.Character.Current_Character,
+						Target);
+				exception -- The previous action cannot be undone, so keep going
+					when Transfers.Out_Of_Space =>
+						Put_Debug ("Failed to finish transfer, but postmaster pull can't be rolled back!");
+				end;
+			end if;
 
-			Switch_Item (
-				GUI.Current_Item,
-				GUI.Current_Item.Default_Bucket_Location,
-				Character_Items (GUI.Current_Item.Bucket_Location),
-				Character_Items (GUI.Current_Item.Default_Bucket_Location));
-
+			-- Update UI State
+			GUI.Character.Remove_Item (GUI.Character.Current_Character, GUI.Current_Item);
+			GUI.Character.Add_Item (Target, GUI.Current_Item);
 			GUI.Character.Render;
 			return;
 		end if;
@@ -170,39 +166,94 @@ package body GUI.Handlers is
 		-- Equip
 		if GUI.Character.Current_Character = Target and Current_Item.Category = Equippable
 		then
---			Transfers.Equip (GUI.Current_Item, Target);
+			Put_Debug ("Method: Equip");
+			Transfers.Equip (GUI.Current_Item, Target);
 
-			Equipped_Items (GUI.Current_Item.Default_Bucket_Location) := GUI.Current_Item;
+			-- Update UI State
+			GUI.Character.Remove_Item (Target, GUI.Current_Item);
+			GUI.Character.Equip_Item (Target, GUI.Current_Item);
 			GUI.Character.Render;
 			return;
 		end if;
 
 		-- Normal Transfer
---		Transfers.Transfer (
---			GUI.Current_Item,
---			GUI.Character.Current_Character,
---			Target);	
+		Put_Debug ("Method: Transfer");
 
-		Switch_Item (
-			GUI.Current_Item,
-			GUI.Current_Item.Default_Bucket_Location,
-			Character_Items (GUI.Current_Item.Default_Bucket_Location),
-			Character_Items (GUI.Current_Item.Default_Bucket_Location)); --todo big issue
+		begin
+			Transfers.Transfer (
+				GUI.Current_Item,
+				GUI.Character.Current_Character,
+				Target);	
+		exception
+			when Transfers.Out_Of_Space =>
+				Put_Debug ("Out of space somewhere along the chain, aborting transfer");
+				return;
+		end;
+
+		-- Update UI State
+		GUI.Character.Remove_Item (GUI.Character.Current_Character, GUI.Current_Item);
+		GUI.Character.Add_Item (Target, GUI.Current_Item);
+		GUI.Character.Render_Contents (GUI.Current_Item.Bucket_Location);
 	end Transfer_Handler;
 
-
+	-- Vault an Item
 	procedure Vault_Handler (Button : access Gtk_Widget_Record'Class)
 	is
 	begin
---		Transfers.Vault (
---			GUI.Current_Item,
---			GUI.Character.Current_Character);
+		Put_Debug ("Vault Item");
 
-		Switch_Item (
-			GUI.Current_Item,
-			General,
-			Character_Items (GUI.Current_Item.Default_Bucket_Location),
-			Vault_Inventory (GUI.Current_Item.Default_Bucket_Location));
+		begin
+			Transfers.Vault (
+				GUI.Current_Item,
+				GUI.Character.Current_Character);
+		exception
+			when Transfers.Out_Of_Space =>
+				Put_Debug ("Out of Vault space, aborting attempt");
+				return;
+			when Transfers.Already_Here =>
+				Put_Debug ("The item was already there, aborting attempt");
+				return;
+		end;
+
+		GUI.Character.Remove_Item (GUI.Character.Current_Character, GUI.Current_Item);
+		GUI.Global.Add_Item (GUI.Current_Item);
+
+		GUI.Global.Render;
+
+		-- Redraw as little as possible for performance :)
+		if GUI.Current_Item.Location = Postmaster then
+			GUI.Character.Render;
+		else
+			GUI.Character.Render_Contents (GUI.Current_Item.Bucket_Location);
+				-- A smaller render that will be faster (hopefully)
+		end if;
 	end Vault_Handler;
 	pragma Warnings (On, "is not referenced");
+
+	-- Display Transfer Menu When Item is Clicked
+	procedure Item_Button_Handler (
+		Widget : access Gtk_Widget_Record'Class;
+		User_Data : Manifest.Tools.Item_Description)
+	is
+		Transfer_Menu : constant Gtk_Popover := Gtk_Popover (Builder.Get_Object ("transfer_menu"));
+		Vault_Menu : constant Gtk_Popover := Gtk_Popover (Builder.Get_Object ("vault_menu"));
+	begin
+		Current_Item := User_Data;
+
+		-- Don't show the normal transfer menu for
+		-- nontransferrables
+		if User_Data.Transfer_Status /= Can_Transfer then
+			-- It is often possible to transfer items
+			-- in the postmaster to the Vault
+			if User_Data.Bucket_Location = Postmaster then
+				Vault_Menu.Set_Relative_To (Widget);
+				Vault_Menu.Popup;
+			end if;
+
+			return;
+		end if;
+
+		Transfer_Menu.Set_Relative_To (Widget);
+		Transfer_Menu.Popup;
+	end Item_Button_Handler;
 end GUI.Handlers;

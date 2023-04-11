@@ -1,32 +1,37 @@
 pragma Ada_2022;
 
+with Interfaces; use Interfaces;
+
 -- Gtkada
 with Gtk.Label; use Gtk.Label;
 with Gtk.Handlers; use Gtk.Handlers;
 with Gtk.Widget; use Gtk.Widget;
 with Gtk.Popover; use Gtk.Popover;
-
+with Gtk.Grid; use Gtk.Grid;
 with Gtk.Image; use Gtk.Image;
 with Gtk.Button; use Gtk.Button;
 
 with Gdk.Pixbuf; use Gdk.Pixbuf;
+with Glib; use Glib;
 
 -- Local Packages
 with Shared; use Shared;
 
 with GUI.Handlers;
+with GUI.Base;
 
 with API.Profiles; use API.Profiles;
 with API.Manifest.Tools; use API.Manifest.Tools; -- For enums
 use API.Manifest; -- For '='
 
+with Tasks.Download;
+
 package body GUI.Global is
 	-- Instantiations
 	package User_Callback_Natural is new User_Callback (Gtk_Widget_Record, Natural);
 	package User_Callback_Character is new User_Callback (Gtk_Widget_Record, Profiles.Character_Type);
-	package Widget_Callback is new Callback (Gtk_Widget_Record);
 
---	Vault_Inventory : array (Bucket_Location_Type) of Item_Description_List;
+	Vault_Inventory : array (Bucket_Location_Type) of Base.Item_Description_List;
 
 	-- Cache
 	Placeholder_Icon : constant Gdk_Pixbuf := Load_Image ("png",
@@ -34,16 +39,17 @@ package body GUI.Global is
 
 	-- Redirections
 	procedure Render_Items (
-		List : Item_Description_List;
+		List : Base.Item_Description_List;
 		Bucket : Gtk_Grid;
 		Max_Left : Gint := 2;
 		T : Tasks.Download.Download_Task := Tasks.Download.Global_Task)
 	is begin
-		GUI.Render_Items (List, Bucket, T, Max_Left);
+		Base.Render_Items (List, Bucket, T, Max_Left);
 	end Render_Items;
 
 	-- Private Subprograms
-	-- Global UI Setup
+	
+	-- One-time init for "character_grid"
 	procedure Setup_Character_Menu is
 		Character_Grid : constant Gtk_Grid := Gtk_Grid (GUI.Builder.Get_Object ("character_grid"));
 		Emblem_Button : constant Gtk_Button := Gtk_Button (GUI.Builder.Get_Object ("emblem_button"));
@@ -89,6 +95,7 @@ package body GUI.Global is
 		end loop;
 	end Setup_Character_Menu;
 
+	-- One-time init for "transfer_grid"
 	procedure Setup_Transfer_Menu is
 		Transfer_Grid : constant Gtk_Grid := Gtk_Grid (GUI.Builder.Get_Object ("transfer_grid"));
 
@@ -133,86 +140,17 @@ package body GUI.Global is
 		end loop;
 
 		Gtk_New (Vault_Button, "Vault");
-		Widget_Callback.Connect (
+		Handlers.Widget_Callback.Connect (
 			Vault_Button,
 			"clicked",
-			Widget_Callback.To_Marshaller (
+			Handlers.Widget_Callback.To_Marshaller (
 				Handlers.Vault_Handler'Access));
 		Vault_Button.Show;
 
 		Transfer_Grid.Attach (Vault_Button, 1, Count);
 	end Setup_Transfer_Menu;
 
-	-- Global UI Render
-	procedure Render is
-		Vault_Kinetic : constant Gtk_Grid := Gtk_Grid (GUI.Builder.Get_Object ("vault_kinetic"));
-		Vault_Energy : constant Gtk_Grid := Gtk_Grid (GUI.Builder.Get_Object ("vault_energy"));
-		Vault_Power : constant Gtk_Grid := Gtk_Grid (GUI.Builder.Get_Object ("vault_power"));
-		Vault_Shell : constant Gtk_Grid := Gtk_Grid (GUI.Builder.Get_Object ("vault_shell"));
-		Vault_Artefact : constant Gtk_Grid := Gtk_Grid (GUI.Builder.Get_Object ("vault_artefact"));
-
-		Vault_Helmet : constant Gtk_Grid := Gtk_Grid (GUI.Builder.Get_Object ("vault_helmet"));
-		Vault_Gauntlets : constant Gtk_Grid := Gtk_Grid (GUI.Builder.Get_Object ("vault_gauntlets"));
-		Vault_Chest : constant Gtk_Grid := Gtk_Grid (GUI.Builder.Get_Object ("vault_chest"));
-		Vault_Leg : constant Gtk_Grid := Gtk_Grid (GUI.Builder.Get_Object ("vault_leg"));
-		Vault_Class : constant Gtk_Grid := Gtk_Grid (GUI.Builder.Get_Object ("vault_class"));
-
-		Vault_Emblem : constant Gtk_Grid := Gtk_Grid (GUI.Builder.Get_Object ("vault_emblem"));
-		Vault_Sparrow : constant Gtk_Grid := Gtk_Grid (GUI.Builder.Get_Object ("vault_sparrow"));
-		Vault_Ship : constant Gtk_Grid := Gtk_Grid (GUI.Builder.Get_Object ("vault_ship"));
-
-		Vault_Consumable : constant Gtk_Grid := Gtk_Grid (GUI.Builder.Get_Object ("vault_consumable"));
-		Vault_Modification : constant Gtk_Grid := Gtk_Grid (GUI.Builder.Get_Object ("vault_modification"));
-
-		Vault_Other : constant Gtk_Grid := Gtk_Grid (GUI.Builder.Get_Object ("vault_other"));
-	begin
-		Clear_Bucket (Vault_Kinetic);
-		Clear_Bucket (Vault_Energy);
-		Clear_Bucket (Vault_Power);
-		Clear_Bucket (Vault_Shell);
-		Clear_Bucket (Vault_Artefact);
-
-		Render_Items (Vault_Inventory (Kinetic), Vault_Kinetic, 10);
-		Render_Items (Vault_Inventory (Energy), Vault_Energy, 10);
-		Render_Items (Vault_Inventory (Power), Vault_Power, 10);
-		Render_Items (Vault_Inventory (Shell), Vault_Shell, 10);
-		Render_Items (Vault_Inventory (Artefact), Vault_Artefact, 10);
-
-		Clear_Bucket (Vault_Helmet);
-		Clear_Bucket (Vault_Gauntlets);
-		Clear_Bucket (Vault_Chest);
-		Clear_Bucket (Vault_Leg);
-		Clear_Bucket (Vault_Class);
-
-		Render_Items (Vault_Inventory (Helmet), Vault_Helmet, 10);
-		Render_Items (Vault_Inventory (Gauntlets), Vault_Gauntlets, 10);
-		Render_Items (Vault_Inventory (Chest), Vault_Chest, 10);
-		Render_Items (Vault_Inventory (Leg), Vault_Leg, 10);
-		Render_Items (Vault_Inventory (Class), Vault_Class, 10);
-
-		Clear_Bucket (Vault_Emblem);
-		Clear_Bucket (Vault_Sparrow);
-		Clear_Bucket (Vault_Ship);
-
-		Render_Items (Vault_Inventory (Emblem), Vault_Emblem, 10);
-		Render_Items (Vault_Inventory (Sparrow), Vault_Sparrow, 10);
-		Render_Items (Vault_Inventory (Ship), Vault_Ship, 10);
-
-		Clear_Bucket (Vault_Consumable);
-		Clear_Bucket (Vault_Modification);
-
-		Render_Items (Vault_Inventory (Consumable), Vault_Consumable, 10);
-		Render_Items (Vault_Inventory (Modification), Vault_Modification, 10);
-
-		-- Theoretically, no items should appear here.
-		Clear_Bucket (Vault_Other);
-		Render_Items (Vault_Inventory (Unknown), Vault_Other, 10);
-	end Render;
-
-	-- Public Subprograms
-
-	-- Global Set_Callbacks
-	
+	-- One-time label creation
 	procedure Setup_Descriptions is
 		function Make_Label (Hash : Manifest.Manifest_Hash) return Gtk_Label is
 			Result : Gtk_Label;
@@ -240,6 +178,133 @@ package body GUI.Global is
 		Descriptions.Attach (Make_Label (Class'Enum_Rep), 1, 5);
 	end Setup_Descriptions;
 
+	-- Public Subprograms
+	
+	-- (Virtual) Inventory Management
+	procedure Add_Item (Item : Manifest.Tools.Item_Description) is
+		Modified_Item : Manifest.Tools.Item_Description := Item;
+	begin
+		Modified_Item.Location := Vault;
+		Modified_Item.Bucket_Location := General; -- The item is now in the Vault
+		Modified_Item.Transfer_Status := Can_Transfer;
+
+		Vault_Inventory (Item.Default_Bucket_Location).Append (Modified_Item);
+	end Add_Item;
+
+	procedure Remove_Item (Item : Manifest.Tools.Item_Description) is
+	begin
+		for I in Vault_Inventory (Item.Default_Bucket_Location).First_Index .. Vault_Inventory (Item.Default_Bucket_Location).Last_Index loop
+			if Vault_Inventory (Item.Default_Bucket_Location) (I) = Item then
+				Vault_Inventory (Item.Default_Bucket_Location).Delete (I);
+				exit;
+			end if;
+		end loop;
+		raise Program_Error with "GUI.Global: Virtual remove failed";
+	end Remove_Item;
+
+	-- The vault is divided into different types as well, with most items
+	-- being put in the General category
+	function Item_Count (Location : Manifest.Tools.Bucket_Location_Type) return Natural
+	is
+		Count : Natural := 0;
+	begin
+		case Location is
+			when Consumable =>
+				return Natural (Vault_Inventory (Consumable).Length);
+			when Modification =>
+				return Natural (Vault_Inventory (Modification).Length);
+			when others =>
+				for IDL of Vault_Inventory loop
+					for D of IDL loop
+						if D.Bucket_Location = General then
+							Count := @ + 1;
+						end if;
+					end loop;
+				end loop;
+				return Count;
+		end case;
+	end Item_Count;
+
+	function Get_Item_Stack (Hash : Manifest.Manifest_Hash) return Manifest.Tools.Item_Description
+	is begin
+		for IDL of Vault_Inventory loop
+			for ID of IDL loop
+				if ID.Item_Hash = Hash then
+					return ID;
+				end if;
+			end loop;
+		end loop;
+
+		raise Item_Not_Found;
+	end Get_Item_Stack;
+
+	-- Status Updates
+	-- Global UI Render
+	procedure Render is
+		Vault_Kinetic : constant Gtk_Grid := Gtk_Grid (GUI.Builder.Get_Object ("vault_kinetic"));
+		Vault_Energy : constant Gtk_Grid := Gtk_Grid (GUI.Builder.Get_Object ("vault_energy"));
+		Vault_Power : constant Gtk_Grid := Gtk_Grid (GUI.Builder.Get_Object ("vault_power"));
+		Vault_Shell : constant Gtk_Grid := Gtk_Grid (GUI.Builder.Get_Object ("vault_shell"));
+		Vault_Artefact : constant Gtk_Grid := Gtk_Grid (GUI.Builder.Get_Object ("vault_artefact"));
+
+		Vault_Helmet : constant Gtk_Grid := Gtk_Grid (GUI.Builder.Get_Object ("vault_helmet"));
+		Vault_Gauntlets : constant Gtk_Grid := Gtk_Grid (GUI.Builder.Get_Object ("vault_gauntlets"));
+		Vault_Chest : constant Gtk_Grid := Gtk_Grid (GUI.Builder.Get_Object ("vault_chest"));
+		Vault_Leg : constant Gtk_Grid := Gtk_Grid (GUI.Builder.Get_Object ("vault_leg"));
+		Vault_Class : constant Gtk_Grid := Gtk_Grid (GUI.Builder.Get_Object ("vault_class"));
+
+		Vault_Emblem : constant Gtk_Grid := Gtk_Grid (GUI.Builder.Get_Object ("vault_emblem"));
+		Vault_Sparrow : constant Gtk_Grid := Gtk_Grid (GUI.Builder.Get_Object ("vault_sparrow"));
+		Vault_Ship : constant Gtk_Grid := Gtk_Grid (GUI.Builder.Get_Object ("vault_ship"));
+
+		Vault_Consumable : constant Gtk_Grid := Gtk_Grid (GUI.Builder.Get_Object ("vault_consumable"));
+		Vault_Modification : constant Gtk_Grid := Gtk_Grid (GUI.Builder.Get_Object ("vault_modification"));
+
+		Vault_Other : constant Gtk_Grid := Gtk_Grid (GUI.Builder.Get_Object ("vault_other"));
+	begin
+		Base.Clear_Bucket (Vault_Kinetic);
+		Base.Clear_Bucket (Vault_Energy);
+		Base.Clear_Bucket (Vault_Power);
+		Base.Clear_Bucket (Vault_Shell);
+		Base.Clear_Bucket (Vault_Artefact);
+
+		Render_Items (Vault_Inventory (Kinetic), Vault_Kinetic, 10);
+		Render_Items (Vault_Inventory (Energy), Vault_Energy, 10);
+		Render_Items (Vault_Inventory (Power), Vault_Power, 10);
+		Render_Items (Vault_Inventory (Shell), Vault_Shell, 10);
+		Render_Items (Vault_Inventory (Artefact), Vault_Artefact, 10);
+
+		Base.Clear_Bucket (Vault_Helmet);
+		Base.Clear_Bucket (Vault_Gauntlets);
+		Base.Clear_Bucket (Vault_Chest);
+		Base.Clear_Bucket (Vault_Leg);
+		Base.Clear_Bucket (Vault_Class);
+
+		Render_Items (Vault_Inventory (Helmet), Vault_Helmet, 10);
+		Render_Items (Vault_Inventory (Gauntlets), Vault_Gauntlets, 10);
+		Render_Items (Vault_Inventory (Chest), Vault_Chest, 10);
+		Render_Items (Vault_Inventory (Leg), Vault_Leg, 10);
+		Render_Items (Vault_Inventory (Class), Vault_Class, 10);
+
+		Base.Clear_Bucket (Vault_Emblem);
+		Base.Clear_Bucket (Vault_Sparrow);
+		Base.Clear_Bucket (Vault_Ship);
+
+		Render_Items (Vault_Inventory (Emblem), Vault_Emblem, 10);
+		Render_Items (Vault_Inventory (Sparrow), Vault_Sparrow, 10);
+		Render_Items (Vault_Inventory (Ship), Vault_Ship, 10);
+
+		Base.Clear_Bucket (Vault_Consumable);
+		Base.Clear_Bucket (Vault_Modification);
+
+		Render_Items (Vault_Inventory (Consumable), Vault_Consumable, 10);
+		Render_Items (Vault_Inventory (Modification), Vault_Modification, 10);
+
+		-- Theoretically, no items should appear here.
+		Base.Clear_Bucket (Vault_Other);
+		Render_Items (Vault_Inventory (Unknown), Vault_Other, 10);
+	end Render;
+
 	-- Global Update_Inventory
 	procedure Update_Inventory is
 		Name : constant Gtk_Label := Gtk_Label (GUI.Builder.Get_Object ("name"));
@@ -254,7 +319,7 @@ package body GUI.Global is
 
 		-- Load vault inventory
 		for I of Profile.Profile_Inventory loop
-			if I.Location = Profiles.Vault then
+			if I.Location = Manifest.Vault then
 				declare
 					D : constant Manifest.Tools.Item_Description := Manifest.Tools.Get_Description (
 						The_Manifest,
