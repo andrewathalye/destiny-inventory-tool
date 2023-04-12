@@ -309,7 +309,7 @@ package body API.Profiles is
 						& "/Profile/" & (+M.Primary_Membership_ID)
 						& "/" & "?components=ProfileInventories,ProfileCurrencies,PlatformSilver,Characters,CharacterInventories,CharacterProgressions,CharacterEquipment,CharacterLoadouts"),
 				Needs_Auth => True,
-				Caching => True)));
+				Caching => Debug_Caching)));
 
 		Set_Stream (Reader, Input_Text_Stream_Access (Stream));
 

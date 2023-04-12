@@ -7,6 +7,7 @@ with Gtk.Container; use Gtk.Container;
 with Gtk.Button; use Gtk.Button;
 with Gtk.Window; use Gtk.Window;
 with Gtk.Main;
+with Gtk.Message_Dialog; use Gtk.Message_Dialog;
 with Gtk.Image; use Gtk.Image;
 with Gtk.Label; use Gtk.Label;
 with Gtk.Alignment; use Gtk.Alignment;
@@ -245,99 +246,81 @@ package body GUI.Base is
 		-- TODO: Render light level for weapons / armour instead of quantity?
 	end Render_Items;
 
-	task Status_Task is
-		entry Start;
-		entry Update (Text : String);
-		entry Stop;
-	end Status_Task;
-
-	task body Status_Task is
-		Window : Gtk_Window;
-		Status_Window : Gtk_Window;
-		Status_Name : Gtk_Label;
-
+	procedure Do_Events is
 		Discard : Boolean;
 	begin
-		loop
-			select
-				accept Start;
-
-				Window := Gtk_Window (Builder.Get_Object ("root"));
-				Status_Window := Gtk_Window (Builder.Get_Object ("status_window"));
-				Status_Name := Gtk_Label (Builder.Get_Object ("status_name"));
-
-				accept Update (Text : String) do
-					Status_Name.Set_Label (Text);
-				end Update;
-
-				Window.Hide;
-				Status_Window.Show;
-				
-				Main_Loop : loop
-					select
-						accept Stop do
-							Status_Window.Hide;
-							Window.Show;
-						end Stop;
-
-						exit Main_Loop;
-					else
-						select
-							accept Update (Text : String) do
-								Status_Name.Set_Label (Text);
-							end Update;
-						else
-							Discard := Gtk.Main.Main_Iteration_Do (Blocking => False);
-						end select;
-					end select;
-				end loop Main_Loop;
-			or
-				terminate;
-			end select;
+		while Gtk.Main.Events_Pending loop
+			Discard := Gtk.Main.Main_Iteration;
 		end loop;
-	end Status_Task;
+		delay 0.1;
+	end Do_Events;
 
 	-- Public Subprograms
+	-- There is likely another Gtk Main_Loop running on the main thread when
+	-- this is called, so we pretend that is the case and only use synchronous
+	-- GUI calls
 	procedure Reload_Profile_Data is
+		Window : constant Gtk_Window := Gtk_Window (Builder.Get_Object ("root"));
+		Status_Window : constant Gtk_Window := Gtk_Window (Builder.Get_Object ("status_window"));
+		Status_Name : constant Gtk_Label := Gtk_Label (Builder.Get_Object ("status_name"));
 	begin
 		GUI.Lock_Object.Lock;
-		Status_Task.Start;
+
+		Window.Hide;
+		Status_Window.Show;
 
 		Put_Debug ("Reloading profile data");
 
-		Status_Task.Update ("Loading profile...");
+		Status_Name.Set_Label ("Loading profile...");
+		Do_Events;
 		Profile := Profiles.Get_Profile (Membership);
 
-		Status_Task.Update ("Loading vault...");
+		Status_Name.Set_Label ("Loading vault...");
+		Do_Events;
 		GUI.Global.Update_Inventory;
 
-		Status_Task.Update ("Loading character inventories...");
+		Status_Name.Set_Label ("Loading character inventories...");
+		Do_Events;
 		GUI.Character.Update_Characters (GUI.Profile);
 
 		GUI.Character.Update_For_Character (GUI.Profile.Characters (0));
-		Status_Task.Stop;
+
+		Status_Window.Hide;
+		Window.Show;
 		GUI.Lock_Object.Unlock;
 	end Reload_Profile_Data;
 
 	procedure Reload_Data is
+		Window : constant Gtk_Window := Gtk_Window (Builder.Get_Object ("root"));
+		Status_Window : constant Gtk_Window := Gtk_Window (Builder.Get_Object ("status_window"));
+		Status_Name : constant Gtk_Label := Gtk_Label (Builder.Get_Object ("status_name"));
 	begin
 		GUI.Lock_Object.Lock;
-		Status_Task.Start;
 		Put_Debug ("Reloading all data");
 
-		Status_Task.Update ("Authorising...");
+		Window.Hide;
 		Auth_Data := Authorise.Do_Authorise;
 		Headers := Create_Headers (Auth_Data);
 
-		Status_Task.Update ("Loading memberships...");
+		Status_Window.Show;
+
+		Status_Name.Set_Label ("Loading memberships...");
+		Do_Events;
 		Membership := Memberships.Get_Memberships;
 
-		Status_Task.Update ("Loading manifest... (this can take a bit)");
+		Status_Name.Set_Label ("Loading manifest... (this can take a bit)");
+		Do_Events;
 		The_Manifest := Manifest.Get_Manifest;
-
-		Status_Task.Stop;
 
 		GUI.Lock_Object.Unlock;
 		Reload_Profile_Data;
 	end Reload_Data;
+
+	procedure Error_Message (Name : String; Message : String) is
+		Error_Dialog : constant Gtk_Message_Dialog := Gtk_Message_Dialog (Builder.Get_Object ("error_dialog"));
+	begin
+		Error_Dialog.Set_Markup (Name);
+		Error_Dialog.Format_Secondary_Markup (Message);
+		Error_Dialog.Show;
+	end Error_Message;
 end GUI.Base;

@@ -102,44 +102,49 @@
       </packing>
     </child>
   </object>
-  <object class="GtkDialog" id="error_dialog">
+  <object class="GtkMessageDialog" id="error_dialog">
     <property name="can-focus">False</property>
-    <property name="type">popup</property>
     <property name="title" translatable="yes">Error</property>
     <property name="resizable">False</property>
     <property name="modal">True</property>
-    <property name="window-position">center</property>
+    <property name="window-position">center-always</property>
+    <property name="destroy-with-parent">True</property>
+    <property name="icon-name">dialog-error</property>
     <property name="type-hint">dialog</property>
+    <property name="skip-taskbar-hint">True</property>
     <property name="urgency-hint">True</property>
+    <property name="message-type">error</property>
+    <property name="text" translatable="yes">[error name goes here]</property>
+    <property name="secondary-text" translatable="yes">[description goes here]</property>
     <child internal-child="vbox">
-      <object class="GtkBox" id="error_dialog_box">
+      <object class="GtkBox">
         <property name="can-focus">False</property>
         <property name="orientation">vertical</property>
         <property name="spacing">2</property>
         <child internal-child="action_area">
-          <object class="GtkButtonBox" id="error_dialog_button_box">
+          <object class="GtkButtonBox">
             <property name="can-focus">False</property>
+            <property name="homogeneous">True</property>
             <property name="layout-style">end</property>
             <child>
-              <placeholder/>
+              <object class="GtkButton" id="error_dialog_close_button">
+                <property name="label" translatable="yes">Close</property>
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
+                <signal name="clicked" handler="error_dialog_close_handler" swapped="no"/>
+              </object>
+              <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
             </child>
           </object>
           <packing>
             <property name="expand">False</property>
             <property name="fill">False</property>
             <property name="position">0</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkLabel" id="error_message">
-            <property name="visible">True</property>
-            <property name="can-focus">False</property>
-            <property name="label" translatable="yes">[error description]</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">1</property>
           </packing>
         </child>
       </object>
@@ -1665,6 +1670,7 @@
   </object>
   <object class="GtkWindow" id="status_window">
     <property name="can-focus">False</property>
+    <property name="title" translatable="yes">Status</property>
     <property name="resizable">False</property>
     <property name="modal">True</property>
     <property name="urgency-hint">True</property>

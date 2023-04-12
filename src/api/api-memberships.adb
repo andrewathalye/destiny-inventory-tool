@@ -48,7 +48,7 @@ package body API.Memberships is
 				Tasks.Download.Download (
 					+(API_Root & "/User/GetMembershipsForCurrentUser/"),
 					Needs_Auth => True,
-					Caching => True)));
+					Caching => Debug_Caching)));
 
 		Set_Stream (Reader, Input_Text_Stream_Access (Stream));
 

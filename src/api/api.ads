@@ -22,6 +22,10 @@ package API is
 	-- and handle the error state yourself
 	procedure Check_Status (Data : Response.Data);
 private
+	-- Use cached versions of API data files to reduce API calls
+	-- This does not currently apply to API.Authorise
+	Debug_Caching : Boolean := True;
+
 	use Ada.Strings.Unbounded;
 
 	API_Root : constant String := "/Platform";

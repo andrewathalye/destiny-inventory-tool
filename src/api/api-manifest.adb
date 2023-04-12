@@ -481,7 +481,7 @@ package body API.Manifest is
 			To_Stream_Element_Vector (
 				Tasks.Download.Download (
 					+("/Platform/Destiny2/Manifest/"),
-					Caching => True)));
+					Caching => Debug_Caching)));
 
 		Set_Stream (Reader, Input_Text_Stream_Access (Stream));
 

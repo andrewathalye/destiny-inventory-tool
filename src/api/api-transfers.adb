@@ -134,21 +134,6 @@ package body API.Transfers is
 	begin
 		Put_Debug ("(Un)Vault item");
 
-		Put_Debug ("{"
-					& '"' & "itemReferenceHash" & '"' & ':'
-						& D.Item_Hash'Image & ','
-					& '"' & "stackSize" & '"' & ':'
-						& D.Quantity'Image & ','
-					& '"' & "transferToVault" & '"' & ':'
-						& ' ' & (if Vault then "true" else "false") & ','
-					& '"' & "itemId" & '"' & ':'
-						& ' ' & (+D.Item_Instance_ID) & ','
-					& '"' & "characterId" & '"' & ':'
-						& ' ' & (+Source.Character_ID) & ','
-					& '"' & "membershipType" & '"' & ':'
-						& Memberships.Find_Default_Platform_ID (GUI.Membership)
-				& "}");
-
 		-- Local Check
 		-- An exception will be raised if any of these fail
 

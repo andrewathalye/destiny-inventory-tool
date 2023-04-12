@@ -5,6 +5,7 @@ with GNAT.OS_Lib; use GNAT.OS_Lib;
 -- Gtk
 with Gtk.Search_Entry; use Gtk.Search_Entry;
 with Gtk.Popover; use Gtk.Popover;
+with Gtk.Message_Dialog; use Gtk.Message_Dialog;
 
 -- Local Packages
 with GUI.Character;
@@ -40,6 +41,12 @@ package body GUI.Handlers is
 		GUI.Global.Render;
 		GUI.Character.Render;
 	end Search_Changed_Handler;
+
+	procedure Error_Dialog_Close_Button_Handler (Builder : access Gtkada_Builder_Record'Class) is
+		Error_Dialog : constant Gtk_Message_Dialog := Gtk_Message_Dialog (Builder.Get_Object ("error_dialog"));
+	begin
+		Error_Dialog.Hide;
+	end Error_Dialog_Close_Button_Handler;
 	
 	procedure Postmaster_Vault_Handler (Button : access Gtk_Widget_Record'Class)
 	is begin
@@ -74,12 +81,13 @@ package body GUI.Handlers is
 
 		Register_Handler (Builder, "search_changed_handler", Search_Changed_Handler'Access);
 
+		Register_Handler (Builder, "error_dialog_close_button_handler", Error_Dialog_Close_Button_Handler'Access);
+
 		Widget_Callback.Connect (
 			Vault_Button,
 			"clicked",
 			Widget_Callback.To_Marshaller (
 				Postmaster_Vault_Handler'Access));
-
 	end Set_Handlers;
 
 	-- Dynamic Handlers (Public)
@@ -209,6 +217,7 @@ package body GUI.Handlers is
 		exception
 			when Transfers.Out_Of_Space =>
 				Put_Debug ("Out of Vault space, aborting attempt");
+				GUI.Base.Error_Message ("Item Transfer Failed", "Out of Space");
 				return;
 			when Transfers.Already_Here =>
 				Put_Debug ("The item was already there, aborting attempt");

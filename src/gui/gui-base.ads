@@ -56,4 +56,7 @@ package GUI.Base is
 
 	-- Reloads all data used by the GUI
 	procedure Reload_Data;
+
+	-- Displays an error message on screen
+	procedure Error_Message (Name : String; Message : String);
 end GUI.Base;
