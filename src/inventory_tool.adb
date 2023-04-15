@@ -11,6 +11,9 @@ use GLib;
 with GUI.Base;
 with GUI.Handlers;
 
+-- Alire
+with Destiny_Inventory_Tool_Config;
+
 procedure Inventory_Tool is
 	-- Constants
 	Discard_G : Guint;
@@ -18,7 +21,7 @@ procedure Inventory_Tool is
 	Error : aliased GError;
 begin
 	-- Print Welcome Message
-	Put_Line ("Destiny Inventory Tool v0.13");
+	Put_Line ("Destiny Inventory Tool v" & Destiny_Inventory_Tool_Config.Crate_Version);
 	
 	-- Load Interface
 	Gtk.Main.Init;

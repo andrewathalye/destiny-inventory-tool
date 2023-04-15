@@ -1,9 +1,21 @@
-deps-src
-deps
-cert.pem
-inventory_tool
-obj
-json/
-cache/
+# Exec
+/bin/
+/inventory_tool
+/obj/
+
+# App Data
+/json/
+/cache/
+/dat/
+
+# Internal
 .*.swp
-dat
+/test/
+
+# Alire
+/alire/
+/config/
+
+# Local Alire Crates
+/alire_local/aws-23.0.0/
+/alire_local/aws-23.0.0.zip
