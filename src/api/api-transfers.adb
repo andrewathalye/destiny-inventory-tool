@@ -20,13 +20,12 @@ with API.Profiles; use API.Profiles; -- only for enums
 with API.Manifest.Tools; use API.Manifest.Tools; -- only for enums
 with API.Error_Codes; use API.Error_Codes; -- only for enums
 
-with GUI.Character;
-with GUI.Global;
 with GUI.Base;
 
-with JSON; use JSON;
-
-with Shared; use Shared;
+with Shared.JSON; use Shared.JSON;
+with Shared.Strings; use Shared.Strings;
+with Shared.Debug;
+use Shared;
 
 package body API.Transfers is
 	-- Server Check
@@ -59,9 +58,11 @@ package body API.Transfers is
 			& " after passing all local checks");
 
 		-- Wipe profile data and reload
-		GUI.Lock_Object.Unlock;
-		GUI.Base.Reload_Profile_Data;
-		GUI.Lock_Object.Lock;
+		-- Reloading profile data requires the lock to be unlocked,
+		-- but we return to the Gtk event handler, so it should be locked
+		-- afterwards
+
+		GUI.Locked_Wrapper (GUI.Base.Reload_Profile_Data'Access);
 				
 		case Error_Code is
 			when DestinyNoRoomInDestination =>
@@ -80,11 +81,16 @@ package body API.Transfers is
 	-- Local Checks
 	-- These return no value and raise an exception if the check fails
 	procedure Check_Character_Has_Room (
+		Inventory : Inventories.Character.Character_Inventory_Type;
 		Character : Profiles.Character_Type;
+		M : Manifest.Manifest_Type;
 		D : Manifest.Tools.Item_Description)
 	is
-		Bucket_Item_Count : Natural renames GUI.Character.Item_Count (Character, D.Default_Bucket_Location);
-		Max_Item_Count : Integer_32 renames GUI.The_Manifest.Destiny_Inventory_Buckets (D.Default_Bucket_Hash).Item_Count;
+		Bucket_Item_Count : constant Natural := Inventories.Character.Item_Count (
+			Inventory,
+			Character,
+			D.Default_Bucket_Location);
+		Max_Item_Count : constant Integer_32 := M.Destiny_Inventory_Buckets (D.Default_Bucket_Hash).Item_Count;
 	begin
 		-- +2 because space is needed for the equipped item and the new item
 		if Integer_32 (Bucket_Item_Count + 2) > Max_Item_Count then
@@ -92,10 +98,16 @@ package body API.Transfers is
 		end if;
 	end Check_Character_Has_Room;
 
-	procedure Check_Vault_Has_Room (D : Manifest.Tools.Item_Description)
+	procedure Check_Vault_Has_Room (
+		Inventory : Inventories.Global.Global_Inventory_Type;
+		M : Manifest.Manifest_Type;
+		D : Manifest.Tools.Item_Description)
 	is
-		Bucket_Item_Count : Natural renames GUI.Global.Item_Count (D.Bucket_Location);
-		Max_Item_Count : Integer_32 renames GUI.The_Manifest.Destiny_Inventory_Buckets (General'Enum_Rep).Item_Count;
+		Bucket_Item_Count : constant Natural := Inventories.Global.Item_Count (
+			Inventory,
+			D.Bucket_Location);
+		Max_Item_Count : constant Integer_32 := M.Destiny_Inventory_Buckets (General'Enum_Rep).Item_Count;
+		Item_Stack_Quantity : constant Integer_32 := Inventories.Global.Get_Item_Stack (Inventory, D.Item_Hash).Quantity;
 	begin
 		-- +1 because space is needed for the new item
 		if Integer_32 (Bucket_Item_Count + 1) > Max_Item_Count then
@@ -106,11 +118,11 @@ package body API.Transfers is
 		-- This only occurs for non-transferrable items
 		if D.Transfer_Status /= Can_Transfer then
 			begin
-				if D.Quantity + GUI.Global.Get_Item_Stack (D.Item_Hash).Quantity > D.Max_Stack_Size then
+				if D.Quantity + Item_Stack_Quantity > D.Max_Stack_Size then
 					raise Out_Of_Space;
 				end if;
 			exception
-				when GUI.Global.Item_Not_Found => null;
+				when Inventories.Item_Not_Found => null;
 			end;
 		end if;
 	end Check_Vault_Has_Room;
@@ -126,18 +138,20 @@ package body API.Transfers is
 	-- See the specification for more information
 	
 	procedure Vault (
+		Vault_Inventory : Inventories.Global.Global_Inventory_Type;
+		M : Manifest.Manifest_Type;
 		D : Manifest.Tools.Item_Description;
-		Source : Profiles.Character_Type;
-		Vault : Boolean := True)
+		Source : Profiles.Character_Type)
 	is
 		Data : Response.Data;
 	begin
-		Put_Debug ("(Un)Vault item");
+		Debug.Put_Line ("Vault item");
 
 		-- Local Check
 		-- An exception will be raised if any of these fail
 
 		Check_Actions_Permitted (D);
+
 		-- Check_Item_Belongs_Elsewhere
 		case D.Bucket_Location is
 			when Consumable | Modification =>
@@ -145,27 +159,23 @@ package body API.Transfers is
 			when others => null;
 		end case;
 
-		if Vault then
-			Check_Vault_Has_Room (D);
+		Check_Vault_Has_Room (Vault_Inventory, M, D);
 
-			-- Check_Item_Not_Vaulted
-			case D.Location is
-				when Manifest.Vault => raise Already_Here;
-				when others => null;
-			end case;
+		-- Check_Item_Not_Vaulted
+		case D.Location is
+			when Manifest.Vault => raise Already_Here;
+			when others => null;
+		end case;
 
-			-- Check_Item_Can_Transfer
-			case D.Transfer_Status is
-				when Can_Transfer => null;
-				when others =>
-					case D.Bucket_Location is
-						when Postmaster => null;
-						when others => raise Cannot_Transfer;
-					end case;
-			end case;
-		else
-			Check_Character_Has_Room (Source, D);
-		end if;
+		-- Check_Item_Can_Transfer
+		case D.Transfer_Status is
+			when Can_Transfer => null;
+			when others =>
+				case D.Bucket_Location is
+					when Postmaster => null;
+					when others => raise Cannot_Transfer;
+				end case;
+		end case;
 
 		Data := Client.Post (
 			URL => Bungie_Root & API_Root & "/Destiny2/Actions/Items/TransferItem/",
@@ -175,8 +185,7 @@ package body API.Transfers is
 						& D.Item_Hash'Image & ','
 					& '"' & "stackSize" & '"' & ':'
 						& D.Quantity'Image & ','
-					& '"' & "transferToVault" & '"' & ':'
-						& ' ' & (if Vault then "true" else "false") & ','
+					& '"' & "transferToVault" & '"' & ": true,"
 					& '"' & "itemId" & '"' & ':'
 						& ' ' & (+D.Item_Instance_ID) & ','
 					& '"' & "characterId" & '"' & ':'
@@ -185,46 +194,88 @@ package body API.Transfers is
 						& Memberships.Find_Default_Platform_ID (GUI.Membership)
 				& "}",
 			Headers => GUI.Headers);
+
 		Server_Check (Data);
 	end Vault;
 	
 	procedure Unvault (
+		Character_Inventory : Inventories.Character.Character_Inventory_Type;
+		M : Manifest.Manifest_Type;
 		D : Manifest.Tools.Item_Description;
 		Target : Profiles.Character_Type)
-	is begin
+	is
+		Data : Response.Data;
+	begin
+		Debug.Put_Line ("Unvault item");
+
 		-- Local Check
-		-- (No Additional Checks)
-		Vault (D, Target, Vault => False);
+		Check_Actions_Permitted (D);
+
+		-- Check_Item_Belongs_Elsewhere
+		case D.Bucket_Location is
+			when Consumable | Modification =>
+				raise Already_Here;
+			when others => null;
+		end case;
+
+		Check_Character_Has_Room (Character_Inventory, Target, M, D);
+
+		Data := Client.Post (
+			URL => Bungie_Root & API_Root & "/Destiny2/Actions/Items/TransferItem/",
+			Data =>
+				"{"
+					& '"' & "itemReferenceHash" & '"' & ':'
+						& D.Item_Hash'Image & ','
+					& '"' & "stackSize" & '"' & ':'
+						& D.Quantity'Image & ','
+					& '"' & "transferToVault" & '"' & ": false,"
+					& '"' & "itemId" & '"' & ':'
+						& ' ' & (+D.Item_Instance_ID) & ','
+					& '"' & "characterId" & '"' & ':'
+						& ' ' & (+Target.Character_ID) & ','
+					& '"' & "membershipType" & '"' & ':'
+						& Memberships.Find_Default_Platform_ID (GUI.Membership)
+				& "}",
+			Headers => GUI.Headers);
+
+		Server_Check (Data);
 	end Unvault;
 
 	procedure Transfer (
+		Vault_Inventory : Inventories.Global.Global_Inventory_Type;
+		Character_Inventory : Inventories.Character.Character_Inventory_Type;
+		M : Manifest.Manifest_Type;
 		D : Manifest.Tools.Item_Description;
 		Source, Target : Profiles.Character_Type)
 	is begin
 		-- Local Check
 		-- (No Additonal Checks)
 
-		Vault (D, Source);
+		Vault (Vault_Inventory, M, D, Source);
 		delay 0.1; -- Throttle timer
-		Unvault (D, Target);
+		Unvault (Character_Inventory, M, D, Target);
 	end Transfer;
 
 	procedure Postmaster_Pull (
+		Vault_Inventory : Inventories.Global.Global_Inventory_Type;
+		Character_Inventory : Inventories.Character.Character_Inventory_Type;
+		M : Manifest.Manifest_Type;
 		D : Manifest.Tools.Item_Description;
 		Source : Profiles.Character_Type)
 	is
 		Data : Response.Data;
 	begin
-		Put_Debug ("Pull from Postmaster");
+		Debug.Put_Line ("Pull from Postmaster");
 
 		-- Local Check
 		-- An exception will be raised if any of these fail
-		Check_Character_Has_Room (Source, D);
 		Check_Actions_Permitted (D);
 
 		-- The item will end up in the vault in this case
 		if D.Transfer_Status /= Can_Transfer then
-			Check_Vault_Has_Room (D);
+			Check_Vault_Has_Room (Vault_Inventory, M, D);
+		else
+			Check_Character_Has_Room (Character_Inventory, Source, M, D);
 		end if;
 
 		Data := Client.Post (
@@ -252,7 +303,7 @@ package body API.Transfers is
 	is
 		Data : Response.Data;
 	begin
-		Put_Debug ("Equip item");
+		Debug.Put_Line ("Equip item");
 
 		-- Local Check
 		-- An exception will be raised if any of these fail

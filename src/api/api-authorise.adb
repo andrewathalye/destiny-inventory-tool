@@ -1,16 +1,9 @@
 pragma Ada_2022;
 
 with Ada.Streams.Stream_IO; use Ada.Streams;
-with Ada.Numerics.Discrete_Random;
 with Ada.Directories; use Ada.Directories;
+with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 use Ada;
-
-with Interfaces; use Interfaces;
-
--- Gtk
-with Gtk.Window; use Gtk.Window;
-with Gtk.GEntry; use Gtk.GEntry;
-with Gtk.Main;
 
 -- AWS
 with AWS.Client;
@@ -20,72 +13,13 @@ with AWS.Status; use AWS.Status;
 with AWS.Messages;
 
 -- Local Packages
-with JSON; use JSON;
-with Shared; use Shared;
-with GUI; use GUI;
+with Shared.JSON; use Shared.JSON;
+with Shared.Strings; use Shared.Strings;
+with Shared.Debug;
+use Shared;
 
 package body API.Authorise is
-	-- Global Variables
-	function Generate_State return String is
-		package Unsigned_64_Random is new Ada.Numerics.Discrete_Random (Unsigned_64);
-		G : Unsigned_64_Random.Generator;
-	begin
-		Unsigned_64_Random.Reset (G);
-
-		declare
-			Output : constant String := Unsigned_64_Random.Random (G)'Image;
-		begin
-			return Output (Output'First + 1 .. Output'Last);
-		end;
-	end Generate_State;
-
-	State : constant String := Generate_State;
-
-	-- Tasking
-	task Auth_Loop is
-		entry Start;
-		entry Close;
-		entry Stop;
-	end Auth_Loop;
-
-	task body Auth_Loop is
-		Auth_Window : Gtk_Window;
-		Auth_URL : Gtk_Entry;
-		Discard : Boolean;
-	begin
-		loop
-			select
-				accept Start;
-
-				Auth_Window := Gtk_Window (GUI.Builder.Get_Object ("auth_window"));
-				Auth_URL := Gtk_Entry (GUI.Builder.Get_Object ("auth_url"));
-
-				Auth_URL.Set_Text (
-					OAuth_Authorise_Endpoint
-					& "?client_id=" & Client_ID
-					& "&response_type=code"
-					& "&state=" & State);
-
-				Auth_Window.Show;
-
-				Gtk_Main_Loop : loop
-					select
-						accept Stop;
-						exit Gtk_Main_Loop;
-					else
-						select
-							accept Close;
-							Auth_Window.Hide;
-						else
-							Discard := Gtk.Main.Main_Iteration;
-						end select;
-					end select;
-				end loop Gtk_Main_Loop;
-			or
-				terminate;
-			end select;
-		end loop;
-	end Auth_Loop;
+	Local_State : Unbounded_String;
 
 	protected Authorise_Object is
 		procedure Set_Code (Input : String);
@@ -122,7 +56,7 @@ package body API.Authorise is
 			-- Reject invalid states
 			if Parameter (
 				Request,
-				Name => "state") /= State
+				Name => "state") /= Local_State
 			then
 				return Response.Acknowledge (Messages.S400, "Invalid state received. Please try again.");
 			end if;
@@ -179,7 +113,7 @@ package body API.Authorise is
 	is
 		Data : Response.Data;
 	begin
-		Put_Debug ("Refresh token");
+		Debug.Put_Line ("Refresh token");
 		Data := Client.Post (
 			URL => OAuth_Token_Endpoint,
 			Data =>
@@ -188,7 +122,7 @@ package body API.Authorise is
 				& "&client_id=" & Client_ID
 				& "&client_secret=" & Client_Secret,
 			Content_Type => "application/x-www-form-urlencoded");
---		Put_Debug (Response.Message_Body (Data));
+--		Debug.Put_Line (Response.Message_Body (Data));
 
 		Check_Status (Data);
 
@@ -199,7 +133,7 @@ package body API.Authorise is
 	is
 		Data : Response.Data;
 	begin
-		Put_Debug ("Initial token");
+		Debug.Put_Line ("Initial token");
 		Data := Client.Post (
 			URL => OAuth_Token_Endpoint,
 			Data =>
@@ -208,18 +142,20 @@ package body API.Authorise is
 				& "&client_id=" & Client_ID
 				& "&client_secret=" & Client_Secret,
 			Content_Type => "application/x-www-form-urlencoded");
---		Put_Debug (Response.Message_Body (Data));
+--		Debug.Put_Line (Response.Message_Body (Data));
 
 		Check_Status (Data);
 
 		return Parse_JSON (Response.Message_Body (Data));
 	end Get_Initial_Token;
 
-	function Do_Authorise return Auth_Storage_Type is
+	function Do_Authorise (State : String) return Auth_Storage_Type is
 		Auth_Storage : Auth_Storage_Type;
 	begin
+		Local_State := +State;
+
 		if Exists ("dat/refresh.dat") then -- Load token
-			Put_Debug ("Load token");
+			Debug.Put_Line ("Load token");
 			-- Load refresh token
 			declare
 				SF : Stream_IO.File_Type;
@@ -238,22 +174,15 @@ package body API.Authorise is
 				Auth_Storage := Get_Token (Refresh_Token);
 			end;
 		else -- Fetch token
-			Put_Debug ("Fetch token");
+			Debug.Put_Line ("Fetch token");
 
 			-- Get Authorisation Code
-			
-			-- Displays window and processes events for it
-			Auth_Loop.Start;
-
 			-- Get Access Token and Refresh Token
 			Auth_Storage := Get_Initial_Token (Get_Code);
-
-			Auth_Loop.Close;
-			Auth_Loop.Stop;
 		end if;
 
 		-- Save refresh token
-		Put_Debug ("Save refresh token");
+		Debug.Put_Line ("Save refresh token");
 		Save_Refresh_Token : declare
 			SF : Stream_IO.File_Type;
 			S : Stream_IO.Stream_Access;

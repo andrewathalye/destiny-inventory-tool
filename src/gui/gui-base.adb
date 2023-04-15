@@ -18,8 +18,15 @@ with Pango.Attributes; use Pango.Attributes;
 with GUI.Handlers;
 with GUI.Character;
 with GUI.Global;
+with GUI.Authorise;
 
-with API.Authorise;
+with API.Inventories.Global;
+with API.Inventories.Character;
+
+with Shared.Files;
+with Shared.Debug;
+with Shared.Strings; use Shared.Strings;
+use Shared;
 
 package body GUI.Base is
 	-- Instantiations
@@ -27,17 +34,17 @@ package body GUI.Base is
 
 	-- Cached High-Frequency Pixbufs
 	Placeholder_Icon : constant Gdk_Pixbuf := Load_Image ("png",
-		Get_Data ("res/placeholder_icon.png"));
+		Files.Get_Data ("res/placeholder_icon.png"));
 	Crafted_Masterwork_Overlay : constant Gdk_Pixbuf := Load_Image ("png",
-		Get_Data ("res/crafted_masterwork_overlay.png"));
+		Files.Get_Data ("res/crafted_masterwork_overlay.png"));
 	Crafted_Overlay : constant Gdk_Pixbuf := Load_Image ("png",
-		Get_Data ("res/crafted_overlay.png"));
+		Files.Get_Data ("res/crafted_overlay.png"));
 	Masterwork_Overlay : constant Gdk_Pixbuf := Load_Image ("png",
-		Get_Data ("res/masterwork_overlay.png"));
+		Files.Get_Data ("res/masterwork_overlay.png"));
 	Normal_Overlay : constant Gdk_Pixbuf := Load_Image ("png",
-		Get_Data ("res/normal_overlay.png"));
+		Files.Get_Data ("res/normal_overlay.png"));
 	Ornament_Overlay : constant Gdk_Pixbuf := Load_Image ("png",
-		Get_Data ("res/ornament_overlay.png"));
+		Files.Get_Data ("res/ornament_overlay.png"));
 
 	-- Bucket Management
 	-- Internal
@@ -201,7 +208,7 @@ package body GUI.Base is
 	end Get_Overlay;
 
 	procedure Render_Items (
-		List : Item_Description_List;
+		List : Inventories.Item_Description_List;
 		Bucket : Gtk_Grid;
 		T : Tasks.Download.Download_Task;
 		Max_Left : Gint := 2)
@@ -264,12 +271,10 @@ package body GUI.Base is
 		Status_Window : constant Gtk_Window := Gtk_Window (Builder.Get_Object ("status_window"));
 		Status_Name : constant Gtk_Label := Gtk_Label (Builder.Get_Object ("status_name"));
 	begin
-		GUI.Lock_Object.Lock;
-
 		Window.Hide;
 		Status_Window.Show;
 
-		Put_Debug ("Reloading profile data");
+		Debug.Put_Line ("Reloading profile data");
 
 		Status_Name.Set_Label ("Loading profile...");
 		Do_Events;
@@ -277,17 +282,26 @@ package body GUI.Base is
 
 		Status_Name.Set_Label ("Loading vault...");
 		Do_Events;
-		GUI.Global.Update_Inventory;
+		API.Inventories.Global.Update_Inventory (
+			GUI.Global.Inventory,
+			GUI.Profile,
+			GUI.The_Manifest);
+		GUI.Global.Update_GUI;
 
 		Status_Name.Set_Label ("Loading character inventories...");
 		Do_Events;
-		GUI.Character.Update_Characters (GUI.Profile);
+		API.Inventories.Character.Update_Inventory (
+			GUI.Character.Inventory,
+			GUI.Profile,
+			GUI.The_Manifest);
 
 		GUI.Character.Update_For_Character (GUI.Profile.Characters (0));
 
+		GUI.Global.Render;
+		GUI.Character.Render;
+
 		Status_Window.Hide;
 		Window.Show;
-		GUI.Lock_Object.Unlock;
 	end Reload_Profile_Data;
 
 	procedure Reload_Data is
@@ -295,11 +309,10 @@ package body GUI.Base is
 		Status_Window : constant Gtk_Window := Gtk_Window (Builder.Get_Object ("status_window"));
 		Status_Name : constant Gtk_Label := Gtk_Label (Builder.Get_Object ("status_name"));
 	begin
-		GUI.Lock_Object.Lock;
-		Put_Debug ("Reloading all data");
+		Debug.Put_Line ("Reloading all data");
 
 		Window.Hide;
-		Auth_Data := Authorise.Do_Authorise;
+		GUI.Authorise;
 		Headers := Create_Headers (Auth_Data);
 
 		Status_Window.Show;
@@ -312,7 +325,6 @@ package body GUI.Base is
 		Do_Events;
 		The_Manifest := Manifest.Get_Manifest;
 
-		GUI.Lock_Object.Unlock;
 		Reload_Profile_Data;
 	end Reload_Data;
 

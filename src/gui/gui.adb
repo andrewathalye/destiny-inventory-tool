@@ -4,13 +4,14 @@ with System;
 
 -- Gtkada
 with Gtk.Image; use Gtk.Image;
+with Gtk.Main;
 
 with Gdk.Pixbuf; use Gdk.Pixbuf;
 with Glib.Error; use Glib.Error;
 use Glib;
 
 -- Local Packages
-with Shared; use Shared;
+with Shared.Strings; use Shared.Strings; -- Only for "+"
 
 package body GUI is
 	-- Protected Object
@@ -105,20 +106,40 @@ package body GUI is
 	is
 		Temp : constant Gdk_Pixbuf := Load_Image (+File_Name, Data);
 	begin
-		Lock_Object.Lock;
+		GUI.Lock_Object.Lock;
+		Critical_Section : begin
+			if Global_Pixbuf_Cache.Contains (File_Name) then
+				Gtk_Image (Widget).Set (Temp);
+				Lock_Object.Unlock;
 
-		if Global_Pixbuf_Cache.Contains (File_Name) then
+				return;
+			end if;
+
+			-- Cache Pixbuf
+			Global_Pixbuf_Cache.Insert (File_Name, Temp);
+
 			Gtk_Image (Widget).Set (Temp);
-			Lock_Object.Unlock;
-
-			return;
-		end if;
-
-		-- Cache Pixbuf
-		Global_Pixbuf_Cache.Insert (File_Name, Temp);
-
-		Gtk_Image (Widget).Set (Temp);
-
-		Lock_Object.Unlock;
+		end Critical_Section;
+		GUI.Lock_Object.Unlock;
 	end Image_Callback;
+
+	-- Public Subprograms
+	procedure Locked_Wrapper (Unsafe_Subprogram : Unsafe_Subprogram_Type) is
+	begin
+		GUI.Lock_Object.Unlock;
+		begin
+			Unsafe_Subprogram.all;
+		end;
+		GUI.Lock_Object.Lock;
+	end Locked_Wrapper;
+
+	procedure Locking_Main_Iteration is
+		Discard : Boolean;
+	begin
+		GUI.Lock_Object.Lock;
+		Critical_Section : begin
+			Discard := Gtk.Main.Main_Iteration;
+		end Critical_Section;
+		GUI.Lock_Object.Unlock;
+	end Locking_Main_Iteration;
 end GUI;

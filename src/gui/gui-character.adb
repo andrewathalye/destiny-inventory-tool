@@ -1,7 +1,5 @@
 pragma Ada_2022;
 
-with Ada.Containers.Hashed_Maps;
-
 -- Gtk
 with Gtk.Label; use Gtk.Label;
 with Gtk.Image; use Gtk.Image;
@@ -25,37 +23,17 @@ use API; -- For general reference
 
 with GUI.Base;
 
-with Shared; use Shared;
+with Shared.Strings; use Shared.Strings;
+with Shared.Files;
+with Shared.Debug;
+use Shared;
 
 with Tasks.Download;
 
 package body GUI.Character is
-	-- Instantiations
-	type IDL_BLT_Array is array (Manifest.Tools.Bucket_Location_Type) of Base.Item_Description_List;
-	type ID_BLT_Array is array (Manifest.Tools.Bucket_Location_Type) of Manifest.Tools.Item_Description;
-
-	package IDL_BLT_Array_Maps is new Ada.Containers.Hashed_Maps (
-		Key_Type => Unbounded_String,
-		Element_Type => IDL_BLT_Array,
-		Hash => Hash,
-		Equivalent_Keys => Equivalent_Key);
-
-	package ID_BLT_Array_Maps is new Ada.Containers.Hashed_Maps (
-		Key_Type => Unbounded_String,
-		Element_Type => ID_BLT_Array,
-		Hash => Hash,
-		Equivalent_Keys => Equivalent_Key);
-
-	subtype IDL_BLT_Array_Map is IDL_BLT_Array_Maps.Map;
-	subtype ID_BLT_Array_Map is ID_BLT_Array_Maps.Map;
-
-	-- State
-	All_Character_Items : IDL_BLT_Array_Map; -- Index by US then by M.BLT => B.IDL
-	All_Equipped_Items : ID_BLT_Array_Map; -- Index by US then by M.BLT => M.T.ID
-	
 	-- Redirections
 	procedure Render_Items (
-		List : Base.Item_Description_List;
+		List : Inventories.Item_Description_List;
 		Bucket : Gtk_Grid;
 		T : Tasks.Download.Download_Task := Tasks.Download.Character_Task;
 		Max_Left : Gint := 2)
@@ -65,19 +43,27 @@ package body GUI.Character is
 
 	-- Cache
 	Placeholder_Emblem : constant Gdk_Pixbuf := Load_Image (".png",
-		Get_Data ("res/placeholder_emblem.png"));
+		Files.Get_Data ("res/placeholder_emblem.png"));
 
-	-- TODO WARNING EVERYTHING BELOW IS UNSAFE IF CURRENT_CHARACTER IS UNDEFINED
 	procedure Render_Contents (Location : Manifest.Tools.Bucket_Location_Type)
 	is
 		Contents_Grid : constant Gtk_Grid := Gtk_Grid (Builder.Get_Object ("full_contents_grid"));
 	begin
 		Base.Clear_Bucket (Contents_Grid);
 		Render_Items (
-			All_Character_Items (Current_Character.Character_ID) (Location),
+			Inventories.Character.Character_Items (Inventory, Current_Character) (Location),
 			Contents_Grid,
 			Tasks.Download.Contents_Task);
 	end Render_Contents;
+
+	procedure Locked_Render_Contents (Location : Manifest.Tools.Bucket_Location_Type)
+	is begin
+		GUI.Lock_Object.Unlock;
+		begin
+			Render_Contents (Location);
+		end;
+		GUI.Lock_Object.Lock;
+	end Locked_Render_Contents;
 
 	-- Popup full bucket contents if equipped item is clicked
 	procedure Equipped_Clicked_Handler (
@@ -86,8 +72,13 @@ package body GUI.Character is
 	is
 		Contents : constant Gtk_Popover := Gtk_Popover (Builder.Get_Object ("full_contents"));
 	begin
+		-- The lock must be unlocked in order for
+		-- the download task to be interrupted
+
 		GUI.Lock_Object.Unlock;
-		Tasks.Download.Contents_Task.Interrupt;
+		begin
+			Tasks.Download.Contents_Task.Interrupt;
+		end;
 		GUI.Lock_Object.Lock;
 
 		-- Emotes are a special case here
@@ -137,70 +128,12 @@ package body GUI.Character is
 		Box.Add (Alignment);
 	end Render_Item;
 
-	-- Public Subprograms
-	-- (Virtual) Inventory Management
-	procedure Add_Item (
-		Character : Profiles.Character_Type;
-		Item : Manifest.Tools.Item_Description)
-	is
-		Character_Items : IDL_BLT_Array renames All_Character_Items (Character.Character_ID);
-		Relevant_Items : Base.Item_Description_List renames Character_Items (Item.Default_Bucket_Location);
-
-		Modified_Item : Manifest.Tools.Item_Description := Item;
-	begin
-		Modified_Item.Location := Inventory;
-		Modified_Item.Bucket_Location := Item.Default_Bucket_Location;
-			-- Item is not vaulted (any longer), so ensure Bucket_Location
-			-- is updated
-		Modified_Item.Bucket_Hash := Item.Default_Bucket_Hash;
-		Modified_Item.Transfer_Status := Can_Transfer;
-
-		Relevant_Items.Append (Modified_Item);
-	end Add_Item;
-
-	procedure Remove_Item (
-		Character : Profiles.Character_Type;
-		Item : Manifest.Tools.Item_Description)
-	is
-		Character_Items : IDL_BLT_Array renames All_Character_Items (Character.Character_ID);
-		Relevant_Items : Base.Item_Description_List renames Character_Items (Item.Bucket_Location);
-	begin
-		for I in Relevant_Items.First_Index .. Relevant_Items.Last_Index loop
-			if Relevant_Items (I) = Item then
-				Relevant_Items.Delete (I);
-				return;
-			end if;
-		end loop;
-
-		raise Program_Error with "GUI.Character: Virtual remove failed";
-	end Remove_Item;
-
-	procedure Equip_Item (
-		Character : Profiles.Character_Type;
-		Item : Manifest.Tools.Item_Description)
-	is
-		Equipped_Items : ID_BLT_Array renames All_Equipped_Items (Character.Character_ID);
-		Relevant_Item : Manifest.Tools.Item_Description renames Equipped_Items (Item.Bucket_Location);
-	begin
-		-- Virtually transfer currently-equipped item to bucket
-		Relevant_Item.Transfer_Status := Can_Transfer;
-		Add_Item (Character, Relevant_Item);
-
-		Relevant_Item := Item;
-		Relevant_Item.Transfer_Status := Item_Is_Equipped;
-	end Equip_Item;
-
-	function Item_Count (
-		Character : Profiles.Character_Type;
-		Location : Manifest.Tools.Bucket_Location_Type) return Natural
-	is (Natural (All_Character_Items (Character.Character_ID) (Location).Length));
-
 	-- Status Updates
 	-- Draw items from internal state
 	procedure Render is
 		-- Renames
-		Character_Items : IDL_BLT_Array renames All_Character_Items (Current_Character.Character_ID);
-		Equipped_Items : ID_BLT_Array renames All_Equipped_Items (Current_Character.Character_ID);
+		Character_Items : Inventories.Item_Description_List_Bucket_Location_Type_Array renames Inventories.Character.Character_Items (Inventory, Current_Character);
+		Equipped_Items : Inventories.Item_Description_Bucket_Location_Type_Array renames Inventories.Character.Equipped_Items (Inventory, Current_Character);
 
 		-- Buckets
 		Postmaster_Grid : constant Gtk_Grid := Gtk_Grid (Builder.Get_Object ("postmaster"));
@@ -226,54 +159,57 @@ package body GUI.Character is
 		Finisher_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("finisher"));
 		Emote_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("emote"));
 	begin
-		GUI.Lock_Object.Unlock;
 		Tasks.Download.Character_Task.Interrupt;
+
 		GUI.Lock_Object.Lock;
+		Critical_Section : begin
 
-		-- Update Buckets
-		Base.Clear_Bucket (Postmaster_Grid);
-		Render_Items (
-			Character_Items (Postmaster),
-			Postmaster_Grid, 
-			Tasks.Download.Character_Task,
-			6);
+			-- Update Buckets
+			Base.Clear_Bucket (Postmaster_Grid);
+			Render_Items (
+				Character_Items (Postmaster),
+				Postmaster_Grid, 
+				Tasks.Download.Character_Task,
+				6);
 
-		Base.Clear_Bucket (Subclass_Box);
-		Render_Item (Equipped_Items (Subclass), Subclass_Box, Right);
+			Base.Clear_Bucket (Subclass_Box);
+			Render_Item (Equipped_Items (Subclass), Subclass_Box, Right);
 
-		Base.Clear_Bucket (Kinetic_Box);
-		Base.Clear_Bucket (Energy_Box);
-		Base.Clear_Bucket (Power_Box);
-		Base.Clear_Bucket (Shell_Box);
-		Base.Clear_Bucket (Artefact_Box);
-		Render_Item (Equipped_Items (Kinetic), Kinetic_Box, Right);
-		Render_Item (Equipped_Items (Energy), Energy_Box, Right);
-		Render_Item (Equipped_Items (Power), Power_Box, Right);
-		Render_Item (Equipped_Items (Shell), Shell_Box, Right);
-		Render_Item (Equipped_Items (Artefact), Artefact_Box, Right);
+			Base.Clear_Bucket (Kinetic_Box);
+			Base.Clear_Bucket (Energy_Box);
+			Base.Clear_Bucket (Power_Box);
+			Base.Clear_Bucket (Shell_Box);
+			Base.Clear_Bucket (Artefact_Box);
+			Render_Item (Equipped_Items (Kinetic), Kinetic_Box, Right);
+			Render_Item (Equipped_Items (Energy), Energy_Box, Right);
+			Render_Item (Equipped_Items (Power), Power_Box, Right);
+			Render_Item (Equipped_Items (Shell), Shell_Box, Right);
+			Render_Item (Equipped_Items (Artefact), Artefact_Box, Right);
 
-		Base.Clear_Bucket (Helmet_Box);
-		Base.Clear_Bucket (Gauntlets_Box);
-		Base.Clear_Bucket (Chest_Box);
-		Base.Clear_Bucket (Leg_Box);
-		Base.Clear_Bucket (Class_Box);
-		Render_Item (Equipped_Items (Helmet), Helmet_Box, Left);
-		Render_Item (Equipped_Items (Gauntlets), Gauntlets_Box, Left);
-		Render_Item (Equipped_Items (Chest), Chest_Box, Left);
-		Render_Item (Equipped_Items (Leg), Leg_Box, Left);
-		Render_Item (Equipped_Items (Class), Class_Box, Left);
+			Base.Clear_Bucket (Helmet_Box);
+			Base.Clear_Bucket (Gauntlets_Box);
+			Base.Clear_Bucket (Chest_Box);
+			Base.Clear_Bucket (Leg_Box);
+			Base.Clear_Bucket (Class_Box);
+			Render_Item (Equipped_Items (Helmet), Helmet_Box, Left);
+			Render_Item (Equipped_Items (Gauntlets), Gauntlets_Box, Left);
+			Render_Item (Equipped_Items (Chest), Chest_Box, Left);
+			Render_Item (Equipped_Items (Leg), Leg_Box, Left);
+			Render_Item (Equipped_Items (Class), Class_Box, Left);
 
-		Base.Clear_Bucket (Emblem_Box);
-		Base.Clear_Bucket (Sparrow_Box);
-		Base.Clear_Bucket (Ship_Box);
-		Render_Item (Equipped_Items (Emblem), Emblem_Box, Right);
-		Render_Item (Equipped_Items (Sparrow), Sparrow_Box, Right);
-		Render_Item (Equipped_Items (Ship), Ship_Box, Right);
+			Base.Clear_Bucket (Emblem_Box);
+			Base.Clear_Bucket (Sparrow_Box);
+			Base.Clear_Bucket (Ship_Box);
+			Render_Item (Equipped_Items (Emblem), Emblem_Box, Right);
+			Render_Item (Equipped_Items (Sparrow), Sparrow_Box, Right);
+			Render_Item (Equipped_Items (Ship), Ship_Box, Right);
 
-		Base.Clear_Bucket (Finisher_Box);
-		Base.Clear_Bucket (Emote_Box);
-		Render_Item (Equipped_Items (Finisher), Finisher_Box, Left);
-		Render_Item (Equipped_Items (Emote_Collection), Emote_Box, Left);
+			Base.Clear_Bucket (Finisher_Box);
+			Base.Clear_Bucket (Emote_Box);
+			Render_Item (Equipped_Items (Finisher), Finisher_Box, Left);
+			Render_Item (Equipped_Items (Emote_Collection), Emote_Box, Left);
+		end Critical_Section;
+		GUI.Lock_Object.Unlock;
 
 		-- TODO: Render engrams?	
 
@@ -290,6 +226,7 @@ package body GUI.Character is
 
 		Emblem : Gtk_Image;
 	begin
+		Debug.Put_Line ("Updating UI for " & Manifest.Tools.Get_Description (The_Manifest, Character));
 		Current_Character := Character;
 
 		-- Update Labels
@@ -306,49 +243,5 @@ package body GUI.Character is
 		end if;
 
 		Emblem_Button.Set_Image (Emblem);
-
-		Render;
 	end Update_For_Character;
-
-	-- Update inventory data for characters
-	-- TODO: Identify source of earlier memory corruption
-	procedure Update_Characters (Profile : Profiles.Profile_Type)
-	is
-		C1 : IDL_BLT_Array_Maps.Cursor;
-		C2 : ID_BLT_Array_Maps.Cursor;
-		B : Boolean;
-	begin
-		Put_Debug ("Update character inventories");
-
-		-- Clear existing data
-		All_Character_Items.Clear;
-		All_Equipped_Items.Clear;
-
-		All_Character_Items.Reserve_Capacity (3);
-		All_Equipped_Items.Reserve_Capacity (3);
-
-		-- Add character data
-		Add_Characters :
-		for C of Profile.Characters loop
-			All_Character_Items.Insert (C.Character_ID, C1, B);
-			All_Equipped_Items.Insert (C.Character_ID, C2, B);
-
-			-- Inventory Items (not equipped)
-			for I of Profile.Character_Inventories (C.Character_ID) loop
-				declare
-					D : constant Manifest.Tools.Item_Description := Manifest.Tools.Get_Description (The_Manifest, I);
-				begin
-					All_Character_Items (C.Character_ID) (D.Bucket_Location).Append (D);
-				end;
-			end loop;
-
-			for I of Profile.Character_Equipment (C.Character_ID) loop
-				declare
-					D : constant Manifest.Tools.Item_Description := Manifest.Tools.Get_Description (The_Manifest, I);
-				begin
-					All_Equipped_Items (C.Character_ID) (D.Bucket_Location) := D;	
-				end;
-			end loop;
-		end loop Add_Characters;
-	end Update_Characters;
 end GUI.Character;

@@ -9,9 +9,9 @@ use VSS.JSON.Pull_Readers;
 with VSS.Text_Streams.Memory_UTF8_Input; use VSS.Text_Streams.Memory_UTF8_Input;
 
 -- Local Packages
-with Shared; use Shared;
+with Shared.Strings;
 
-package JSON is
+package Shared.JSON is
 	-- Types
 	type Memory_UTF8_Input_Stream_Access is access Memory_UTF8_Input_Stream;
 	type Unbounded_String_Array is array (Natural range <>) of Unbounded_String;
@@ -24,10 +24,12 @@ package JSON is
 	package USL is new Ada.Containers.Hashed_Maps (
 		Key_Type => Unbounded_String,
 		Element_Type => Unbounded_String,
-		Hash => Hash,
-		Equivalent_Keys => Equivalent_Key);
+		Hash => Shared.Strings.Hash,
+		Equivalent_Keys => Shared.Strings.Equivalent_Keys);
+	pragma Obsolescent (USL);
 	
 	subtype Unbounded_String_List is USL.Map;
+	pragma Obsolescent (Unbounded_String_List);
 
 	-- Subprograms
 	-- Note: Returned Stream_Access must be Freed
@@ -40,4 +42,4 @@ package JSON is
 
 	procedure Wait_Until_Key (Reader : in out JSON_Simple_Pull_Reader; Key : String);
 	procedure Wait_Until_Event (Reader : in out JSON_Simple_Pull_Reader; Event : JSON_Event_Kind);
-end JSON;
+end Shared.JSON;

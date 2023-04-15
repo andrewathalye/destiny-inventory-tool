@@ -3,7 +3,7 @@ pragma Ada_2022;
 with Ada.Text_IO; use Ada.Text_IO;
 
 -- Local Packages
-with Shared; use Shared;
+with Shared.Strings; use Shared.Strings;
 
 package body API.Manifest.Tools is
 	-- Private Subprograms

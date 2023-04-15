@@ -1,5 +1,4 @@
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
-with Ada.Containers.Vectors;
 
 -- Gtk
 with Gtk.Grid; use Gtk.Grid;
@@ -11,15 +10,12 @@ with Glib; use Glib;
 
 -- Local Packages
 with API.Manifest.Tools; use API.Manifest.Tools;
+with API.Inventories;
 use API;
 
 with Tasks.Download;
 
 package GUI.Base is
-	-- Types
-	package IDV is new Ada.Containers.Vectors (Natural, Manifest.Tools.Item_Description);
-	subtype Item_Description_List is IDV.Vector;
-
 	-- Instantiations
 	package User_Callback_Item_Description is new User_Callback (Gtk_Widget_Record, Manifest.Tools.Item_Description);
 
@@ -42,13 +38,15 @@ package GUI.Base is
 	-- an Item_Description_List. Each item will have an on-click
 	-- handler added.
 	procedure Render_Items (
-		List : Item_Description_List;
+		List : Inventories.Item_Description_List;
 		Bucket : Gtk_Grid;
 		T : Tasks.Download.Download_Task;
 		Max_Left : Gint := 2);
-	
-	-- Note: The below functions require GUI.Lock_Object to be in the unlocked position or they
-	-- will block until the lock is released
+	-- Displays an error message on screen
+	procedure Error_Message (Name : String; Message : String);
+
+	-- Note: These subprograms require the GUI to be unlocked, so they should be wrapped
+	-- if called from a GTK event handler
 	
 	-- Reloads all data used by the GUI _excluding_ the Manifest and auth data
 	-- If these need to be reloaded too, use Reload_Data instead
@@ -56,7 +54,4 @@ package GUI.Base is
 
 	-- Reloads all data used by the GUI
 	procedure Reload_Data;
-
-	-- Displays an error message on screen
-	procedure Error_Message (Name : String; Message : String);
 end GUI.Base;

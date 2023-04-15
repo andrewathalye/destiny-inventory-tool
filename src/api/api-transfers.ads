@@ -1,8 +1,13 @@
 -- Local Packages
 with API.Manifest.Tools;
 with API.Profiles;
+with API.Inventories.Global;
+with API.Inventories.Character;
 
 package API.Transfers is
+	-- Note: a major problem with this package is that it currently relies on the presence of
+	-- global state variables in GUI, making it unsafe for multitasking
+
 	-- Exceptions
 	Out_Of_Space : exception; -- DestinyNoRoomInDestination
 	Already_Here : exception;
@@ -21,21 +26,29 @@ package API.Transfers is
 	-- cleared, etc.)
 	
 	procedure Vault (
+		Vault_Inventory : Inventories.Global.Global_Inventory_Type;
+		M : Manifest.Manifest_Type;
 		D : Manifest.Tools.Item_Description;
-		Source : Profiles.Character_Type;
-		Vault : Boolean := True);
+		Source : Profiles.Character_Type);
 	
-	-- Provided for convenience
 	procedure Unvault (
+		Character_Inventory : Inventories.Character.Character_Inventory_Type;
+		M : Manifest.Manifest_Type;
 		D : Manifest.Tools.Item_Description;
 		Target : Profiles.Character_Type);
 
 	-- Provided for convenience
 	procedure Transfer (
+		Vault_Inventory : Inventories.Global.Global_Inventory_Type;	
+		Character_Inventory : Inventories.Character.Character_Inventory_Type;
+		M : Manifest.Manifest_Type;
 		D : Manifest.Tools.Item_Description;
 		Source,Target : Profiles.Character_Type);
 
 	procedure Postmaster_Pull (
+		Vault_Inventory : Inventories.Global.Global_Inventory_Type;
+		Character_Inventory : Inventories.Character.Character_Inventory_Type;
+		M : Manifest.Manifest_Type;
 		D : Manifest.Tools.Item_Description;
 		Source : Profiles.Character_Type);
 	

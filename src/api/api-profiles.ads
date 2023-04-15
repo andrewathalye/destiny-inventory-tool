@@ -6,14 +6,14 @@ with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Interfaces; use Interfaces;
 
 -- Local Packages
-with Shared; use Shared;
+with Shared.Strings;
 with API.Memberships; use API.Memberships;
 with API.Manifest; use API.Manifest;
 
 package API.Profiles is
 	-- Characters
-	package SM is new Ada.Containers.Ordered_Maps (Manifest_Hash, Integer_32);
-	subtype Stats_Map is SM.Map;
+	package Stats_Maps is new Ada.Containers.Ordered_Maps (Manifest_Hash, Integer_32);
+	subtype Stats_Map is Stats_Maps.Map;
 
 	type Character_Type is record
 		Character_ID : Unbounded_String;
@@ -33,10 +33,10 @@ package API.Profiles is
 		-- Items Omitted
 	end record;
 
-	package CV is new Ada.Containers.Vectors (
+	package Character_Vectors is new Ada.Containers.Vectors (
 		Index_Type => Natural,
 		Element_Type => Character_Type);
-	subtype Character_List is CV.Vector;
+	subtype Character_List is Character_Vectors.Vector;
 
 	-- Inventories
 	type Bind_Status_Type is (Not_Bound, Bound_To_Character, Bound_To_Account, Bound_To_Guild);
@@ -68,23 +68,20 @@ package API.Profiles is
 		-- Items Omitted
 	end record;
 
-	package IV is new Ada.Containers.Vectors (Natural, Item_Type);
-	subtype Item_List is IV.Vector;
+	package Item_Vectors is new Ada.Containers.Vectors (Natural, Item_Type);
+	use Item_Vectors;
+	subtype Item_List is Item_Vectors.Vector;
 
-	pragma Warnings (Off, "is not referenced");
-	function "=" (L,R : Item_List) return Boolean is (False);
-	pragma Warnings (On, "is not referenced");
-
-	package IM is new Ada.Containers.Hashed_Maps (
+	package Inventory_Maps is new Ada.Containers.Hashed_Maps (
 		Key_Type => Unbounded_String,
 		Element_Type => Item_List,
-		Hash => Hash,
-		Equivalent_Keys => Equivalent_Key);
-	subtype Inventory_Map is IM.Map;
+		Hash => Shared.Strings.Hash,
+		Equivalent_Keys => Shared.Strings.Equivalent_Keys);
+	subtype Inventory_Map is Inventory_Maps.Map;
 
 	-- Loadouts
-	package MHV is new Ada.Containers.Vectors (Natural, Manifest_Hash);
-	subtype Manifest_Hash_List is MHV.Vector;
+	package Manifest_Hash_Vectors is new Ada.Containers.Vectors (Natural, Manifest_Hash);
+	subtype Manifest_Hash_List is Manifest_Hash_Vectors.Vector;
 		
 	type Loadout_Item_Type is record
 		Instance_ID : Unbounded_String;
@@ -92,8 +89,8 @@ package API.Profiles is
 			-- DestinyInventoryItemDefinition
 	end record;
 
-	package LIV is new Ada.Containers.Vectors (Natural, Loadout_Item_Type);
-	subtype Loadout_Item_List is LIV.Vector;
+	package Loadout_Item_Vectors is new Ada.Containers.Vectors (Natural, Loadout_Item_Type);
+	subtype Loadout_Item_List is Loadout_Item_Vectors.Vector;
 
 	type Loadout_Type is record
 		Colour_Hash : Manifest_Hash;
@@ -105,19 +102,19 @@ package API.Profiles is
 		Items : Loadout_Item_List;
 	end record;
 
-	package LV is new Ada.Containers.Vectors (Natural, Loadout_Type);
-	subtype Loadout_List is LV.Vector;
+	package Loadout_Vectors is new Ada.Containers.Vectors (Natural, Loadout_Type);
+	subtype Loadout_List is Loadout_Vectors.Vector;
 
 	pragma Warnings (Off, "is not referenced");
 	function "=" (L, R : Loadout_List) return Boolean is (False);
 	pragma Warnings (On, "is not referenced");
 
-	package LM is new Ada.Containers.Hashed_Maps (
+	package Loadout_Maps is new Ada.Containers.Hashed_Maps (
 		Key_Type => Unbounded_String,
 		Element_Type => Loadout_List,
-		Hash => Hash,
-		Equivalent_Keys => Equivalent_Key);
-	subtype Loadout_Map is LM.Map;
+		Hash => Shared.Strings.Hash,
+		Equivalent_Keys => Shared.Strings.Equivalent_Keys);
+	subtype Loadout_Map is Loadout_Maps.Map;
 
 	-- Silver
 	type Platform_Silver_Type is record

@@ -4,7 +4,9 @@ pragma Ada_2022;
 with AWS.Messages;
 
 -- Local Packages
-with Shared; use Shared;
+with Shared.Strings; use Shared.Strings;
+with Shared.Debug;
+use Shared;
 
 package body API is
 	function Create_Headers (Auth_Data : Auth_Storage_Type) return Auth_Header_Type is
@@ -25,11 +27,11 @@ package body API is
 	procedure Check_Status (Data : Response.Data) is
 	begin
 		if not Query_Status (Data) then
-			Put_Debug (AWS.Response.Status_Code (Data)'Image);
+			Debug.Put_Line (AWS.Response.Status_Code (Data)'Image);
 			Headers.Debug (True);
 			Headers.Debug_Print (AWS.Response.Header (Data));
 			Headers.Debug (False);
-			Put_Debug (AWS.Response.Message_Body (Data));
+			Debug.Put_Line (AWS.Response.Message_Body (Data));
 			raise Program_Error with "Request failed.";
 		end if;
 	end Check_Status;

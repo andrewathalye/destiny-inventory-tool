@@ -11,7 +11,10 @@ use VSS.JSON;
 with VSS.Stream_Element_Vectors.Conversions; use VSS.Stream_Element_Vectors.Conversions;
 
 -- Local Packages
-with JSON; use JSON;
+with Shared.JSON; use Shared.JSON;
+with Shared.Strings; use Shared.Strings;
+with Shared.Debug;
+use Shared;
 
 with Tasks.Download;
 
@@ -298,7 +301,7 @@ package body API.Profiles is
 		Stream : Memory_UTF8_Input_Stream_Access := new Memory_UTF8_Input_Stream;
 		Reader : JSON_Simple_Pull_Reader;
 	begin
-		Put_Debug ("Get profiles");
+		Debug.Put_Line ("Get profiles");
 
 		-- Get live profile
 		Set_Data (Stream.all, To_Stream_Element_Vector (

@@ -16,9 +16,13 @@ with API.Transfers;
 with API.Manifest.Tools; use API.Manifest.Tools; -- For enums
 with API.Profiles; use API.Profiles; -- For '='
 with API.Manifest; use API.Manifest; -- For '='
+with API.Inventories.Character;
+with API.Inventories.Global;
 use API;
 
-with Shared; use Shared;
+with Shared.Strings; use Shared.Strings; -- For "+"
+with Shared.Debug;
+use Shared;
 
 package body GUI.Handlers is
 	-- Global Handlers (Private)
@@ -38,8 +42,8 @@ package body GUI.Handlers is
 		Search : constant Gtk_Search_Entry := Gtk_Search_Entry (GUI.Builder.Get_Object ("search"));
 	begin
 		Base.Search_Query := +Search.Get_Chars (0);
-		GUI.Global.Render;
-		GUI.Character.Render;
+		GUI.Locked_Wrapper (GUI.Global.Render'Access);
+		GUI.Locked_Wrapper (GUI.Character.Render'Access);
 	end Search_Changed_Handler;
 
 	procedure Error_Dialog_Close_Button_Handler (Builder : access Gtkada_Builder_Record'Class) is
@@ -50,24 +54,33 @@ package body GUI.Handlers is
 	
 	procedure Postmaster_Vault_Handler (Button : access Gtk_Widget_Record'Class)
 	is begin
-		Put_Debug ("Postmaster Vault Item");
+		Debug.Put_Line ("Postmaster Vault Item");
 
 		begin
 			Transfers.Postmaster_Pull (
+				GUI.Global.Inventory,
+				GUI.Character.Inventory,
+				GUI.The_Manifest,
 				GUI.Current_Item,
 				GUI.Character.Current_Character);
 		exception
 			when Transfers.Out_Of_Space =>
-				Put_Debug ("Out of Vault space, aborting attempt");
+				Debug.Put_Line ("Out of Vault space, aborting attempt");
 				return;
 		end;
 
 		-- Update UI State
-		GUI.Character.Remove_Item (GUI.Character.Current_Character, GUI.Current_Item);
-		GUI.Global.Add_Item (GUI.Current_Item);
+		Inventories.Character.Remove_Item (
+			GUI.Character.Inventory,
+			GUI.Character.Current_Character,
+			GUI.Current_Item);
+		
+		Inventories.Global.Add_Item (
+			GUI.Global.Inventory,
+			GUI.Current_Item);
 
-		GUI.Global.Render;
-		GUI.Character.Render;
+		GUI.Locked_Wrapper (GUI.Global.Render'Access);
+		GUI.Locked_Wrapper (GUI.Character.Render'Access);
 	end Postmaster_Vault_Handler;
 	pragma Warnings (On, "is not referenced");
 
@@ -100,6 +113,8 @@ package body GUI.Handlers is
 	begin
 		Character_Menu.Popdown;
 		Character.Update_For_Character (Profile.Characters (User_Data));
+
+		GUI.Locked_Wrapper (Character.Render'Access);
 	end Character_Menu_Button_Clicked_Handler;
 	
 	-- The two handlers below are additionally responsible for simulating the
@@ -108,46 +123,59 @@ package body GUI.Handlers is
 		Button : access Gtk_Widget_Record'Class;
 		Target : Profiles.Character_Type)
 	is begin
-		Put_Debug ("Item Transfer");
-		Put_Debug ("Source: " & Manifest.Tools.Get_Description (
+		Debug.Put_Line ("Item Transfer");
+		Debug.Put_Line ("Source: " & Manifest.Tools.Get_Description (
 			The_Manifest,
 			GUI.Character.Current_Character));
-		Put_Debug ("Target: " & Manifest.Tools.Get_Description (
+		Debug.Put_Line ("Target: " & Manifest.Tools.Get_Description (
 			The_Manifest,
 			Target));
 
 		-- Unvault
 		if GUI.Current_Item.Location = Vault then
-			Put_Debug ("Method: Unvault");
+			Debug.Put_Line ("Method: Unvault");
 			begin
-				Transfers.Unvault (GUI.Current_Item, Target);
+				Transfers.Unvault (
+					GUI.Character.Inventory,
+					GUI.The_Manifest,
+					GUI.Current_Item,
+					Target);
 			exception
 				when Transfers.Out_Of_Space =>
-					Put_Debug ("Couldn't unvault because the destination is out of space");
+					Debug.Put_Line ("Couldn't unvault because the destination is out of space");
 					return;
 				when Transfers.Already_Here =>
-					Put_Debug ("Couldn't unvault is already where it would have been sent");
+					Debug.Put_Line ("Couldn't unvault is already where it would have been sent");
 					return;
 			end;
 
 			-- Update UI State
-			GUI.Global.Remove_Item (GUI.Current_Item);
-			GUI.Character.Add_Item (Target, GUI.Current_Item);
-			GUI.Global.Render;
+			Inventories.Global.Remove_Item (
+				GUI.Global.Inventory,
+				GUI.Current_Item);
+			Inventories.Character.Add_Item (
+				GUI.Character.Inventory,
+				Target,
+				GUI.Current_Item);
+
+			GUI.Locked_Wrapper (GUI.Global.Render'Access);
 			return;
 		end if;
 
 		-- Retrieve from Postmaster
 		-- Note: Can't check Location because Postmaster isn't always returned for that
 		if GUI.Current_Item.Bucket_Location = Postmaster then
-			Put_Debug ("Method: Postmaster_Pull");
+			Debug.Put_Line ("Method: Postmaster_Pull");
 			begin
 				Transfers.Postmaster_Pull (
+					GUI.Global.Inventory,
+					GUI.Character.Inventory,
+					GUI.The_Manifest,
 					GUI.Current_Item,
 					GUI.Character.Current_Character);
 			exception
 				when Transfers.Out_Of_Space =>
-					Put_Debug ("Failed to pull from postmaster: out of space");
+					Debug.Put_Line ("Failed to pull from postmaster: out of space");
 					return;
 			end;
 
@@ -155,85 +183,120 @@ package body GUI.Handlers is
 			if GUI.Character.Current_Character /= Target then
 				begin
 					Transfers.Transfer (
+						GUI.Global.Inventory,
+						GUI.Character.Inventory,
+						GUI.The_Manifest,
 						GUI.Current_Item,
 						GUI.Character.Current_Character,
 						Target);
 				exception -- The previous action cannot be undone, so keep going
 					when Transfers.Out_Of_Space =>
-						Put_Debug ("Failed to finish transfer, but postmaster pull can't be rolled back!");
+						Debug.Put_Line ("Failed to finish transfer, but postmaster pull can't be rolled back!");
 				end;
 			end if;
 
 			-- Update UI State
-			GUI.Character.Remove_Item (GUI.Character.Current_Character, GUI.Current_Item);
-			GUI.Character.Add_Item (Target, GUI.Current_Item);
-			GUI.Character.Render;
+			Inventories.Character.Remove_Item (
+				GUI.Character.Inventory,
+				GUI.Character.Current_Character,
+				GUI.Current_Item);
+			Inventories.Character.Add_Item (
+				GUI.Character.Inventory,
+				Target,
+				GUI.Current_Item);
+
+			GUI.Locked_Wrapper (GUI.Character.Render'Access);
 			return;
 		end if;
 
 		-- Equip
 		if GUI.Character.Current_Character = Target and Current_Item.Category = Equippable
 		then
-			Put_Debug ("Method: Equip");
+			Debug.Put_Line ("Method: Equip");
 			Transfers.Equip (GUI.Current_Item, Target);
 
 			-- Update UI State
-			GUI.Character.Remove_Item (Target, GUI.Current_Item);
-			GUI.Character.Equip_Item (Target, GUI.Current_Item);
-			GUI.Character.Render;
+			Inventories.Character.Remove_Item (
+				GUI.Character.Inventory,
+				Target,
+				GUI.Current_Item);
+			Inventories.Character.Equip_Item (
+				GUI.Character.Inventory,
+				Target,
+				GUI.Current_Item);
+
+			GUI.Locked_Wrapper (GUI.Character.Render'Access);
 			return;
 		end if;
 
 		-- Normal Transfer
-		Put_Debug ("Method: Transfer");
+		Debug.Put_Line ("Method: Transfer");
 
 		begin
 			Transfers.Transfer (
+				GUI.Global.Inventory,
+				GUI.Character.Inventory,
+				GUI.The_Manifest,
 				GUI.Current_Item,
 				GUI.Character.Current_Character,
 				Target);	
 		exception
 			when Transfers.Out_Of_Space =>
-				Put_Debug ("Out of space somewhere along the chain, aborting transfer");
+				Debug.Put_Line ("Out of space somewhere along the chain, aborting transfer");
 				return;
 		end;
 
 		-- Update UI State
-		GUI.Character.Remove_Item (GUI.Character.Current_Character, GUI.Current_Item);
-		GUI.Character.Add_Item (Target, GUI.Current_Item);
-		GUI.Character.Render_Contents (GUI.Current_Item.Bucket_Location);
+		Inventories.Character.Remove_Item (
+			GUI.Character.Inventory,
+			GUI.Character.Current_Character,
+			GUI.Current_Item);
+		Inventories.Character.Add_Item (
+			GUI.Character.Inventory,
+			Target,
+			GUI.Current_Item);
+
+		GUI.Character.Locked_Render_Contents (GUI.Current_Item.Bucket_Location);
 	end Transfer_Handler;
 
 	-- Vault an Item
 	procedure Vault_Handler (Button : access Gtk_Widget_Record'Class)
 	is
 	begin
-		Put_Debug ("Vault Item");
+		Debug.Put_Line ("Vault Item");
 
 		begin
 			Transfers.Vault (
+				GUI.Global.Inventory,
+				GUI.The_Manifest,
 				GUI.Current_Item,
 				GUI.Character.Current_Character);
 		exception
 			when Transfers.Out_Of_Space =>
-				Put_Debug ("Out of Vault space, aborting attempt");
+				Debug.Put_Line ("Out of Vault space, aborting attempt");
 				GUI.Base.Error_Message ("Item Transfer Failed", "Out of Space");
 				return;
 			when Transfers.Already_Here =>
-				Put_Debug ("The item was already there, aborting attempt");
+				Debug.Put_Line ("The item was already there, aborting attempt");
 				return;
 		end;
 
-		GUI.Character.Remove_Item (GUI.Character.Current_Character, GUI.Current_Item);
-		GUI.Global.Add_Item (GUI.Current_Item);
+		-- Update inventory state
+		Inventories.Character.Remove_Item (
+			GUI.Character.Inventory,
+			GUI.Character.Current_Character,
+			GUI.Current_Item);
+		Inventories.Global.Add_Item (
+			GUI.Global.Inventory,
+			GUI.Current_Item);
 
-		GUI.Global.Render;
+		GUI.Locked_Wrapper (GUI.Global.Render'Access);
 
 		-- Redraw as little as possible for performance :)
 		if GUI.Current_Item.Location = Postmaster then
-			GUI.Character.Render;
+			GUI.Locked_Wrapper (GUI.Character.Render'Access);
 		else
-			GUI.Character.Render_Contents (GUI.Current_Item.Bucket_Location);
+			GUI.Character.Locked_Render_Contents (GUI.Current_Item.Bucket_Location);
 				-- A smaller render that will be faster (hopefully)
 		end if;
 	end Vault_Handler;

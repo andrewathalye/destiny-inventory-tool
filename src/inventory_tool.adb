@@ -18,17 +18,18 @@ procedure Inventory_Tool is
 	Error : aliased GError;
 begin
 	-- Print Welcome Message
-	Put_Line ("Destiny Inventory Tool v0.11");
+	Put_Line ("Destiny Inventory Tool v0.13");
 	
 	-- Load Interface
 	Gtk.Main.Init;
 	Gtk_New (GUI.Builder);
-	Discard_G := Add_From_File (GUI.Builder, "res/experimental.glade", Error'Access);
+	Discard_G := Add_From_File (GUI.Builder, "res/gui.glade", Error'Access);
 
 	GUI.Handlers.Set_Handlers;
 	Do_Connect (GUI.Builder);
 	
 	-- Update GUI data
+	-- This also creates all necessary windows
 	GUI.Base.Reload_Data;
 
 	-- Maintain an exclusive lock over the GUI
@@ -37,8 +38,6 @@ begin
 	-- Download_Tasks would otherwise attempt to
 	-- edit widgets while they are being drawn
 	loop
-		GUI.Lock_Object.Lock;
-		Discard_B := Gtk.Main.Main_Iteration;
-		GUI.Lock_Object.Unlock;
+		GUI.Locking_Main_Iteration;
 	end loop;
 end Inventory_Tool;

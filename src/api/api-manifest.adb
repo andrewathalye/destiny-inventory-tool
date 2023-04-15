@@ -12,8 +12,11 @@ use VSS.JSON.Pull_Readers;
 use VSS.JSON;
 
 -- Local Packages
-with JSON; use JSON;
-with Shared; use Shared;
+with Shared.JSON; use Shared.JSON;
+with Shared.Debug;
+with Shared.Strings; use Shared.Strings;
+use Shared;
+
 with Tasks.Download;
 
 package body API.Manifest is
@@ -401,7 +404,7 @@ package body API.Manifest is
 		Stream : Memory_UTF8_Input_Stream_Access := new Memory_UTF8_Input_Stream;
 		Reader : JSON_Simple_Pull_Reader;
 	begin
-		Put_Debug ("Fetch and parse manifest");
+		Debug.Put_Line ("Fetch and parse manifest");
 
 		Set_Data (Stream.all, To_Stream_Element_Vector (
 			Tasks.Download.Download (Localised_Manifest_Path)));
@@ -412,40 +415,40 @@ package body API.Manifest is
 		Wait_Until_Key (Reader, "DestinyClassDefinition");
 		Read_Classes (Reader, Result.Destiny_Classes);
 
-		Put_Debug ("classes read");
+		Debug.Put_Line ("classes read");
 
 		Wait_Until_Key (Reader, "DestinyGenderDefinition");
 		Read_Genders (Reader, Result.Destiny_Genders);
 
-		Put_Debug ("genders read");
+		Debug.Put_Line ("genders read");
 
 		Wait_Until_Key (Reader, "DestinyInventoryBucketDefinition");
 		Read_Inventory_Buckets (Reader, Result.Destiny_Inventory_Buckets);
 
-		Put_Debug ("buckets read");
+		Debug.Put_Line ("buckets read");
 
 		Wait_Until_Key (Reader, "DestinyRaceDefinition");
 		Read_Races (Reader, Result.Destiny_Races);
 
-		Put_Debug ("races read");
+		Debug.Put_Line ("races read");
 
 		Wait_Until_Key (Reader, "DestinyDamageTypeDefinition");
 		Read_Damage_Types (Reader, Result.Destiny_Damage_Types);
 
-		Put_Debug ("damage types read");
+		Debug.Put_Line ("damage types read");
 
 		Wait_Until_Key (Reader, "DestinyInventoryItemDefinition");
 		Read_Inventory_Items (Reader, Result.Destiny_Inventory_Items);
 
-		Put_Debug ("items read");
+		Debug.Put_Line ("items read");
 
 		Wait_Until_Key (Reader, "DestinyRecordDefinition");
 		Read_Titles (Reader, Result.Destiny_Titles);
 
-		Put_Debug ("records read");
+		Debug.Put_Line ("records read");
 
 		Free (Stream);
---		Put_Debug (Result'Image);
+--		Debug.Put_Line (Result'Image);
 --		We can't use 'Image for Debug output here because the UB Strings are UTF-8 encoded
 		declare
 			use Ada.Streams.Stream_IO;
@@ -475,7 +478,7 @@ package body API.Manifest is
 		Reader : JSON_Simple_Pull_Reader;
 		Result : Manifest_Type;
 	begin
-		Put_Debug ("Get manifest");
+		Debug.Put_Line ("Get manifest");
 
 		Set_Data (Stream.all,
 			To_Stream_Element_Vector (
@@ -494,7 +497,7 @@ package body API.Manifest is
 		Free (Stream);
 		
 		if Exists ("dat/manifest.dat") then
-			Put_Debug ("Load preparsed manifest");
+			Debug.Put_Line ("Load preparsed manifest");
 			declare
 				use Ada.Streams.Stream_IO;
 
@@ -510,7 +513,7 @@ package body API.Manifest is
 				Close (SF);
 
 				if Manifest_Version /= Localised_Manifest_Path then
-					Put_Debug ("Update prepared manifest");
+					Debug.Put_Line ("Update prepared manifest");
 					Delete_File ("dat/manifest.dat");
 					return Fetch_Manifest (Localised_Manifest_Path);
 				end if;

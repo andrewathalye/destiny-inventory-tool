@@ -11,6 +11,7 @@ package API is
 
 	-- Types
 	type Auth_Storage_Type is private;
+
 	subtype Auth_Header_Type is AWS.Headers.List;
 
 	-- Subprograms
@@ -29,11 +30,13 @@ private
 	use Ada.Strings.Unbounded;
 
 	API_Root : constant String := "/Platform";
-	API_Key : constant String := "ba586a1fd8f94cccb485ed6ad880fefc";
 
 	type Auth_Storage_Type is record
 		Access_Token : Unbounded_String;
 		Refresh_Token : Unbounded_String;
 		Membership_ID : Unbounded_String;
 	end record;
+
+	Client_Secret : constant String := "bybYT7bJTHfk-IHXNcfSUn54fk8aQXA3tXYaSL71.zs";
+	API_Key : constant String := "ba586a1fd8f94cccb485ed6ad880fefc";
 end API;

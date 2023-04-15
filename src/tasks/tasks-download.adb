@@ -12,9 +12,13 @@ use AWS;
 
 -- Local Packages
 with API; use API;
-with Shared; use Shared;
 
 with GUI;
+
+with Shared.Strings; use Shared.Strings;
+with Shared.Debug;
+with Shared.Files;
+use Shared;
 
 package body Tasks.Download is
 	-- Debugging
@@ -32,10 +36,10 @@ package body Tasks.Download is
 			delay 0.1;
 		end if;
 
-		if Caching and then Has_Cached (+Path) then
-			return Get_Cached (+Path);
+		if Caching and then Files.Has_Cached (+Path) then
+			return Files.Get_Cached (+Path);
 		else
-			Put_Debug ("Download " & (+Path));
+			Debug.Put_Line ("Download " & (+Path));
 
 			if Needs_Auth then
 				Data := Client.Get (
@@ -48,7 +52,7 @@ package body Tasks.Download is
 			Check_Status (Data);
 
 			if Caching then
-				Cache (+Path, Response.Message_Body (Data));
+				Files.Cache (+Path, Response.Message_Body (Data));
 			end if;
 
 			return Response.Message_Body (Data);

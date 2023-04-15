@@ -11,8 +11,10 @@ use VSS.Text_Streams;
 with VSS.Stream_Element_Vectors.Conversions; use VSS.Stream_Element_Vectors.Conversions;
 
 -- Local Packages
-with JSON; use JSON;
-with Shared; use Shared;
+with Shared.JSON; use Shared.JSON;
+with Shared.Strings; use Shared.Strings;
+with Shared.Debug;
+use Shared;
 
 with Tasks.Download;
 
@@ -41,7 +43,7 @@ package body API.Memberships is
 
 		Result : Membership_Type;
 	begin
-		Put_Debug ("Get memberships");
+		Debug.Put_Line ("Get memberships");
 
 		Set_Data (Stream.all,
 			To_Stream_Element_Vector (

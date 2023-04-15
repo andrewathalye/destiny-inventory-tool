@@ -3,7 +3,9 @@ with VSS.Stream_Element_Vectors.Conversions; use VSS.Stream_Element_Vectors.Conv
 with VSS.Strings.Conversions; use VSS.Strings; use VSS.Strings.Conversions;
 with VSS.Text_Streams; use VSS.Text_Streams;
 
-package body JSON is
+with Shared.Strings; use Shared.Strings;
+
+package body Shared.JSON is
 	function Get_Stream (JSON_Data : Unbounded_String)
 		return Memory_UTF8_Input_Stream_Access
 	is
@@ -69,4 +71,4 @@ package body JSON is
 		end loop;
 		raise Program_Error;
 	end Wait_Until_Event;
-end JSON;
+end Shared.JSON;
