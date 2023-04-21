@@ -9,13 +9,12 @@ maintainers-logins = ["andrewathalye"]
 executables = ["inventory_tool"]
 [[depends-on]]
 gtkada = "^23.0.0"
-[[depends-on]]
 aws = "^23.0.0"
-[[depends-on]]
 vss = "^23.0.0"
 
 [[pins]]
-aws = { path = "alire_local/aws/aws-23.0.0" }
+aws = { path = "alire_local/aws-23.0.0" }
+gtkada = { path = "alire_local/gtkada-23.0.0" }
 
 [build-switches]
 "*".style_checks = ["-gnaty-3h"]
