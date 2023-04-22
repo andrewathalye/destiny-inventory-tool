@@ -4,14 +4,20 @@ with GNAT.OS_Lib; use GNAT.OS_Lib;
 with Gtk.Search_Entry;   use Gtk.Search_Entry;
 with Gtk.Popover;        use Gtk.Popover;
 with Gtk.Message_Dialog; use Gtk.Message_Dialog;
+
 --  Local Packages
 with GUI.Character;
 with GUI.Global;
 with GUI.Base;
 with API.Transfers;
-with API.Manifest.Tools;     use API.Manifest.Tools; -- For enums
-with API.Profiles;           use API.Profiles; -- For '='
-with API.Manifest;           use API.Manifest; -- For '='
+with API.Manifest.Tools;
+use all type API.Manifest.Tools.Bucket_Location_Type;
+with API.Profiles;
+use type API.Profiles.Character_Type;
+use all type API.Profiles.Transfer_Status_Type;
+with API.Manifest;
+use all type API.Manifest.Item_Location_Type;
+use all type API.Manifest.Destiny_Inventory_Bucket_Category;
 with API.Inventories.Character;
 with API.Inventories.Global; use API;
 with Shared.Strings;         use Shared.Strings; -- For "+"

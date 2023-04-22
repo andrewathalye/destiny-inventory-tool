@@ -11,10 +11,12 @@ with Gtk.Popover;   use Gtk.Popover;
 with Gtk.Alignment; use Gtk.Alignment;
 with Gdk.Pixbuf;    use Gdk.Pixbuf;
 with Glib;          use Glib;
+
 --  Local Packages
-with API.Profiles;       use API.Profiles; -- Only for enums
-with API.Manifest.Tools; use API.Manifest.Tools; -- Only for enums
-use API.Manifest; -- Only for '='
+with API.Profiles;
+use all type API.Profiles.Transfer_Status_Type;
+with API.Manifest.Tools;
+use all type API.Manifest.Tools.Bucket_Location_Type;
 use API; -- For general reference
 
 with GUI.Base;

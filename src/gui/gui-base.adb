@@ -1,5 +1,7 @@
 pragma Ada_2022;
+
 with Interfaces; use Interfaces;
+
 --  Gtk
 with Gtk.Container;      use Gtk.Container;
 with Gtk.Button;         use Gtk.Button;
@@ -10,6 +12,7 @@ with Gtk.Image;          use Gtk.Image;
 with Gtk.Label;          use Gtk.Label;
 with Gtk.Alignment;      use Gtk.Alignment;
 with Pango.Attributes;   use Pango.Attributes;
+
 --  Local Packages
 with GUI.Handlers;
 with GUI.Character;

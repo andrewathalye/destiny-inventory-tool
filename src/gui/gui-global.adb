@@ -1,4 +1,5 @@
 pragma Ada_2022;
+
 --  Gtkada
 with Gtk.Label;    use Gtk.Label;
 with Gtk.Handlers; use Gtk.Handlers;
@@ -9,12 +10,13 @@ with Gtk.Image;    use Gtk.Image;
 with Gtk.Button;   use Gtk.Button;
 with Gdk.Pixbuf;   use Gdk.Pixbuf;
 with Glib;         use Glib;
+
 --  Local Packages
 with GUI.Handlers;
 with GUI.Base;
-with API.Profiles;       use API.Profiles;
-with API.Manifest.Tools; use API.Manifest.Tools; -- For enums
-use API.Manifest; -- For '='
+with API.Profiles;
+with API.Manifest.Tools;
+use all type API.Manifest.Tools.Bucket_Location_Type;
 
 with Shared.Files;
 with Shared.Strings; use Shared.Strings;
