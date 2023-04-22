@@ -1,17 +1,16 @@
 pragma Ada_2022;
-
 with Ada.Text_IO; use Ada.Text_IO;
 
--- Local Packages
+--  Local Packages
 with Shared.Strings; use Shared.Strings;
 
 package body API.Manifest.Tools is
-   -- Private Subprograms
+   --  Private Subprograms
+
    function Get_Gender
      (M : Manifest_Type; C : Character_Type) return Destiny_Gender_Type is
      (M.Destiny_Genders (C.Gender_Hash).Gender_Type);
-
-   -- Public Subprograms
+   --  Public Subprograms
    function Get_Description
      (M : Manifest_Type; C : Character_Type) return String is
      ((+M.Destiny_Races (C.Race_Hash) (Get_Gender (M, C))) & " " &
@@ -20,6 +19,7 @@ package body API.Manifest.Tools is
    function Get_Description
      (M : Manifest_Type; I : Item_Type) return Item_Description
    is
+
       Manifest_Item : constant Destiny_Inventory_Item_Definition :=
         M.Destiny_Inventory_Items (I.Item_Hash);
       Override_Item : constant Destiny_Inventory_Item_Definition :=
@@ -27,13 +27,13 @@ package body API.Manifest.Tools is
            when 0      => Manifest_Item,
            when others =>
              M.Destiny_Inventory_Items (I.Override_Style_Item_Hash));
+
    begin
       return
-        (Name             => Manifest_Item.Name,
-         Description      => Manifest_Item.Description,
-         Item_Hash        => I.Item_Hash,
-         Item_Instance_ID => I.Item_Instance_ID,
-
+        (Name                    => Manifest_Item.Name,
+         Description             => Manifest_Item.Description,
+         Item_Hash               => I.Item_Hash,
+         Item_Instance_ID        => I.Item_Instance_ID,
          Quantity                => I.Quantity,
          Max_Stack_Size          => Manifest_Item.Max_Stack_Size,
          Location                => I.Location,
@@ -42,25 +42,21 @@ package body API.Manifest.Tools is
          Bucket_Location => Bucket_Location_Type'Enum_Val (I.Bucket_Hash),
          Default_Bucket_Location =>
            Bucket_Location_Type'Enum_Val (Manifest_Item.Bucket_Type_Hash),
-
          Category =>
            M.Destiny_Inventory_Buckets (Manifest_Item.Bucket_Type_Hash)
              .Category,
          State           => I.State,
          Allow_Actions   => Manifest_Item.Allow_Actions,
          Transfer_Status => I.Transfer_Status,
-
-         Icon_Path      => Override_Item.Icon_Path,
-         Watermark_Path =>
+         Icon_Path       => Override_Item.Icon_Path,
+         Watermark_Path  =>
            (if
               I.Version_Number /= -1
             then
               Manifest_Item.Display_Version_Watermark_Icons
                 (Natural (I.Version_Number))
             else Manifest_Item.Watermark_Path),
-
-         Style_Overridden => I.Override_Style_Item_Hash /= 0,
-
+         Style_Overridden                 => I.Override_Style_Item_Hash /= 0,
          Postmaster_Pull_Has_Side_Effects =>
            Manifest_Item.Postmaster_Pull_Has_Side_Effects,
          Item_Type                       => Manifest_Item.Item_Type,
@@ -73,11 +69,13 @@ package body API.Manifest.Tools is
            (Standard_Error,
             "[ERROR] An error occurred when parsing the item with hash" &
             I.Item_Hash'Image);
+         --  Return dummy item to avoid a hard crash Enums are set to avoid
+         --  invalid values
 
-         -- Return dummy item to avoid a hard crash
-         -- Enums are set to avoid invalid values
          declare
+
             D : Item_Description;
+
          begin
             D.Name := +("Unknown Item No." & I.Item_Hash'Image);
             D.Bucket_Location         := Unknown;
@@ -97,4 +95,5 @@ package body API.Manifest.Tools is
       end if;
       return Null_Unbounded_String;
    end Get_Title;
+
 end API.Manifest.Tools;

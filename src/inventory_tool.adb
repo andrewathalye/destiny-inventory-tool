@@ -7,25 +7,25 @@ with Gtkada.Builder; use Gtkada.Builder;
 with Glib.Error;     use Glib.Error;
 use Glib;
 
--- Local Packages
+--  Local Packages
 with GUI.Base;
 with GUI.Handlers;
 
--- Alire
+--  Alire
 with Destiny_Inventory_Tool_Config;
 
 procedure Inventory_Tool is
-   -- Constants
+   --  Constants
    Discard_G : Guint;
    Discard_B : Boolean;
    Error     : aliased GError;
 begin
-   -- Print Welcome Message
+   --  Print Welcome Message
    Put_Line
      ("Destiny Inventory Tool v" &
       Destiny_Inventory_Tool_Config.Crate_Version);
 
-   -- Load Interface
+   --  Load Interface
    Gtk.Main.Init;
    Gtk_New (GUI.Builder);
    Discard_G := Add_From_File (GUI.Builder, "res/gui.glade", Error'Access);
@@ -33,15 +33,14 @@ begin
    GUI.Handlers.Set_Handlers;
    Do_Connect (GUI.Builder);
 
-   -- Update GUI data
-   -- This also creates all necessary windows
+   --  Update GUI data
+   --  This also creates all necessary windows
    GUI.Base.Reload_Data;
 
-   -- Maintain an exclusive lock over the GUI
-   -- while executing the main loop.
+   --  Maintain an exclusive lock over the GUI while executing the main loop.
    --
-   -- Download_Tasks would otherwise attempt to
-   -- edit widgets while they are being drawn
+   --  Download_Tasks would otherwise attempt to edit widgets while they are
+   --  being drawn
    loop
       GUI.Locking_Main_Iteration;
    end loop;

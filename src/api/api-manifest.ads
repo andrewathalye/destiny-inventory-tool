@@ -1,22 +1,20 @@
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Containers.Ordered_Maps;
 with Ada.Containers.Vectors;
-
-with Interfaces; use Interfaces;
+with Interfaces;            use Interfaces;
 
 package API.Manifest is
-   -- Types
+   --  Types
    subtype Manifest_Hash is Unsigned_32;
 
    type Destiny_Gender_Type is (Male, Female);
+
    type Destiny_Gender_Definition is record
       Gender_Type : Destiny_Gender_Type;
       Gender_Name : Unbounded_String;
    end record;
-
    package DGDM is new Ada.Containers.Ordered_Maps
      (Key_Type => Manifest_Hash, Element_Type => Destiny_Gender_Definition);
-
    subtype Destiny_Gender_Map is DGDM.Map;
 
    type Destiny_Race_Name is array (Destiny_Gender_Type) of Unbounded_String;
@@ -33,12 +31,12 @@ package API.Manifest is
    package DTNM is new Ada.Containers.Ordered_Maps
      (Key_Type => Manifest_Hash, Element_Type => Destiny_Title_Name);
    subtype Destiny_Title_Map is DTNM.Map;
-
    package USL is new Ada.Containers.Vectors (Natural, Unbounded_String);
    subtype Unbounded_String_List is USL.Vector;
 
    type Destiny_Tier_Type is
      (Unknown, Currency, Basic, Common, Rare, Superior, Exotic);
+
    type Destiny_Item_Type is
      (None,
       Currency,
@@ -68,7 +66,6 @@ package API.Manifest is
       Seasonal_Artefact,
       Finisher,
       Pattern);
-
    for Destiny_Item_Type use
      (None                => 0,
       Currency            => 1,
@@ -110,12 +107,12 @@ package API.Manifest is
       Bucket_Type_Hash                : Manifest_Hash;
       Tier_Type                       : Destiny_Tier_Type;
       Display_Version_Watermark_Icons : Unbounded_String_List;
-      -- Stats?
+      --  Stats?
       Allow_Actions                    : Boolean;
       Postmaster_Pull_Has_Side_Effects : Boolean;
       Item_Type                        : Destiny_Item_Type;
       Default_Damage_Type_Hash         : Manifest_Hash := 0; -- Nullable
-      -- DestinyDamageTypeDefinition
+      --  DestinyDamageTypeDefinition
    end record;
    package DIIDM is new Ada.Containers.Ordered_Maps
      (Key_Type     => Manifest_Hash,
@@ -135,8 +132,10 @@ package API.Manifest is
 
    type Destiny_Inventory_Bucket_Category is
      (Invisible, Item, Currency, Equippable, Ignored);
+
    type Item_Location_Type is (Unknown, Inventory, Vault, Vendor, Postmaster);
-   -- Note: "Postmaster" seems to not be used anymore, so check the bucket location instead
+   --  Note: "Postmaster" seems to not be used anymore, so check the bucket
+   --  location instead
 
    type Destiny_Inventory_Bucket_Definition is record
       Description  : Unbounded_String;
@@ -151,25 +150,24 @@ package API.Manifest is
      (Key_Type     => Manifest_Hash,
       Element_Type => Destiny_Inventory_Bucket_Definition);
    subtype Destiny_Inventory_Bucket_Map is DIBDM.Map;
+   --  Fields ordered by Manifest order
 
-   -- Fields ordered by Manifest order
    type Manifest_Type is record
       Destiny_Classes : Destiny_Class_Map;
-      -- DestinyClassDefinition
+      --  DestinyClassDefinition
       Destiny_Genders : Destiny_Gender_Map;
-      -- DestinyGenderDefinition
+      --  DestinyGenderDefinition
       Destiny_Inventory_Buckets : Destiny_Inventory_Bucket_Map;
-      -- DestinyInventoryBucketDefinition
+      --  DestinyInventoryBucketDefinition
       Destiny_Races : Destiny_Race_Map;
-      -- DestinyRaceDefinition
+      --  DestinyRaceDefinition
       Destiny_Damage_Types : Destiny_Damage_Type_Map;
-      -- DestinyDamageTypeDefinition
+      --  DestinyDamageTypeDefinition
       Destiny_Inventory_Items : Destiny_Inventory_Item_Map;
-      -- DestinyInventoryItemDefinition
+      --  DestinyInventoryItemDefinition
       Destiny_Titles : Destiny_Title_Map;
-      -- DestinyRecordDefinition (partial)
+      --  DestinyRecordDefinition (partial)
    end record;
-
-   -- Subprograms
+   --  Subprograms
    function Get_Manifest return Manifest_Type;
 end API.Manifest;

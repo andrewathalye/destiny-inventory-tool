@@ -1,18 +1,15 @@
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Containers.Hashed_Maps;
-
--- Local Packages
+--  Local Packages
 with API.Profiles;
 with API.Manifest.Tools;
-
 with Shared.Strings;
 
 package API.Inventories.Character is
-   -- Types
+   --  Types
    type Character_Inventory_Type is private;
-
-   -- Subprograms
-   -- Inventory Management
+   --  Subprograms
+   --  Inventory Management
    procedure Add_Item
      (Inventory : in out Character_Inventory_Type;
       Character :        Profiles.Character_Type;
@@ -35,7 +32,7 @@ package API.Inventories.Character is
       Location  : Manifest.Tools.Bucket_Location_Type)
       return Natural;
 
-   -- Initialisation and Access
+   --  Initialisation and Access
    function Character_Items
      (Inventory : Character_Inventory_Type;
       Character : Profiles.Character_Type)
@@ -71,6 +68,7 @@ private
 
    subtype Item_Description_List_Bucket_Location_Type_Array_Map is
      Item_Description_List_Bucket_Location_Type_Array_Maps.Map;
+
    subtype Item_Description_Bucket_Location_Type_Array_Map is
      Item_Description_Bucket_Location_Type_Array_Maps.Map;
 

@@ -18,7 +18,9 @@ gtkada = { path = "alire_local/gtkada-23.0.0" }
 
 [build-switches]
 "*".compile_checks = "Errors"
+"*".style_checks = ["-gnatyaAbcdefhiIklnprtx-o"]
 release.runtime_checks = "None"
+validation.runtime_checks = "Everything"
 development.optimization = "Performance"
 
 [gpr-set-externals]

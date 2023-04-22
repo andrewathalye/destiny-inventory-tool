@@ -1,21 +1,19 @@
--- Local Packages
+--  Local Packages
 with API.Manifest.Tools;
 with API.Profiles;
 
 package API.Inventories.Global is
-   -- The Vault ("Global") stores three kinds of items
-   -- General
-   -- Consumables
-   -- Modifications
+   --  The Vault ("Global") stores three kinds of items General Consumables
+   --  Modifications
    --
-   -- General items are stored in the inventory by their default bucket locations
-   -- rather than by their actual location (Manifest.Tools.General)
+   --  General items are stored in the inventory by their default bucket
+   --  locations rather than by their actual location (Manifest.Tools.General)
 
-   -- Types
+   --  Types
    type Global_Inventory_Type is private;
 
-   -- Subprograms
-   -- Inventory Management
+   --  Subprograms
+   --  Inventory Management
    procedure Add_Item
      (Inventory : in out Global_Inventory_Type;
       Item      :        Manifest.Tools.Item_Description) with
@@ -24,23 +22,24 @@ package API.Inventories.Global is
      (Inventory : in out Global_Inventory_Type;
       Item      :        Manifest.Tools.Item_Description);
 
-   -- This accepts either General / Consumables / Modifications
-   -- or any other valid Location, which will be intrinsically converted
-   -- to General to return an item count
+   --  This accepts either General / Consumables / Modifications or any other
+   --  valid Location, which will be intrinsically converted to General to
+   --  return an item count
    function Item_Count
      (Inventory : Global_Inventory_Type;
       Location  : Manifest.Tools.Bucket_Location_Type)
       return Natural;
 
-   -- This accepts a Manifest Hash and searches the Vault for a matching item stack
-   -- The Hash should be of an item that is stackable, but this is not checked.
+   --  This accepts a Manifest Hash and searches the Vault for a matching item
+   --  stack The Hash should be of an item that is stackable, but this is not
+   --  checked.
    function Get_Item_Stack
      (Inventory : Global_Inventory_Type;
       Hash      : Manifest.Manifest_Hash)
       return Manifest.Tools.Item_Description;
-   -- Raises Item_Not_Found on failure
+   --  Raises Item_Not_Found on failure
 
-   -- Access and Initialisation
+   --  Access and Initialisation
    function Vault_Inventory
      (Inventory : Global_Inventory_Type)
       return Item_Description_List_Bucket_Location_Type_Array with

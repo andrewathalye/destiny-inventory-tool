@@ -1,29 +1,29 @@
--- Local Packages
+--  Local Packages
 with API.Manifest.Tools;
 with API.Profiles;
 with API.Inventories.Global;
 with API.Inventories.Character;
 
 package API.Transfers is
-   -- Note: a major problem with this package is that it currently relies on the presence of
-   -- global state variables in GUI, making it unsafe for multitasking
+   --  Note: a major problem with this package is that it currently relies
+   --  on the presence of global state variables in GUI, making it unsafe
+   --  for multitasking
 
-   -- Exceptions
-   Out_Of_Space       : exception; -- DestinyNoRoomInDestination
+   --  Exceptions
+   Out_Of_Space       : exception; --  DestinyNoRoomInDestination
    Already_Here       : exception;
-   Cannot_Transfer    : exception; -- DestinyItemNotTransferrable
-   Actions_Disallowed : exception; -- DestinyItemActionForbidden
-   Item_Not_Found     : exception; -- DestinyItemNotFound
+   Cannot_Transfer    : exception; --  DestinyItemNotTransferrable
+   Actions_Disallowed : exception; --  DestinyItemActionForbidden
+   Item_Not_Found     : exception; --  DestinyItemNotFound
 
    Unknown_Error : exception;
 
-   -- Note: The below subprograms perform local checks
-   -- for consistency and also interpret server responses.
+   --  Note: The below subprograms perform local checks for consistency and also
+   --  interpret server responses.
    --
-   -- If a local check passed but a serverside check failed,
-   -- then an exception will be raised and the state will be
-   -- synchronised (e.g. Profile redownloaded, inventories
-   -- cleared, etc.)
+   --  If a local check passed but a serverside check failed, then an exception
+   --  will be raised and the state will be synchronised (e.g. Profile
+   --  redownloaded, inventories cleared, etc.)
 
    procedure Vault
      (Vault_Inventory : Inventories.Global.Global_Inventory_Type;
@@ -37,7 +37,7 @@ package API.Transfers is
       D                   : Manifest.Tools.Item_Description;
       Target              : Profiles.Character_Type);
 
-   -- Provided for convenience
+   --  Provided for convenience
    procedure Transfer
      (Vault_Inventory     : Inventories.Global.Global_Inventory_Type;
       Character_Inventory : Inventories.Character.Character_Inventory_Type;

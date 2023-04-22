@@ -65,16 +65,17 @@ package API.Manifest.Tools is
       Emblem           => 4_274_335_291,
       Clan_Banner      => 4_292_445_962);
 
-   -- Intended to store sufficient information about an
-   -- item to display it without further Manifest lookups
+   --  Intended to store sufficient information about an item to display it
+   --  without further Manifest lookups
    --
-   -- Location, Bucket_Location, Bucket_Hash, and Transfer_Status should
-   -- be modified if the item is to be virtually moved
+   --  Location, Bucket_Location, Bucket_Hash, and Transfer_Status should be
+   --  modified if the item is to be virtually moved
+
    type Item_Description is record
       Name        : Unbounded_String;
       Description : Unbounded_String;
       Item_Hash   : Manifest_Hash;
-      -- DestinyInventoryItemDefinition
+      --  DestinyInventoryItemDefinition
       Item_Instance_ID : Unbounded_String;
 
       Quantity       : Integer_32;
@@ -82,7 +83,7 @@ package API.Manifest.Tools is
       Location       : Item_Location_Type;
 
       Bucket_Hash, Default_Bucket_Hash : Manifest_Hash;
-      -- DestinyInventoryBucketDefinition
+      --  DestinyInventoryBucketDefinition
       Bucket_Location, Default_Bucket_Location : Bucket_Location_Type;
 
       Category        : Destiny_Inventory_Bucket_Category;
