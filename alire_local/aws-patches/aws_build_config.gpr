@@ -1,0 +1,22 @@
+abstract project AWS_Build_Config is
+	Prefix := "install_dir";
+	Default_Library_Type := "static";
+	Enable_Shared := "true";
+	ZLIB := "Disabled";
+	XMLADA := "Disabled";
+	LAL := "Disabled";
+	Socklib := "gnat";
+	Socket := "openssl";
+	SSL_Dynamic := "false";
+	LDAP := "Disabled";
+	Debug := "false";
+	Processors := "0";
+	Target := "x86_64-gentoo-linux-musl";
+	Target_Platform := "UNIX";
+	Thread_Sanitizer := "false";
+	GSOAP := "false";
+	Server_HTTP2 := "true";
+	Client_HTTP2 := "false";
+	Build := "Release";
+end AWS_Build_Config;
+

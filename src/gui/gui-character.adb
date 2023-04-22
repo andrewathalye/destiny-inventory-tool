@@ -1,14 +1,14 @@
 pragma Ada_2022;
 
 -- Gtk
-with Gtk.Label; use Gtk.Label;
-with Gtk.Image; use Gtk.Image;
-with Gtk.Grid; use Gtk.Grid;
-with Gtk.Button; use Gtk.Button;
-with Gtk.Widget; use Gtk.Widget;
-with Gtk.Box; use Gtk.Box;
-with Gtk.Overlay; use Gtk.Overlay;
-with Gtk.Popover; use Gtk.Popover;
+with Gtk.Label;     use Gtk.Label;
+with Gtk.Image;     use Gtk.Image;
+with Gtk.Grid;      use Gtk.Grid;
+with Gtk.Button;    use Gtk.Button;
+with Gtk.Widget;    use Gtk.Widget;
+with Gtk.Box;       use Gtk.Box;
+with Gtk.Overlay;   use Gtk.Overlay;
+with Gtk.Popover;   use Gtk.Popover;
 with Gtk.Alignment; use Gtk.Alignment;
 
 with Gdk.Pixbuf; use Gdk.Pixbuf;
@@ -16,7 +16,7 @@ with Gdk.Pixbuf; use Gdk.Pixbuf;
 with Glib; use Glib;
 
 -- Local Packages
-with API.Profiles; use API.Profiles; -- Only for enums
+with API.Profiles;       use API.Profiles; -- Only for enums
 with API.Manifest.Tools; use API.Manifest.Tools; -- Only for enums
 use API.Manifest; -- Only for '='
 use API; -- For general reference
@@ -25,223 +25,250 @@ with GUI.Base;
 
 with Shared.Strings; use Shared.Strings;
 with Shared.Files;
-with Shared.Debug;
-use Shared;
+with Shared.Debug;   use Shared;
 
 with Tasks.Download;
 
 package body GUI.Character is
-	-- Redirections
-	procedure Render_Items (
-		List : Inventories.Item_Description_List;
-		Bucket : Gtk_Grid;
-		T : Tasks.Download.Download_Task := Tasks.Download.Character_Task;
-		Max_Left : Gint := 2)
-	is begin
-		Base.Render_Items (List, Bucket, T, Max_Left);
-	end Render_Items;
+   -- Redirections
+   procedure Render_Items
+     (List     : Inventories.Item_Description_List;
+      Bucket   : Gtk_Grid;
+      T        : Tasks.Download.Download_Task := Tasks.Download.Character_Task;
+      Max_Left : Gint                         := 2)
+   is
+   begin
+      Base.Render_Items (List, Bucket, T, Max_Left);
+   end Render_Items;
 
-	-- Cache
-	Placeholder_Emblem : constant Gdk_Pixbuf := Load_Image (".png",
-		Files.Get_Data ("res/placeholder_emblem.png"));
+   -- Cache
+   Placeholder_Emblem : constant Gdk_Pixbuf :=
+     Load_Image (".png", Files.Get_Data ("res/placeholder_emblem.png"));
 
-	procedure Render_Contents (Location : Manifest.Tools.Bucket_Location_Type)
-	is
-		Contents_Grid : constant Gtk_Grid := Gtk_Grid (Builder.Get_Object ("full_contents_grid"));
-	begin
-		Base.Clear_Bucket (Contents_Grid);
-		Render_Items (
-			Inventories.Character.Character_Items (Inventory, Current_Character) (Location),
-			Contents_Grid,
-			Tasks.Download.Contents_Task);
-	end Render_Contents;
+   procedure Render_Contents (Location : Manifest.Tools.Bucket_Location_Type)
+   is
+      Contents_Grid : constant Gtk_Grid :=
+        Gtk_Grid (Builder.Get_Object ("full_contents_grid"));
+   begin
+      Base.Clear_Bucket (Contents_Grid);
+      Render_Items
+        (Inventories.Character.Character_Items (Inventory, Current_Character)
+           (Location),
+         Contents_Grid,
+         Tasks.Download.Contents_Task);
+   end Render_Contents;
 
-	procedure Locked_Render_Contents (Location : Manifest.Tools.Bucket_Location_Type)
-	is begin
-		GUI.Lock_Object.Unlock;
-		begin
-			Render_Contents (Location);
-		end;
-		GUI.Lock_Object.Lock;
-	end Locked_Render_Contents;
+   procedure Locked_Render_Contents
+     (Location : Manifest.Tools.Bucket_Location_Type)
+   is
+   begin
+      GUI.Lock_Object.Unlock;
+      begin
+         Render_Contents (Location);
+      end;
+      GUI.Lock_Object.Lock;
+   end Locked_Render_Contents;
 
-	-- Popup full bucket contents if equipped item is clicked
-	procedure Equipped_Clicked_Handler (
-		Widget : access Gtk_Widget_Record'Class;
-		User_Data : Manifest.Tools.Item_Description)
-	is
-		Contents : constant Gtk_Popover := Gtk_Popover (Builder.Get_Object ("full_contents"));
-	begin
-		-- The lock must be unlocked in order for
-		-- the download task to be interrupted
+   -- Popup full bucket contents if equipped item is clicked
+   procedure Equipped_Clicked_Handler
+     (Widget    : access Gtk_Widget_Record'Class;
+      User_Data : Manifest.Tools.Item_Description)
+   is
+      Contents : constant Gtk_Popover :=
+        Gtk_Popover (Builder.Get_Object ("full_contents"));
+   begin
+      -- The lock must be unlocked in order for
+      -- the download task to be interrupted
 
-		GUI.Lock_Object.Unlock;
-		begin
-			Tasks.Download.Contents_Task.Interrupt;
-		end;
-		GUI.Lock_Object.Lock;
+      GUI.Lock_Object.Unlock;
+      begin
+         Tasks.Download.Contents_Task.Interrupt;
+      end;
+      GUI.Lock_Object.Lock;
 
-		-- Emotes are a special case here
-		if User_Data.Bucket_Location = Emote_Collection then
-			Render_Contents (Emote);
-		else
-			Render_Contents (User_Data.Bucket_Location);
-		end if;
+      -- Emotes are a special case here
+      if User_Data.Bucket_Location = Emote_Collection then
+         Render_Contents (Emote);
+      else
+         Render_Contents (User_Data.Bucket_Location);
+      end if;
 
-		Tasks.Download.Contents_Task.Execute (GUI.Image_Callback'Access);
+      Tasks.Download.Contents_Task.Execute (GUI.Image_Callback'Access);
 
-		Contents.Set_Relative_To (Widget);
-		Contents.Popup;
-	end Equipped_Clicked_Handler;
+      Contents.Set_Relative_To (Widget);
+      Contents.Popup;
+   end Equipped_Clicked_Handler;
 
-	-- Render an individual item onto a Gtk_Box
-	type Item_Alignment_Type is (Left, Centre, Right);
-	procedure Render_Item (
-		D : Manifest.Tools.Item_Description;
-		Box : Gtk_Box;
-		Item_Alignment : Item_Alignment_Type := Centre)
-	is
-		Overlay : Gtk_Overlay;
-		Alignment : constant Gtk_Alignment := Gtk_Alignment_New (
-			Xalign => (case Item_Alignment is
-				when Left => 0.0,
-				when Centre => 0.5,
-				when Right => 1.0),
-			Yalign => 0.5,
-			Xscale => 0.0,
-			Yscale => 0.0);
-	begin
-		-- Skip rendering the item if the bucket is empty
-		if Length (D.Name) = 0 then
-			return;
-		end if;
+   -- Render an individual item onto a Gtk_Box
+   type Item_Alignment_Type is (Left, Centre, Right);
+   procedure Render_Item
+     (D              : Manifest.Tools.Item_Description;
+      Box            : Gtk_Box;
+      Item_Alignment : Item_Alignment_Type := Centre)
+   is
+      Overlay   : Gtk_Overlay;
+      Alignment : constant Gtk_Alignment :=
+        Gtk_Alignment_New
+          (Xalign =>
+             (case Item_Alignment is
+                when Left   => 0.0,
+                when Centre => 0.5,
+                when Right  => 1.0),
+           Yalign => 0.5,
+           Xscale => 0.0,
+           Yscale => 0.0);
+   begin
+      -- Skip rendering the item if the bucket is empty
+      if Length (D.Name) = 0 then
+         return;
+      end if;
 
-		Overlay := Base.Get_Overlay (
-			D,
-			Tasks.Download.Character_Task,
-			Base.User_Callback_Item_Description.To_Marshaller (Equipped_Clicked_Handler'Access));
-		Overlay.Show;
+      Overlay :=
+        Base.Get_Overlay
+          (D,
+           Tasks.Download.Character_Task,
+           Base.User_Callback_Item_Description.To_Marshaller
+             (Equipped_Clicked_Handler'Access));
+      Overlay.Show;
 
-		-- Note: The alignment ensures the button is the same size as the icon
-		Alignment.Add (Overlay);
-		Alignment.Show;
-		Box.Add (Alignment);
-	end Render_Item;
+      -- Note: The alignment ensures the button is the same size as the icon
+      Alignment.Add (Overlay);
+      Alignment.Show;
+      Box.Add (Alignment);
+   end Render_Item;
 
-	-- Status Updates
-	-- Draw items from internal state
-	procedure Render is
-		-- Renames
-		Character_Items : Inventories.Item_Description_List_Bucket_Location_Type_Array renames Inventories.Character.Character_Items (Inventory, Current_Character);
-		Equipped_Items : Inventories.Item_Description_Bucket_Location_Type_Array renames Inventories.Character.Equipped_Items (Inventory, Current_Character);
+   -- Status Updates
+   -- Draw items from internal state
+   procedure Render is
+      -- Renames
+      Character_Items :
+        Inventories.Item_Description_List_Bucket_Location_Type_Array renames
+        Inventories.Character.Character_Items (Inventory, Current_Character);
+      Equipped_Items :
+        Inventories.Item_Description_Bucket_Location_Type_Array renames
+        Inventories.Character.Equipped_Items (Inventory, Current_Character);
 
-		-- Buckets
-		Postmaster_Grid : constant Gtk_Grid := Gtk_Grid (Builder.Get_Object ("postmaster"));
+      -- Buckets
+      Postmaster_Grid : constant Gtk_Grid :=
+        Gtk_Grid (Builder.Get_Object ("postmaster"));
 
-		Subclass_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("subclass"));
+      Subclass_Box : constant Gtk_Box :=
+        Gtk_Box (Builder.Get_Object ("subclass"));
 
-		Kinetic_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("kinetic"));
-		Energy_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("energy"));
-		Power_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("power"));
-		Shell_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("shell"));
-		Artefact_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("artefact"));
+      Kinetic_Box : constant Gtk_Box :=
+        Gtk_Box (Builder.Get_Object ("kinetic"));
+      Energy_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("energy"));
+      Power_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("power"));
+      Shell_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("shell"));
+      Artefact_Box : constant Gtk_Box :=
+        Gtk_Box (Builder.Get_Object ("artefact"));
 
-		Helmet_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("helmet"));
-		Gauntlets_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("gauntlets"));
-		Chest_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("chest"));
-		Leg_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("leg"));
-		Class_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("class"));
+      Helmet_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("helmet"));
+      Gauntlets_Box : constant Gtk_Box :=
+        Gtk_Box (Builder.Get_Object ("gauntlets"));
+      Chest_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("chest"));
+      Leg_Box   : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("leg"));
+      Class_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("class"));
 
-		Emblem_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("emblem"));
-		Sparrow_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("sparrow"));
-		Ship_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("ship"));
+      Emblem_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("emblem"));
+      Sparrow_Box : constant Gtk_Box :=
+        Gtk_Box (Builder.Get_Object ("sparrow"));
+      Ship_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("ship"));
 
-		Finisher_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("finisher"));
-		Emote_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("emote"));
-	begin
-		Tasks.Download.Character_Task.Interrupt;
+      Finisher_Box : constant Gtk_Box :=
+        Gtk_Box (Builder.Get_Object ("finisher"));
+      Emote_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("emote"));
+   begin
+      Tasks.Download.Character_Task.Interrupt;
 
-		GUI.Lock_Object.Lock;
-		Critical_Section : begin
+      GUI.Lock_Object.Lock;
+      Critical_Section :
+      begin
 
-			-- Update Buckets
-			Base.Clear_Bucket (Postmaster_Grid);
-			Render_Items (
-				Character_Items (Postmaster),
-				Postmaster_Grid, 
-				Tasks.Download.Character_Task,
-				6);
+         -- Update Buckets
+         Base.Clear_Bucket (Postmaster_Grid);
+         Render_Items
+           (Character_Items (Postmaster),
+            Postmaster_Grid,
+            Tasks.Download.Character_Task,
+            6);
 
-			Base.Clear_Bucket (Subclass_Box);
-			Render_Item (Equipped_Items (Subclass), Subclass_Box, Right);
+         Base.Clear_Bucket (Subclass_Box);
+         Render_Item (Equipped_Items (Subclass), Subclass_Box, Right);
 
-			Base.Clear_Bucket (Kinetic_Box);
-			Base.Clear_Bucket (Energy_Box);
-			Base.Clear_Bucket (Power_Box);
-			Base.Clear_Bucket (Shell_Box);
-			Base.Clear_Bucket (Artefact_Box);
-			Render_Item (Equipped_Items (Kinetic), Kinetic_Box, Right);
-			Render_Item (Equipped_Items (Energy), Energy_Box, Right);
-			Render_Item (Equipped_Items (Power), Power_Box, Right);
-			Render_Item (Equipped_Items (Shell), Shell_Box, Right);
-			Render_Item (Equipped_Items (Artefact), Artefact_Box, Right);
+         Base.Clear_Bucket (Kinetic_Box);
+         Base.Clear_Bucket (Energy_Box);
+         Base.Clear_Bucket (Power_Box);
+         Base.Clear_Bucket (Shell_Box);
+         Base.Clear_Bucket (Artefact_Box);
+         Render_Item (Equipped_Items (Kinetic), Kinetic_Box, Right);
+         Render_Item (Equipped_Items (Energy), Energy_Box, Right);
+         Render_Item (Equipped_Items (Power), Power_Box, Right);
+         Render_Item (Equipped_Items (Shell), Shell_Box, Right);
+         Render_Item (Equipped_Items (Artefact), Artefact_Box, Right);
 
-			Base.Clear_Bucket (Helmet_Box);
-			Base.Clear_Bucket (Gauntlets_Box);
-			Base.Clear_Bucket (Chest_Box);
-			Base.Clear_Bucket (Leg_Box);
-			Base.Clear_Bucket (Class_Box);
-			Render_Item (Equipped_Items (Helmet), Helmet_Box, Left);
-			Render_Item (Equipped_Items (Gauntlets), Gauntlets_Box, Left);
-			Render_Item (Equipped_Items (Chest), Chest_Box, Left);
-			Render_Item (Equipped_Items (Leg), Leg_Box, Left);
-			Render_Item (Equipped_Items (Class), Class_Box, Left);
+         Base.Clear_Bucket (Helmet_Box);
+         Base.Clear_Bucket (Gauntlets_Box);
+         Base.Clear_Bucket (Chest_Box);
+         Base.Clear_Bucket (Leg_Box);
+         Base.Clear_Bucket (Class_Box);
+         Render_Item (Equipped_Items (Helmet), Helmet_Box, Left);
+         Render_Item (Equipped_Items (Gauntlets), Gauntlets_Box, Left);
+         Render_Item (Equipped_Items (Chest), Chest_Box, Left);
+         Render_Item (Equipped_Items (Leg), Leg_Box, Left);
+         Render_Item (Equipped_Items (Class), Class_Box, Left);
 
-			Base.Clear_Bucket (Emblem_Box);
-			Base.Clear_Bucket (Sparrow_Box);
-			Base.Clear_Bucket (Ship_Box);
-			Render_Item (Equipped_Items (Emblem), Emblem_Box, Right);
-			Render_Item (Equipped_Items (Sparrow), Sparrow_Box, Right);
-			Render_Item (Equipped_Items (Ship), Ship_Box, Right);
+         Base.Clear_Bucket (Emblem_Box);
+         Base.Clear_Bucket (Sparrow_Box);
+         Base.Clear_Bucket (Ship_Box);
+         Render_Item (Equipped_Items (Emblem), Emblem_Box, Right);
+         Render_Item (Equipped_Items (Sparrow), Sparrow_Box, Right);
+         Render_Item (Equipped_Items (Ship), Ship_Box, Right);
 
-			Base.Clear_Bucket (Finisher_Box);
-			Base.Clear_Bucket (Emote_Box);
-			Render_Item (Equipped_Items (Finisher), Finisher_Box, Left);
-			Render_Item (Equipped_Items (Emote_Collection), Emote_Box, Left);
-		end Critical_Section;
-		GUI.Lock_Object.Unlock;
+         Base.Clear_Bucket (Finisher_Box);
+         Base.Clear_Bucket (Emote_Box);
+         Render_Item (Equipped_Items (Finisher), Finisher_Box, Left);
+         Render_Item (Equipped_Items (Emote_Collection), Emote_Box, Left);
+      end Critical_Section;
+      GUI.Lock_Object.Unlock;
 
-		-- TODO: Render engrams?	
+      -- TODO: Render engrams?
 
-		-- Complete downloads queued by Render calls
-		Tasks.Download.Character_Task.Execute (GUI.Image_Callback'Access);
-	end Render;
+      -- Complete downloads queued by Render calls
+      Tasks.Download.Character_Task.Execute (GUI.Image_Callback'Access);
+   end Render;
 
-	-- Update UI elements for new character
-	procedure Update_For_Character (Character : Profiles.Character_Type) is
-		-- Labels and Images to be updated for each character
-		Title : constant Gtk_Label := Gtk_Label (Builder.Get_Object ("title"));
-		Light : constant Gtk_Label := Gtk_Label (Builder.Get_Object ("light"));
-		Emblem_Button : constant Gtk_Button := Gtk_Button (Builder.Get_Object ("emblem_button"));
+   -- Update UI elements for new character
+   procedure Update_For_Character (Character : Profiles.Character_Type) is
+      -- Labels and Images to be updated for each character
+      Title : constant Gtk_Label  := Gtk_Label (Builder.Get_Object ("title"));
+      Light : constant Gtk_Label  := Gtk_Label (Builder.Get_Object ("light"));
+      Emblem_Button : constant Gtk_Button :=
+        Gtk_Button (Builder.Get_Object ("emblem_button"));
 
-		Emblem : Gtk_Image;
-	begin
-		Debug.Put_Line ("Updating UI for " & Manifest.Tools.Get_Description (The_Manifest, Character));
-		Current_Character := Character;
+      Emblem : Gtk_Image;
+   begin
+      Debug.Put_Line
+        ("Updating UI for " &
+         Manifest.Tools.Get_Description (The_Manifest, Character));
+      Current_Character := Character;
 
-		-- Update Labels
-		Set_Label (Title, +Manifest.Tools.Get_Title (The_Manifest, Current_Character));
-		Set_Label (Light, Current_Character.Light'Image);
+      -- Update Labels
+      Set_Label
+        (Title, +Manifest.Tools.Get_Title (The_Manifest, Current_Character));
+      Set_Label (Light, Current_Character.Light'Image);
 
-		-- Update Emblem
-		Gtk_New (Emblem);
-		if Global_Pixbuf_Cache.Contains (Character.Emblem_Background_Path) then
-			Emblem.Set (Global_Pixbuf_Cache.Element (Character.Emblem_Background_Path));
-		else
-			Emblem.Set (Placeholder_Emblem);
-			Tasks.Download.Character_Task.Download (Character.Emblem_Background_Path, Gtk_Widget (Emblem));
-		end if;
+      -- Update Emblem
+      Gtk_New (Emblem);
+      if Global_Pixbuf_Cache.Contains (Character.Emblem_Background_Path) then
+         Emblem.Set
+           (Global_Pixbuf_Cache.Element (Character.Emblem_Background_Path));
+      else
+         Emblem.Set (Placeholder_Emblem);
+         Tasks.Download.Character_Task.Download
+           (Character.Emblem_Background_Path, Gtk_Widget (Emblem));
+      end if;
 
-		Emblem_Button.Set_Image (Emblem);
-	end Update_For_Character;
+      Emblem_Button.Set_Image (Emblem);
+   end Update_For_Character;
 end GUI.Character;

@@ -1,4 +1,5 @@
 with "config/destiny_inventory_tool_config.gpr";
+
 project Destiny_Inventory_Tool is
 
    for Source_Dirs use ("src/", "src/gui/", "src/api/", "src/tasks/", "src/shared/", "config/");
@@ -12,22 +13,22 @@ project Destiny_Inventory_Tool is
    end Compiler;
 
    package Binder is
-   	Binder_Switches := ("-Es");
-	case Destiny_Inventory_Tool_Config.Build_Profile is
-		when "release" => null;
-		when "validation" | "development" =>
-			Binder_Switches := Binder_Switches & ("-shared");
-	end case;
+      Binder_Switches := ("-Es");
+   case Destiny_Inventory_Tool_Config.Build_Profile is
+      when "release" => null;
+      when "validation" | "development" =>
+         Binder_Switches := Binder_Switches & ("-shared");
+   end case;
 
-      	for Switches ("Ada") use Binder_Switches;
+         for Switches ("Ada") use Binder_Switches;
    end Binder;
 
    package Linker is
-   	case Destiny_Inventory_Tool_Config.Build_Profile is
-		when "release" | "development" => null;
-		when "validation" =>
-			for Default_Switches ("Ada") use ("-fsanitize=address");
-	end case;
+      case Destiny_Inventory_Tool_Config.Build_Profile is
+      when "release" | "development" => null;
+      when "validation" =>
+         for Default_Switches ("Ada") use ("-fsanitize=address");
+   end case;
    end Linker;
 
    package Install is

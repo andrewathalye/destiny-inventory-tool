@@ -16,7 +16,7 @@ disabled = true
 # Prepend PATH with pkg-config directory to stabilize GitHub CI
 [[actions]]
 type = "post-fetch"
-command = ["bash", "-c", "PATH=${DISTRIB_ROOT}/mingw64/bin:${PATH} ./configure"]
+command = ["bash", "-c", "if [ ! -e Makefile ]; then ./configure; fi"]
 
 # Generate gtkada-intl.adb to be able to build with gtkada.gpr
 [[actions]]

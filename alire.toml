@@ -17,6 +17,9 @@ aws = { path = "alire_local/aws-23.0.0" }
 gtkada = { path = "alire_local/gtkada-23.0.0" }
 
 [build-switches]
-"*".style_checks = ["-gnaty-3h"]
+"*".compile_checks = "Errors"
 release.runtime_checks = "None"
 development.optimization = "Performance"
+
+[gpr-set-externals]
+LIBRARY_TYPE = "relocatable"

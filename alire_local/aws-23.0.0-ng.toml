@@ -18,7 +18,6 @@ command = ["make", "setup", "ZLIB=false", "DEMOS=false",
            "PRJ_BUILD=Release"]
 
 [[depends-on]]
-xmlada = "~23.0.0"
 gnatcoll = "~23.0.0"
 make = "*"
 gnat = ">=12"
@@ -26,23 +25,3 @@ openssl = "*"
 
 [gpr-externals]
 LIBRARY_TYPE = ["static", "relocatable"]
-PRJ_BUILD = ["Debug", "Release"]
-PRJ_SOCKLIB = ["gnat", "ipv6", "ipv4"]
-PRJ_TARGET = ["Windows_NT", "UNIX", "Darwin", "vxworks", "freebsd"]
-
-[gpr-set-externals]
-PRJ_LDAP="Disabled"
-PRJ_LAL="Disabled"
-SOCKET="openssl"
-
-[gpr-set-externals."case(os)".linux]
-PRJ_TARGET = "UNIX"
-TARGET = "x86_64-gentoo-linux-musl"
-
-[gpr-set-externals."case(os)".macos]
-PRJ_TARGET = "Darwin"
-TARGET = "x86_64-apple-darwin19.6.0"
-
-[gpr-set-externals."case(os)".windows]
-PRJ_TARGET = "Windows_NT"
-TARGET = "x86_64-w64-mingw32"
