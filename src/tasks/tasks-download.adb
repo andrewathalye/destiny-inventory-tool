@@ -17,10 +17,9 @@ with Shared.Files;   use Shared;
 
 package body Tasks.Download is
    --  Debugging
-
    Simulate_Slow : constant Boolean := False;
-   --  Synchronous download function
 
+   --  Synchronous download functions
    function Download
      (Path       : Unbounded_String;
       Needs_Auth : Boolean := False;
@@ -35,9 +34,9 @@ package body Tasks.Download is
       if Simulate_Slow then
          delay 0.1;
       end if;
+
       --  Note: We avoid using Client.Get because it results in a stack
       --  overflow on musl libc
-
       if Caching and then Files.Has_Cached (+Path) then
          return Files.Get_Cached (+Path);
 
@@ -69,24 +68,63 @@ package body Tasks.Download is
       end if;
    end Download;
 
+   --  Note: No caching is available for this version
+   function Download
+     (Path       : Unbounded_String;
+      Needs_Auth : Boolean := False)
+      return Unbounded_String
+   is
+      Connection : Client.HTTP_Connection;
+      Data       : Response.Data;
+   begin
+      if Simulate_Slow then
+         delay 0.1;
+      end if;
+
+      --  Note: We avoid using Client.Get because it results in a stack
+      --  overflow on musl libc
+
+      Debug.Put_Line ("Download as string " & (+Path));
+      Client.Create (Connection, API.Bungie_Root & (+Path));
+
+      if Needs_Auth then
+         Client.HTTP_Utils.Send_Request
+           (Connection => Connection,
+            Kind       => Client.HTTP_Utils.GET,
+            Result     => Data,
+            URI        => API.Bungie_Root & (+Path),
+            Headers    => GUI.Headers);
+      else
+         Client.HTTP_Utils.Send_Request
+           (Connection,
+            Client.HTTP_Utils.GET,
+            Data,
+            API.Bungie_Root & (+Path));
+      end if;
+      Check_Status (Data);
+
+      return Response.Message_Body (Data);
+   end Download;
+
    task body Download_Task is
       --  Types
-
       type Download_Queue_Entry is record
          Path       : Unbounded_String;
          Widget     : Gtk_Widget;
          Needs_Auth : Boolean;
          Complete   : Boolean;
       end record;
+
       --  Instantiation
       package DQV is new Ada.Containers.Vectors
         (Natural, Download_Queue_Entry);
       subtype Download_Queue_Type is DQV.Vector;
+
       --  Download cache
       Download_Queue : Download_Queue_Type;
+
       --  Local Data
       Callback_L : Download_Callback;
-
    begin
       loop
          select
@@ -118,14 +156,11 @@ package body Tasks.Download is
                   --  Interrupt the download
                   accept Interrupt;
                   exit Execute_Loop;
-
                else
                   if not DQE.Complete then
                      declare
-
                         SEA : constant Stream_Element_Array :=
                           Download (DQE.Path, DQE.Needs_Auth);
-
                      begin
                         Callback_L (DQE.Path, DQE.Widget, SEA);
                         DQE.Widget.Unref; -- let it be freed when needed
@@ -135,7 +170,6 @@ package body Tasks.Download is
                end select;
             end loop Execute_Loop;
             Download_Queue.Clear;
-
          or
             terminate;
          end select;
@@ -145,5 +179,4 @@ package body Tasks.Download is
          Put_Line (Standard_Error, Exception_Information (E));
          Reraise_Occurrence (E);
    end Download_Task;
-
 end Tasks.Download;

@@ -7,10 +7,12 @@ maintainers = ["Andrew Athalye <andrewathalye@outlook.com>"]
 maintainers-logins = ["andrewathalye"]
 
 executables = ["inventory_tool"]
+
 [[depends-on]]
 gtkada = "^23.0.0"
 aws = "^23.0.0"
 vss = "^23.0.0"
+gnatcoll = "^23.0.0"
 
 [[pins]]
 aws = { path = "alire_local/aws-23.0.0" }

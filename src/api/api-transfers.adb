@@ -6,11 +6,8 @@ with Ada.Text_IO; use Ada.Text_IO;
 with AWS.Client;
 with AWS.Response; use AWS;
 
---  VSS
-with VSS.JSON.Pull_Readers.Simple; use VSS.JSON.Pull_Readers.Simple;
-use VSS.JSON.Pull_Readers;
-use VSS.JSON;
-with VSS.Text_Streams; use VSS.Text_Streams;
+--  GNATCOLL
+with GNATCOLL.JSON; use GNATCOLL.JSON;
 
 --  Local Packages
 with API.Memberships;
@@ -22,34 +19,24 @@ with API.Error_Codes;
 use all type API.Error_Codes.Error_Code_Type;
 
 with GUI.Base;
-with Shared.JSON;    use Shared.JSON;
 with Shared.Strings; use Shared.Strings;
 with Shared.Debug;   use Shared;
 
 package body API.Transfers is
    --  Server Check
-
    procedure Server_Check (Data : AWS.Response.Data) is
 
-      Stream : Memory_UTF8_Input_Stream_Access :=
-        Get_Stream (Response.Message_Body (Data));
-      Reader     : JSON_Simple_Pull_Reader;
+      JSON_Data : constant JSON_Value :=
+        Read
+          (Strm     => String'(Response.Message_Body (Data)),
+           Filename => "<inventory_transfer_data>");
       Error_Code : Error_Codes.Error_Code_Type;
 
    begin
-      Set_Stream (Reader, Input_Text_Stream_Access (Stream));
-      --  Check passes if S200 returned
-
-      if Query_Status (Data) then
-         Free (Stream);
-         return;
-      end if;
-      Wait_Until_Key (Reader, "ErrorCode");
-      Read_Next (Reader); -- NUMBER_VALUE
       Error_Code :=
         Error_Codes.Error_Code_Type'Enum_Val
-          (As_Integer (Number_Value (Reader)));
-      Free (Stream);
+          (Integer'(JSON_Data.Get ("ErrorCode")));
+
       Put_Line
         (Standard_Error,
          "[Error] API.Transfers got " & Error_Code'Image &
@@ -77,9 +64,9 @@ package body API.Transfers is
             raise Unknown_Error;
       end case;
    end Server_Check;
+
    --  Local Checks
    --  These return no value and raise an exception if the check fails
-
    procedure Check_Character_Has_Room
      (Inventory : Inventories.Character.Character_Inventory_Type;
       Character : Profiles.Character_Type;
@@ -139,9 +126,9 @@ package body API.Transfers is
          raise Actions_Disallowed;
       end if;
    end Check_Actions_Permitted;
+
    --  The below subprograms perform both local and remote checks See the
    --  specification for more information
-
    procedure Vault
      (Vault_Inventory : Inventories.Global.Global_Inventory_Type;
       M               : Manifest.Manifest_Type;

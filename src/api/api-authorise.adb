@@ -2,6 +2,7 @@ pragma Ada_2022;
 with Ada.Streams.Stream_IO; use Ada.Streams;
 with Ada.Directories;       use Ada.Directories;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
+with Ada.Text_IO;           use Ada.Text_IO;
 use Ada;
 
 --  AWS
@@ -10,9 +11,15 @@ with AWS.Server;
 with AWS.Response;
 with AWS.Status; use AWS.Status;
 with AWS.Messages;
+with AWS.Net;
+
+--  GNAT
+with GNAT.OS_Lib;
+
+--  GNATCOLL
+with GNATCOLL.JSON; use GNATCOLL.JSON;
 
 --  Local Packages
-with Shared.JSON;    use Shared.JSON;
 with Shared.Strings; use Shared.Strings;
 with Shared.Debug;   use Shared;
 with Secrets;
@@ -89,25 +96,24 @@ package body API.Authorise is
       Server.Shutdown (WS);
       Authorise_Object.Reset;
       return Code;
+   exception
+      when AWS.Net.Socket_Error =>
+         Put_Line
+           (Standard_Error,
+            "[API.Authorise] Failed to bind port 8888. Cannot authenticate.");
+         GNAT.OS_Lib.OS_Exit (-1);
    end Get_Code;
    --  Parse JSON
 
    function Parse_JSON
      (Message_Body : Unbounded_String) return Auth_Storage_Type
    is
-
-      List : constant Unbounded_String_List :=
-        Get_Strings
-          (Message_Body,
-           [To_Unbounded_String ("access_token"),
-           To_Unbounded_String ("refresh_token"),
-           To_Unbounded_String ("membership_id")]);
-
+      Data : constant JSON_Value := Read (Message_Body, "<auth_data>");
    begin
       return
-        (List.Element (To_Unbounded_String ("access_token")),
-         List.Element (To_Unbounded_String ("refresh_token")),
-         List.Element (To_Unbounded_String ("membership_id")));
+        (Data.Get ("access_token"),
+         Data.Get ("refresh_token"),
+         Data.Get ("membership_id"));
    end Parse_JSON;
 
    function Get_Token

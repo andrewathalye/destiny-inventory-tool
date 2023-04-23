@@ -14,10 +14,8 @@ package API is
    --  Subprograms
    function Create_Headers
      (Auth_Data : Auth_Storage_Type) return Auth_Header_Type;
-   function Query_Status (Data : Response.Data) return Boolean;
-   --  Note: Will raise an exception if the status was not successful Use
-   --  Query_Status if you wish to see if the Response was successful and
-   --  handle the error state yourself
+
+   --  Note: Will raise an exception if the status was not successful.
    procedure Check_Status (Data : Response.Data);
 
 private

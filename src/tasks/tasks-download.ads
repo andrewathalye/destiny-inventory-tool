@@ -25,10 +25,15 @@ package Tasks.Download is
    Contents_Task  : Download_Task;
    Character_Task : Download_Task;
    Global_Task    : Download_Task;
-   --  Synchronous version of the above task. Provided for convenience.
+
+   --  Synchronous versions of the above task. Provided for convenience.
    function Download
      (Path       : Unbounded_String;
       Needs_Auth : Boolean := False;
       Caching    : Boolean := True)
       return Stream_Element_Array;
+   function Download --  Note: Uncached
+     (Path       : Unbounded_String;
+      Needs_Auth : Boolean := False)
+      return Unbounded_String;
 end Tasks.Download;

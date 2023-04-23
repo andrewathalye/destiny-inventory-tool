@@ -32,6 +32,7 @@ package API.Memberships is
         Null_Unbounded_String; -- For platform profile
       Bungie_Net_User : Bungie_Net_User_Type;
    end record;
+
    --  Subprograms
    function Find_Default_Platform
      (M : Membership_Type) return Bungie_Platform_Type;

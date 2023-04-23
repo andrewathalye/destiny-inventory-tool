@@ -106,26 +106,27 @@ package API.Profiles is
    package Loadout_Vectors is new Ada.Containers.Vectors
      (Natural, Loadout_Type);
    subtype Loadout_List is Loadout_Vectors.Vector;
-   pragma Warnings (Off, "is not referenced");
-   function "=" (L, R : Loadout_List) return Boolean is (False);
-   pragma Warnings (On, "is not referenced");
+   use all type Loadout_Vectors.Vector;
+
    package Loadout_Maps is new Ada.Containers.Hashed_Maps
      (Key_Type        => Unbounded_String,
       Element_Type    => Loadout_List,
       Hash            => Shared.Strings.Hash,
       Equivalent_Keys => Shared.Strings.Equivalent_Keys);
    subtype Loadout_Map is Loadout_Maps.Map;
-   --  Silver
 
-   type Platform_Silver_Type is record
-      PSN, XBOX, Blizzard, Stadia, Steam, Bungie_Next, EGS : Item_Type;
-   end record;
+   --  Silver (skips BMT.None because that can't have any Silver)
+   type Platform_Silver_Array is
+     array
+       (Bungie_Platform_Type range
+          Bungie_Platform_Type'Succ (Bungie_Platform_Type'First) ..
+            Bungie_Platform_Type'Last) of Item_Type;
+
    --  Profile
-
    type Profile_Type is record
       Profile_Inventory  : Item_List;
       Profile_Currencies : Item_List;
-      Platform_Silver    : Platform_Silver_Type;
+      Platform_Silver    : Platform_Silver_Array;
       --  Plug Sets?
       Characters            : Character_List;
       Character_Inventories : Inventory_Map;

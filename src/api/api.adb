@@ -2,6 +2,7 @@ pragma Ada_2022;
 
 --  AWS
 with AWS.Messages;
+use all type AWS.Messages.Status_Code;
 
 --  Local Packages
 with Shared.Strings; use Shared.Strings;
@@ -22,22 +23,15 @@ package body API is
       return List;
    end Create_Headers;
 
-   function Query_Status (Data : Response.Data) return Boolean is
-
-      use AWS.Messages;
-
-   begin
-      return AWS.Response.Status_Code (Data) = AWS.Messages.S200;
-   end Query_Status;
-
    procedure Check_Status (Data : Response.Data) is
    begin
-      if not Query_Status (Data) then
+      if AWS.Response.Status_Code (Data) /= AWS.Messages.S200 then
          Debug.Put_Line (AWS.Response.Status_Code (Data)'Image);
          Headers.Debug (True);
          Headers.Debug_Print (AWS.Response.Header (Data));
          Headers.Debug (False);
          Debug.Put_Line (AWS.Response.Message_Body (Data));
+
          raise Program_Error with "Request failed.";
       end if;
    end Check_Status;
