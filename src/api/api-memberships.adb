@@ -54,212 +54,72 @@ package body API.Memberships is
                Needs_Auth => True,
                Caching    => Debug_Caching)));
       Set_Stream (Reader, Input_Text_Stream_Access (Stream));
-      --  "Response" and Start Object
-      Read_Next (Reader); -- Start_Document
-      Read_Next (Reader); -- Start_Object
-      Read_Next (Reader);
 
-      case Event_Kind (Reader) is
-         when Key_Name =>
-            if VS2S (Key_Name (Reader)) /= "Response" then
-               raise Program_Error;
-            end if;
+      Wait_Until_Key (Reader, "destinyMemberships");
+      Read_Next (Reader); -- Start_Array
+
+      Read_Destiny_Memberships :
+         loop
             Read_Next (Reader);
 
             case Event_Kind (Reader) is
                when Start_Object =>
-                  null;
+                  Submit_GUIC :
+                     declare
+
+                        GUIC : Group_User_Info_Card_Type;
+
+                     begin
+                        Wait_Until_Key (Reader, "LastSeenDisplayName");
+                        Read_Next (Reader);
+                        GUIC.Last_Seen_Display_Name :=
+                          VS2UB (String_Value (Reader));
+
+                        Wait_Until_Key (Reader, "membershipType");
+                        Read_Next (Reader);
+                        GUIC.Membership_Type :=
+                          Bungie_Platform_Type'Enum_Val
+                            (As_Integer (Number_Value (Reader)));
+
+                        Wait_Until_Key (Reader, "membershipId");
+                        Read_Next (Reader);
+                        GUIC.Membership_ID := VS2UB (String_Value (Reader));
+                        Result.Destiny_Memberships.Append (GUIC);
+
+                        Wait_Until_Event (Reader, End_Object);
+                     end Submit_GUIC;
+
+               when End_Array =>
+                  exit Read_Destiny_Memberships;
 
                when others =>
                   raise Program_Error;
             end case;
+         end loop Read_Destiny_Memberships;
 
-         when others =>
-            raise Program_Error;
-      end case;
-      --  Destiny Memberships
-      Read_Next (Reader);
-
-      case Event_Kind (Reader) is
-         when Key_Name =>
-            if VS2S (Key_Name (Reader)) /= "destinyMemberships" then
-               raise Program_Error;
-            end if;
-            Read_Next (Reader);
-
-            case Event_Kind (Reader) is
-               when Start_Array => -- Memberships
-                  Read_Destiny_Memberships :
-                  loop
-                     Read_Next (Reader);
-
-                     case Event_Kind (Reader) is
-                        when Start_Object =>
-                           Submit_GUIC :
-                           declare
-
-                              GUIC : Group_User_Info_Card_Type;
-
-                           begin
-                              Read_GUIC :
-                              loop
-                                 Read_Next (Reader);
-
-                                 case Event_Kind (Reader) is
-                                    when Key_Name =>
-                                       if VS2S (Key_Name (Reader)) =
-                                         "LastSeenDisplayName"
-                                       then
-                                          Read_Next (Reader);
-                                          GUIC.Last_Seen_Display_Name :=
-                                            VS2UB (String_Value (Reader));
-
-                                       elsif VS2S (Key_Name (Reader)) =
-                                         "membershipType"
-                                       then
-                                          Read_Next (Reader);
-                                          GUIC.Membership_Type :=
-                                            Bungie_Platform_Type'Enum_Val
-                                              (As_Integer
-                                                 (Number_Value (Reader)));
-
-                                       elsif VS2S (Key_Name (Reader)) =
-                                         "membershipId"
-                                       then
-                                          Read_Next (Reader);
-                                          GUIC.Membership_ID :=
-                                            VS2UB (String_Value (Reader));
-                                       end if;
-
-                                    when End_Object =>
-                                       exit Read_GUIC;
-
-                                    when others =>
-                                       null;
-                                 end case;
-                              end loop Read_GUIC;
-                              Result.Destiny_Memberships.Append (GUIC);
-                           end Submit_GUIC;
-
-                        when End_Array =>
-                           exit Read_Destiny_Memberships;
-
-                        when others =>
-                           null;
-                     end case;
-                  end loop Read_Destiny_Memberships;
-
-               when others =>
-                  raise Program_Error;
-            end case;
-
-         when others =>
-            raise Program_Error;
-      end case;
       --  Primary_Membership_ID
+      Wait_Until_Key (Reader, "primaryMembershipId");
       Read_Next (Reader);
+      Result.Primary_Membership_ID := VS2UB (String_Value (Reader));
 
-      case Event_Kind (Reader) is
-         when Key_Name =>
-            if VS2S (Key_Name (Reader)) /= "primaryMembershipId" then
-               raise Program_Error;
-            end if;
-            Read_Next (Reader);
-
-            case Event_Kind (Reader) is
-               when String_Value =>
-                  Result.Primary_Membership_ID :=
-                    VS2UB (String_Value (Reader));
-
-               when Null_Value =>
-                  null;
-
-               when others =>
-                  raise Program_Error;
-            end case;
-
-         when others =>
-            raise Program_Error;
-      end case;
       --  Bungie_Net_User
+      Wait_Until_Key (Reader, "bungieNetUser");
+      Wait_Until_Key (Reader, "membershipId");
       Read_Next (Reader);
+      Result.Bungie_Net_User.Membership_ID := VS2UB (String_Value (Reader));
 
-      case Event_Kind (Reader) is
-         when Key_Name =>
-            if VS2S (Key_Name (Reader)) /= "bungieNetUser" then
-               raise Program_Error;
-            end if;
-            Read_Next (Reader);
+      Wait_Until_Key (Reader, "uniqueName");
+      Read_Next (Reader);
+      Result.Bungie_Net_User.Unique_Name := VS2UB (String_Value (Reader));
 
-            case Event_Kind (Reader) is
-               when Start_Object => -- Bungie_Net_User
-                  Read_Bungie_Net_User :
-                  loop
-                     Read_Next (Reader);
+      Wait_Until_Key (Reader, "displayName");
+      Read_Next (Reader);
+      Result.Bungie_Net_User.Display_Name := VS2UB (String_Value (Reader));
 
-                     case Event_Kind (Reader) is
-                        when Key_Name =>
-                           if VS2S (Key_Name (Reader)) = "membershipId" then
-                              Read_Next (Reader);
-                              Result.Bungie_Net_User.Membership_ID :=
-                                VS2UB (String_Value (Reader));
+      Wait_Until_Key (Reader, "locale");
+      Read_Next (Reader);
+      Result.Bungie_Net_User.Locale := VS2UB (String_Value (Reader));
 
-                           elsif VS2S (Key_Name (Reader)) = "uniqueName" then
-                              Read_Next (Reader);
-                              Result.Bungie_Net_User.Unique_Name :=
-                                VS2UB (String_Value (Reader));
-
-                           elsif VS2S (Key_Name (Reader)) = "displayName" then
-                              Read_Next (Reader);
-                              Result.Bungie_Net_User.Display_Name :=
-                                VS2UB (String_Value (Reader));
-
-                           elsif VS2S (Key_Name (Reader)) = "locale" then
-                              Read_Next (Reader);
-                              Result.Bungie_Net_User.Locale :=
-                                VS2UB (String_Value (Reader));
-
-                           elsif VS2S (Key_Name (Reader)) = "context"
-                           then -- This contains nested objects
-                              Read_Next (Reader); -- Start_Object
-
-                              declare
-
-                                 Nesting_Level : Natural := 1;
-
-                              begin
-                                 while Nesting_Level /= 0 loop
-                                    Read_Next (Reader);
-
-                                    case Event_Kind (Reader) is
-                                       when Start_Object =>
-                                          Nesting_Level := @ + 1;
-
-                                       when End_Object =>
-                                          Nesting_Level := @ - 1;
-
-                                       when others =>
-                                          null;
-                                    end case;
-                                 end loop;
-                              end;
-                           end if;
-
-                        when End_Object =>
-                           exit Read_Bungie_Net_User;
-
-                        when others =>
-                           null;
-                     end case;
-                  end loop Read_Bungie_Net_User;
-
-               when others =>
-                  raise Program_Error;
-            end case;
-
-         when others =>
-            raise Program_Error;
-      end case;
       Free (Stream);
       return Result;
    end Get_Memberships;

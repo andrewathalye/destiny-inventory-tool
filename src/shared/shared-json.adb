@@ -33,7 +33,7 @@ package body Shared.JSON is
             return;
          end if;
       end loop;
-      raise Program_Error;
+      raise Program_Error with Key & " not found";
    end Wait_Until_Key;
 
    procedure Wait_Until_Event
