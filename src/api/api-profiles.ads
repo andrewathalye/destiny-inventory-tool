@@ -56,7 +56,7 @@ package API.Profiles is
    type Item_Type is record
       Item_Hash : Manifest_Hash;
       --  DestinyInventoryItemDefinition
-      Item_Instance_ID : Unbounded_String;
+      Item_Instance_ID : Unbounded_String; -- Nullable
       Quantity         : Integer_32;
       Bind_Status      : Bind_Status_Type;
       Location         : Item_Location_Type;
@@ -67,7 +67,7 @@ package API.Profiles is
       State                    : Item_State_Type;
       Override_Style_Item_Hash : Manifest_Hash := 0; -- Nullable
       --  DestinyInventoryItemDefinition
-      Expiration_Date : Unbounded_String;
+      Expiration_Date : Unbounded_String; -- Nullable
       Version_Number  : Integer_32 := -1; -- Nullable
       --  Items Omitted
    end record;
@@ -86,7 +86,7 @@ package API.Profiles is
    subtype Manifest_Hash_List is Manifest_Hash_Vectors.Vector;
 
    type Loadout_Item_Type is record
-      Instance_ID      : Unbounded_String;
+      Item_Instance_ID      : Unbounded_String;
       Plug_Item_Hashes : Manifest_Hash_List;
       --  DestinyInventoryItemDefinition
    end record;

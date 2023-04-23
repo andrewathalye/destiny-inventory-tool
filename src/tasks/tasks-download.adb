@@ -72,7 +72,7 @@ package body Tasks.Download is
    function Download
      (Path       : Unbounded_String;
       Needs_Auth : Boolean := False)
-      return Unbounded_String
+      return String
    is
       Connection : Client.HTTP_Connection;
       Data       : Response.Data;

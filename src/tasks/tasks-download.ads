@@ -35,5 +35,5 @@ package Tasks.Download is
    function Download --  Note: Uncached
      (Path       : Unbounded_String;
       Needs_Auth : Boolean := False)
-      return Unbounded_String;
+      return String;
 end Tasks.Download;
