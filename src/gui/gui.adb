@@ -100,16 +100,16 @@ package body GUI is
    begin
       GUI.Lock_Object.Lock;
       Critical_Section :
-      begin
-         if Global_Pixbuf_Cache.Contains (File_Name) then
+         begin
+            if Global_Pixbuf_Cache.Contains (File_Name) then
+               Gtk_Image (Widget).Set (Temp);
+               Lock_Object.Unlock;
+               return;
+            end if;
+            --  Cache Pixbuf
+            Global_Pixbuf_Cache.Insert (File_Name, Temp);
             Gtk_Image (Widget).Set (Temp);
-            Lock_Object.Unlock;
-            return;
-         end if;
-         --  Cache Pixbuf
-         Global_Pixbuf_Cache.Insert (File_Name, Temp);
-         Gtk_Image (Widget).Set (Temp);
-      end Critical_Section;
+         end Critical_Section;
       GUI.Lock_Object.Unlock;
    end Image_Callback;
    --  Public Subprograms
@@ -131,9 +131,9 @@ package body GUI is
    begin
       GUI.Lock_Object.Lock;
       Critical_Section :
-      begin
-         Discard := Gtk.Main.Main_Iteration;
-      end Critical_Section;
+         begin
+            Discard := Gtk.Main.Main_Iteration;
+         end Critical_Section;
       GUI.Lock_Object.Unlock;
    end Locking_Main_Iteration;
 

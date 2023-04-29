@@ -68,45 +68,67 @@ package API.Manifest.Tools is
    --  Intended to store sufficient information about an item to display it
    --  without further Manifest lookups
    --
+   --  By default, certain fields are initialised. This is done so that an uninitialised
+   --  ID, which can be returned due to an exception, cannot possibly cause an invalid enum
+   --  error to propagate. In general, client code should not attempt to verify whether an ID
+   --  represents a real or dummy item, and should instead act based upon the metadata contained
+   --  within the ID
+   --
    --  Location, Bucket_Location, Bucket_Hash, and Transfer_Status should be
    --  modified if the item is to be virtually moved
 
    type Item_Description is record
       Name        : Unbounded_String;
       Description : Unbounded_String;
-      Item_Hash   : Manifest_Hash;
+      Item_Hash   : Manifest_Hash := 0;
       --  DestinyInventoryItemDefinition
       Item_Instance_ID : Unbounded_String;
 
-      Quantity       : Integer_32;
-      Max_Stack_Size : Integer_32;
-      Location       : Item_Location_Type;
+      --  Item stack
+      Quantity       : Integer_32         := 0;
+      Max_Stack_Size : Integer_32         := 0;
+      Location       : Item_Location_Type := Unknown;
 
-      Bucket_Hash, Default_Bucket_Hash : Manifest_Hash;
+      --  Buckets
+      Bucket_Hash, Default_Bucket_Hash : Manifest_Hash := 0;
       --  DestinyInventoryBucketDefinition
-      Bucket_Location, Default_Bucket_Location : Bucket_Location_Type;
+      Bucket_Location,
+      Default_Bucket_Location : Bucket_Location_Type :=
+        Unknown;
 
-      Category        : Destiny_Inventory_Bucket_Category;
-      State           : Item_State_Type;
-      Allow_Actions   : Boolean;
-      Transfer_Status : Transfer_Status_Type;
+      --  Item state
+      Category        : Destiny_Inventory_Bucket_Category := Ignored;
+      State           : Item_State_Type                   := (others => False);
+      Allow_Actions   : Boolean                           := False;
+      Transfer_Status : Transfer_Status_Type              := Not_Transferable;
 
-      Icon_Path      : Unbounded_String;
-      Watermark_Path : Unbounded_String;
+      --  Display info
+      Icon_Path        : Unbounded_String;
+      Watermark_Path   : Unbounded_String;
+      Style_Overridden : Boolean := False;
 
-      Style_Overridden : Boolean;
-
-      Postmaster_Pull_Has_Side_Effects : Boolean;
-      Item_Type                        : Destiny_Item_Type;
-      Tier_Type                        : Destiny_Tier_Type;
+      --  Item qualities
+      Postmaster_Pull_Has_Side_Effects : Boolean           := False;
+      Item_Type                        : Destiny_Item_Type := None;
+      Tier_Type                        : Destiny_Tier_Type := Common;
       Item_Type_And_Tier_Display_Name  : Unbounded_String;
+
+      --  Instance-Specific Info (will not be filled for non-instanced items)
+      Light_Level : Integer_32 := 0;
+      Item_Level  : Integer_32 := 0;
+      Stats       : Stats_Map;
+      Sockets     : Socket_List;
+      Perks       : Perk_List;
    end record;
 
    function Get_Description
      (M : Manifest_Type; C : Character_Type) return String;
 
    function Get_Description
-     (M : Manifest_Type; I : Item_Type) return Item_Description;
+     (M : Manifest_Type;
+      P : Profile_Type;
+      I : Item_Type)
+      return Item_Description;
 
    function Get_Title
      (M : Manifest_Type; C : Character_Type) return Unbounded_String;

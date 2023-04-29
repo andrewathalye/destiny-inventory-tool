@@ -33,7 +33,5 @@ package Tasks.Download is
       Caching    : Boolean := True)
       return Stream_Element_Array;
    function Download --  Note: Uncached
-     (Path       : Unbounded_String;
-      Needs_Auth : Boolean := False)
-      return String;
+     (Path : Unbounded_String; Needs_Auth : Boolean := False) return String;
 end Tasks.Download;

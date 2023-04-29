@@ -23,6 +23,8 @@ with Shared.Strings; use Shared.Strings;
 use Shared;
 with Tasks.Download;
 
+with Secrets; use Secrets;
+
 package body GUI.Global is
    --  Instantiations
 
@@ -224,41 +226,42 @@ package body GUI.Global is
       Tasks.Download.Global_Task.Interrupt;
       GUI.Lock_Object.Lock;
       Critical_Section :
-      begin
-         Base.Clear_Bucket (Vault_Kinetic);
-         Base.Clear_Bucket (Vault_Energy);
-         Base.Clear_Bucket (Vault_Power);
-         Base.Clear_Bucket (Vault_Shell);
-         Base.Clear_Bucket (Vault_Artefact);
-         Render_Items (Vault_Inventory (Kinetic), Vault_Kinetic, 10);
-         Render_Items (Vault_Inventory (Energy), Vault_Energy, 10);
-         Render_Items (Vault_Inventory (Power), Vault_Power, 10);
-         Render_Items (Vault_Inventory (Shell), Vault_Shell, 10);
-         Render_Items (Vault_Inventory (Artefact), Vault_Artefact, 10);
-         Base.Clear_Bucket (Vault_Helmet);
-         Base.Clear_Bucket (Vault_Gauntlets);
-         Base.Clear_Bucket (Vault_Chest);
-         Base.Clear_Bucket (Vault_Leg);
-         Base.Clear_Bucket (Vault_Class);
-         Render_Items (Vault_Inventory (Helmet), Vault_Helmet, 10);
-         Render_Items (Vault_Inventory (Gauntlets), Vault_Gauntlets, 10);
-         Render_Items (Vault_Inventory (Chest), Vault_Chest, 10);
-         Render_Items (Vault_Inventory (Leg), Vault_Leg, 10);
-         Render_Items (Vault_Inventory (Class), Vault_Class, 10);
-         Base.Clear_Bucket (Vault_Emblem);
-         Base.Clear_Bucket (Vault_Sparrow);
-         Base.Clear_Bucket (Vault_Ship);
-         Render_Items (Vault_Inventory (Emblem), Vault_Emblem, 10);
-         Render_Items (Vault_Inventory (Sparrow), Vault_Sparrow, 10);
-         Render_Items (Vault_Inventory (Ship), Vault_Ship, 10);
-         Base.Clear_Bucket (Vault_Consumable);
-         Base.Clear_Bucket (Vault_Modification);
-         Render_Items (Vault_Inventory (Consumable), Vault_Consumable, 10);
-         Render_Items (Vault_Inventory (Modification), Vault_Modification, 10);
-         --  Theoretically, no items should appear here.
-         Base.Clear_Bucket (Vault_Other);
-         Render_Items (Vault_Inventory (Unknown), Vault_Other, 10);
-      end Critical_Section;
+         begin
+            Base.Clear_Bucket (Vault_Kinetic);
+            Base.Clear_Bucket (Vault_Energy);
+            Base.Clear_Bucket (Vault_Power);
+            Base.Clear_Bucket (Vault_Shell);
+            Base.Clear_Bucket (Vault_Artefact);
+            Render_Items (Vault_Inventory (Kinetic), Vault_Kinetic, 10);
+            Render_Items (Vault_Inventory (Energy), Vault_Energy, 10);
+            Render_Items (Vault_Inventory (Power), Vault_Power, 10);
+            Render_Items (Vault_Inventory (Shell), Vault_Shell, 10);
+            Render_Items (Vault_Inventory (Artefact), Vault_Artefact, 10);
+            Base.Clear_Bucket (Vault_Helmet);
+            Base.Clear_Bucket (Vault_Gauntlets);
+            Base.Clear_Bucket (Vault_Chest);
+            Base.Clear_Bucket (Vault_Leg);
+            Base.Clear_Bucket (Vault_Class);
+            Render_Items (Vault_Inventory (Helmet), Vault_Helmet, 10);
+            Render_Items (Vault_Inventory (Gauntlets), Vault_Gauntlets, 10);
+            Render_Items (Vault_Inventory (Chest), Vault_Chest, 10);
+            Render_Items (Vault_Inventory (Leg), Vault_Leg, 10);
+            Render_Items (Vault_Inventory (Class), Vault_Class, 10);
+            Base.Clear_Bucket (Vault_Emblem);
+            Base.Clear_Bucket (Vault_Sparrow);
+            Base.Clear_Bucket (Vault_Ship);
+            Render_Items (Vault_Inventory (Emblem), Vault_Emblem, 10);
+            Render_Items (Vault_Inventory (Sparrow), Vault_Sparrow, 10);
+            Render_Items (Vault_Inventory (Ship), Vault_Ship, 10);
+            Base.Clear_Bucket (Vault_Consumable);
+            Base.Clear_Bucket (Vault_Modification);
+            Render_Items (Vault_Inventory (Consumable), Vault_Consumable, 10);
+            Render_Items
+              (Vault_Inventory (Modification), Vault_Modification, 10);
+            --  Theoretically, no items should appear here.
+            Base.Clear_Bucket (Vault_Other);
+            Render_Items (Vault_Inventory (Unknown), Vault_Other, 10);
+         end Critical_Section;
       GUI.Lock_Object.Unlock;
       --  Complete downloads queued by Render calls
       Tasks.Download.Global_Task.Execute (GUI.Image_Callback'Access);
@@ -271,7 +274,7 @@ package body GUI.Global is
 
    begin
       --  Update username
-      Set_Label (Name, +GUI.Membership.Bungie_Net_User.Unique_Name);
+      Set_Label (Name, +Secrets.Membership.Bungie_Net_User.Unique_Name);
       --  One-time setup per profile
       Setup_Transfer_Menu;
       Setup_Character_Menu;

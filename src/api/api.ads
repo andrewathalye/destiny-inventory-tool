@@ -7,10 +7,15 @@ with AWS.Headers; use AWS;
 package API is
    --  Constants
    Bungie_Root : constant String := "https://www.bungie.net";
-   --  Types
 
+   --  Types
    type Auth_Storage_Type is private;
    subtype Auth_Header_Type is AWS.Headers.List;
+
+   --  Callbacks
+   procedure Null_Data_Wipe_Callback is null;
+   Wipe_Data : access procedure := Null_Data_Wipe_Callback'Access;
+
    --  Subprograms
    function Create_Headers
      (Auth_Data : Auth_Storage_Type) return Auth_Header_Type;

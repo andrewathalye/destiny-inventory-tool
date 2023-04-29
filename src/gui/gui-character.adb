@@ -180,47 +180,47 @@ package body GUI.Character is
       Tasks.Download.Character_Task.Interrupt;
       GUI.Lock_Object.Lock;
       Critical_Section :
-      begin
-         --  Update Buckets
-         Base.Clear_Bucket (Postmaster_Grid);
-         Render_Items
-           (Character_Items (Postmaster),
-            Postmaster_Grid,
-            Tasks.Download.Character_Task,
-            6);
-         Base.Clear_Bucket (Subclass_Box);
-         Render_Item (Equipped_Items (Subclass), Subclass_Box, Right);
-         Base.Clear_Bucket (Kinetic_Box);
-         Base.Clear_Bucket (Energy_Box);
-         Base.Clear_Bucket (Power_Box);
-         Base.Clear_Bucket (Shell_Box);
-         Base.Clear_Bucket (Artefact_Box);
-         Render_Item (Equipped_Items (Kinetic), Kinetic_Box, Right);
-         Render_Item (Equipped_Items (Energy), Energy_Box, Right);
-         Render_Item (Equipped_Items (Power), Power_Box, Right);
-         Render_Item (Equipped_Items (Shell), Shell_Box, Right);
-         Render_Item (Equipped_Items (Artefact), Artefact_Box, Right);
-         Base.Clear_Bucket (Helmet_Box);
-         Base.Clear_Bucket (Gauntlets_Box);
-         Base.Clear_Bucket (Chest_Box);
-         Base.Clear_Bucket (Leg_Box);
-         Base.Clear_Bucket (Class_Box);
-         Render_Item (Equipped_Items (Helmet), Helmet_Box, Left);
-         Render_Item (Equipped_Items (Gauntlets), Gauntlets_Box, Left);
-         Render_Item (Equipped_Items (Chest), Chest_Box, Left);
-         Render_Item (Equipped_Items (Leg), Leg_Box, Left);
-         Render_Item (Equipped_Items (Class), Class_Box, Left);
-         Base.Clear_Bucket (Emblem_Box);
-         Base.Clear_Bucket (Sparrow_Box);
-         Base.Clear_Bucket (Ship_Box);
-         Render_Item (Equipped_Items (Emblem), Emblem_Box, Right);
-         Render_Item (Equipped_Items (Sparrow), Sparrow_Box, Right);
-         Render_Item (Equipped_Items (Ship), Ship_Box, Right);
-         Base.Clear_Bucket (Finisher_Box);
-         Base.Clear_Bucket (Emote_Box);
-         Render_Item (Equipped_Items (Finisher), Finisher_Box, Left);
-         Render_Item (Equipped_Items (Emote_Collection), Emote_Box, Left);
-      end Critical_Section;
+         begin
+            --  Update Buckets
+            Base.Clear_Bucket (Postmaster_Grid);
+            Render_Items
+              (Character_Items (Postmaster),
+               Postmaster_Grid,
+               Tasks.Download.Character_Task,
+               6);
+            Base.Clear_Bucket (Subclass_Box);
+            Render_Item (Equipped_Items (Subclass), Subclass_Box, Right);
+            Base.Clear_Bucket (Kinetic_Box);
+            Base.Clear_Bucket (Energy_Box);
+            Base.Clear_Bucket (Power_Box);
+            Base.Clear_Bucket (Shell_Box);
+            Base.Clear_Bucket (Artefact_Box);
+            Render_Item (Equipped_Items (Kinetic), Kinetic_Box, Right);
+            Render_Item (Equipped_Items (Energy), Energy_Box, Right);
+            Render_Item (Equipped_Items (Power), Power_Box, Right);
+            Render_Item (Equipped_Items (Shell), Shell_Box, Right);
+            Render_Item (Equipped_Items (Artefact), Artefact_Box, Right);
+            Base.Clear_Bucket (Helmet_Box);
+            Base.Clear_Bucket (Gauntlets_Box);
+            Base.Clear_Bucket (Chest_Box);
+            Base.Clear_Bucket (Leg_Box);
+            Base.Clear_Bucket (Class_Box);
+            Render_Item (Equipped_Items (Helmet), Helmet_Box, Left);
+            Render_Item (Equipped_Items (Gauntlets), Gauntlets_Box, Left);
+            Render_Item (Equipped_Items (Chest), Chest_Box, Left);
+            Render_Item (Equipped_Items (Leg), Leg_Box, Left);
+            Render_Item (Equipped_Items (Class), Class_Box, Left);
+            Base.Clear_Bucket (Emblem_Box);
+            Base.Clear_Bucket (Sparrow_Box);
+            Base.Clear_Bucket (Ship_Box);
+            Render_Item (Equipped_Items (Emblem), Emblem_Box, Right);
+            Render_Item (Equipped_Items (Sparrow), Sparrow_Box, Right);
+            Render_Item (Equipped_Items (Ship), Ship_Box, Right);
+            Base.Clear_Bucket (Finisher_Box);
+            Base.Clear_Bucket (Emote_Box);
+            Render_Item (Equipped_Items (Finisher), Finisher_Box, Left);
+            Render_Item (Equipped_Items (Emote_Collection), Emote_Box, Left);
+         end Critical_Section;
       GUI.Lock_Object.Unlock;
       --  TODO: Render engrams?
 

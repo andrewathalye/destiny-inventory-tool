@@ -4,7 +4,7 @@ with Ada.Text_IO; use Ada.Text_IO;
 
 --  AWS
 with AWS.Client;
-with AWS.Response; use AWS;
+with AWS.Response;
 
 --  GNATCOLL
 with GNATCOLL.JSON; use GNATCOLL.JSON;
@@ -18,9 +18,10 @@ use all type API.Manifest.Tools.Bucket_Location_Type;
 with API.Error_Codes;
 use all type API.Error_Codes.Error_Code_Type;
 
-with GUI.Base;
 with Shared.Strings; use Shared.Strings;
 with Shared.Debug;   use Shared;
+
+with Secrets; use Secrets;
 
 package body API.Transfers is
    --  Server Check
@@ -41,11 +42,12 @@ package body API.Transfers is
         (Standard_Error,
          "[Error] API.Transfers got " & Error_Code'Image &
          " after passing all local checks");
+
       --  Wipe profile data and reload Reloading profile data requires the lock
       --  to be unlocked, but we return to the Gtk event handler, so it should
       --  be locked afterwards
 
-      GUI.Locked_Wrapper (GUI.Base.Reload_Profile_Data'Access);
+      API.Wipe_Data.all;
 
       case Error_Code is
          when DestinyNoRoomInDestination =>
@@ -189,8 +191,8 @@ package body API.Transfers is
              ':' & ' ' & (+D.Item_Instance_ID) & ',' & '"' & "characterId" &
              '"' & ':' & ' ' & (+Source.Character_ID) & ',' & '"' &
              "membershipType" & '"' & ':' &
-             Memberships.Find_Default_Platform_ID (GUI.Membership) & "}",
-           Headers => GUI.Headers);
+             Memberships.Find_Default_Platform_ID (Secrets.Membership) & "}",
+           Headers => Secrets.Headers);
       Server_Check (Data);
    end Vault;
 
@@ -228,8 +230,8 @@ package body API.Transfers is
              '"' & ':' & ' ' & (+D.Item_Instance_ID) & ',' & '"' &
              "characterId" & '"' & ':' & ' ' & (+Target.Character_ID) & ',' &
              '"' & "membershipType" & '"' & ':' &
-             Memberships.Find_Default_Platform_ID (GUI.Membership) & "}",
-           Headers => GUI.Headers);
+             Memberships.Find_Default_Platform_ID (Secrets.Membership) & "}",
+           Headers => Secrets.Headers);
       Server_Check (Data);
    end Unvault;
 
@@ -283,8 +285,8 @@ package body API.Transfers is
              '"' & "itemId" & '"' & ':' & ' ' & (+D.Item_Instance_ID) & ',' &
              '"' & "characterId" & '"' & ':' & ' ' & (+Source.Character_ID) &
              ',' & '"' & "membershipType" & '"' & ':' &
-             Memberships.Find_Default_Platform_ID (GUI.Membership) & "}",
-           Headers => GUI.Headers);
+             Memberships.Find_Default_Platform_ID (Secrets.Membership) & "}",
+           Headers => Secrets.Headers);
       Server_Check (Data);
    end Postmaster_Pull;
 
@@ -307,8 +309,9 @@ package body API.Transfers is
              "{" & '"' & "itemId" & '"' & ':' & ' ' & (+D.Item_Instance_ID) &
              ',' & '"' & "characterId" & '"' & ':' & ' ' &
              (+Source.Character_ID) & ',' & '"' & "membershipType" & '"' &
-             ':' & Memberships.Find_Default_Platform_ID (GUI.Membership) & "}",
-           Headers => GUI.Headers);
+             ':' & Memberships.Find_Default_Platform_ID (Secrets.Membership) &
+             "}",
+           Headers => Secrets.Headers);
       Server_Check (Data);
    end Equip;
 

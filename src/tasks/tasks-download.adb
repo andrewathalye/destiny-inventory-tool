@@ -10,7 +10,7 @@ with AWS.Response; use AWS;
 
 --  Local Packages
 with API;            use API;
-with GUI;
+with Secrets;        use Secrets;
 with Shared.Strings; use Shared.Strings;
 with Shared.Debug;
 with Shared.Files;   use Shared;
@@ -50,7 +50,7 @@ package body Tasks.Download is
                Kind       => Client.HTTP_Utils.GET,
                Result     => Data,
                URI        => API.Bungie_Root & (+Path),
-               Headers    => GUI.Headers);
+               Headers    => Secrets.Headers);
 
          else
             Client.HTTP_Utils.Send_Request
@@ -70,9 +70,7 @@ package body Tasks.Download is
 
    --  Note: No caching is available for this version
    function Download
-     (Path       : Unbounded_String;
-      Needs_Auth : Boolean := False)
-      return String
+     (Path : Unbounded_String; Needs_Auth : Boolean := False) return String
    is
       Connection : Client.HTTP_Connection;
       Data       : Response.Data;
@@ -93,7 +91,7 @@ package body Tasks.Download is
             Kind       => Client.HTTP_Utils.GET,
             Result     => Data,
             URI        => API.Bungie_Root & (+Path),
-            Headers    => GUI.Headers);
+            Headers    => Secrets.Headers);
       else
          Client.HTTP_Utils.Send_Request
            (Connection,
@@ -151,24 +149,24 @@ package body Tasks.Download is
                Callback_L := Callback;
             end Execute;
             Execute_Loop :
-            for DQE of Download_Queue loop
-               select
-                  --  Interrupt the download
-                  accept Interrupt;
-                  exit Execute_Loop;
-               else
-                  if not DQE.Complete then
-                     declare
-                        SEA : constant Stream_Element_Array :=
-                          Download (DQE.Path, DQE.Needs_Auth);
-                     begin
-                        Callback_L (DQE.Path, DQE.Widget, SEA);
-                        DQE.Widget.Unref; -- let it be freed when needed
-                     end;
-                  end if;
-                  DQE.Complete := True;
-               end select;
-            end loop Execute_Loop;
+               for DQE of Download_Queue loop
+                  select
+                     --  Interrupt the download
+                     accept Interrupt;
+                     exit Execute_Loop;
+                  else
+                     if not DQE.Complete then
+                        declare
+                           SEA : constant Stream_Element_Array :=
+                             Download (DQE.Path, DQE.Needs_Auth);
+                        begin
+                           Callback_L (DQE.Path, DQE.Widget, SEA);
+                           DQE.Widget.Unref; -- let it be freed when needed
+                        end;
+                     end if;
+                     DQE.Complete := True;
+                  end select;
+               end loop Execute_Loop;
             Download_Queue.Clear;
          or
             terminate;

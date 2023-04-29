@@ -111,38 +111,38 @@ package body API.Inventories.Character is
       Inventory.All_Equipped_Items.Clear;
       --  Add character data
       Add_Characters :
-      for C of Profile.Characters loop
-         Inventory.All_Character_Items.Insert (C.Character_ID, C1, B);
-         Inventory.All_Equipped_Items.Insert (C.Character_ID, C2, B);
-         --  Inventory Items (not equipped)
+         for C of Profile.Characters loop
+            Inventory.All_Character_Items.Insert (C.Character_ID, C1, B);
+            Inventory.All_Equipped_Items.Insert (C.Character_ID, C2, B);
+            --  Inventory Items (not equipped)
 
-         for I of Profile.Character_Inventories (C.Character_ID) loop
-            declare
+            for I of Profile.Character_Inventories (C.Character_ID) loop
+               declare
 
-               D : constant Manifest.Tools.Item_Description :=
-                 Manifest.Tools.Get_Description (M, I);
+                  D : constant Manifest.Tools.Item_Description :=
+                    Manifest.Tools.Get_Description (M, Profile, I);
 
-            begin
-               Inventory.All_Character_Items (C.Character_ID)
-                 (D.Bucket_Location)
-                 .Append
-                 (D);
-            end;
-         end loop;
+               begin
+                  Inventory.All_Character_Items (C.Character_ID)
+                    (D.Bucket_Location)
+                    .Append
+                    (D);
+               end;
+            end loop;
 
-         for I of Profile.Character_Equipment (C.Character_ID) loop
-            declare
+            for I of Profile.Character_Equipment (C.Character_ID) loop
+               declare
 
-               D : constant Manifest.Tools.Item_Description :=
-                 Manifest.Tools.Get_Description (M, I);
+                  D : constant Manifest.Tools.Item_Description :=
+                    Manifest.Tools.Get_Description (M, Profile, I);
 
-            begin
-               Inventory.All_Equipped_Items (C.Character_ID)
-                 (D.Bucket_Location) :=
-                 D;
-            end;
-         end loop;
-      end loop Add_Characters;
+               begin
+                  Inventory.All_Equipped_Items (C.Character_ID)
+                    (D.Bucket_Location) :=
+                    D;
+               end;
+            end loop;
+         end loop Add_Characters;
    end Update_Inventory;
 
 end API.Inventories.Character;

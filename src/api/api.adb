@@ -7,7 +7,7 @@ use all type AWS.Messages.Status_Code;
 --  Local Packages
 with Shared.Strings; use Shared.Strings;
 with Shared.Debug;   use Shared;
-with Secrets;
+with Constant_Secrets;
 
 package body API is
 
@@ -19,7 +19,7 @@ package body API is
 
    begin
       List.Add ("Authorization", "Bearer " & (+Auth_Data.Access_Token));
-      List.Add ("X-API-Key", Secrets.API_Key);
+      List.Add ("X-API-Key", Constant_Secrets.API_Key);
       return List;
    end Create_Headers;
 

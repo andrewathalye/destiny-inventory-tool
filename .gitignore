@@ -2,6 +2,7 @@
 /bin/
 /inventory_tool
 /obj/
+/lib/
 
 # App Data
 /json/

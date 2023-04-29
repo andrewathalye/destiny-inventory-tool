@@ -40,7 +40,7 @@ package API.Manifest is
    type Destiny_Item_Type is
      (None,
       Currency,
-      Armor,
+      Armour,
       Weapon,
       Message,
       Engram,
@@ -69,7 +69,7 @@ package API.Manifest is
    for Destiny_Item_Type use
      (None                => 0,
       Currency            => 1,
-      Armor               => 2,
+      Armour              => 2,
       Weapon              => 3,
       Message             => 7,
       Engram              => 8,

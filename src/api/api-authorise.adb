@@ -22,7 +22,7 @@ with GNATCOLL.JSON; use GNATCOLL.JSON;
 --  Local Packages
 with Shared.Strings; use Shared.Strings;
 with Shared.Debug;   use Shared;
-with Secrets;
+with Constant_Secrets;
 
 package body API.Authorise is
 
@@ -129,8 +129,9 @@ package body API.Authorise is
           (URL  => OAuth_Token_Endpoint,
            Data =>
              "grant_type=refresh_token" & "&refresh_token=" &
-             To_String (Refresh_Token) & "&client_id=" & Secrets.Client_ID &
-             "&client_secret=" & Secrets.Client_Secret,
+             To_String (Refresh_Token) & "&client_id=" &
+             Constant_Secrets.Client_ID & "&client_secret=" &
+             Constant_Secrets.Client_Secret,
            Content_Type => "application/x-www-form-urlencoded");
 --              Debug.Put_Line (Response.Message_Body (Data));
 
@@ -151,8 +152,8 @@ package body API.Authorise is
           (URL  => OAuth_Token_Endpoint,
            Data =>
              "grant_type=authorization_code" & "&code=" & To_String (Code) &
-             "&client_id=" & Secrets.Client_ID & "&client_secret=" &
-             Secrets.Client_Secret,
+             "&client_id=" & Constant_Secrets.Client_ID & "&client_secret=" &
+             Constant_Secrets.Client_Secret,
            Content_Type => "application/x-www-form-urlencoded");
 --              Debug.Put_Line (Response.Message_Body (Data));
 
@@ -196,23 +197,23 @@ package body API.Authorise is
       --  Save refresh token
       Debug.Put_Line ("Save refresh token");
       Save_Refresh_Token :
-      declare
+         declare
 
-         SF : Stream_IO.File_Type;
-         S  : Stream_IO.Stream_Access;
+            SF : Stream_IO.File_Type;
+            S  : Stream_IO.Stream_Access;
 
-      begin
-         if Exists ("dat/refresh.dat") then
-            Stream_IO.Open
-              (SF, Mode => Stream_IO.Out_File, Name => "dat/refresh.dat");
+         begin
+            if Exists ("dat/refresh.dat") then
+               Stream_IO.Open
+                 (SF, Mode => Stream_IO.Out_File, Name => "dat/refresh.dat");
 
-         else
-            Stream_IO.Create (SF, Name => "dat/refresh.dat");
-         end if;
-         S := Stream_IO.Stream (SF);
-         Unbounded_String'Write (S, Auth_Storage.Refresh_Token);
-         Stream_IO.Close (SF);
-      end Save_Refresh_Token;
+            else
+               Stream_IO.Create (SF, Name => "dat/refresh.dat");
+            end if;
+            S := Stream_IO.Stream (SF);
+            Unbounded_String'Write (S, Auth_Storage.Refresh_Token);
+            Stream_IO.Close (SF);
+         end Save_Refresh_Token;
       return Auth_Storage;
    end Do_Authorise;
 

@@ -97,7 +97,7 @@ package body API.Memberships is
             end case;
          end loop Read_Destiny_Memberships;
 
-      --  Primary_Membership_ID
+         --  Primary_Membership_ID
       Wait_Until_Key (Reader, "primaryMembershipId");
       Read_Next (Reader);
       Result.Primary_Membership_ID := VS2UB (String_Value (Reader));

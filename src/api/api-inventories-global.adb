@@ -114,7 +114,7 @@ package body API.Inventories.Global is
             declare
 
                D : constant Manifest.Tools.Item_Description :=
-                 Manifest.Tools.Get_Description (M, I);
+                 Manifest.Tools.Get_Description (M, Profile, I);
 
             begin
                Inventory.Inventory (D.Default_Bucket_Location).Append (D);

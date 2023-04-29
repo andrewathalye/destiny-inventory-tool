@@ -1,16 +1,17 @@
 pragma Ada_2022;
+
 with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
 use Ada.Streams;
 with Ada.Directories; use Ada.Directories;
-
---  AWS
-with AWS.URL; use AWS;
+with Ada.Strings.Hash;
 
 package body Shared.Files is
    --  Cache Utilities
+   function Get_Cache_Path (Name : String) return String is
+     ("cache/" & Ada.Strings.Hash (Name)'Image);
 
    function Has_Cached (Name : String) return Boolean is
-     (Exists ("cache/" & URL.Encode (Name)));
+     (Exists (Get_Cache_Path (Name)));
 
    function Get_Data (Name : String) return Stream_Element_Array is
 
@@ -25,8 +26,7 @@ package body Shared.Files is
       Close (SF);
       return SEA;
    end Get_Data;
-   function Get_Cache_Path (Name : String) return String is
-     ("cache/" & URL.Encode (Name));
+
    function Get_Cached (Name : String) return Stream_Element_Array is
      (Get_Data (Get_Cache_Path (Name)));
 
@@ -37,14 +37,16 @@ package body Shared.Files is
 
    begin
       if Has_Cached (Name) then
-         raise Program_Error;
+         raise Program_Error
+           with "File " & Name & " already cached or hash collision.";
       end if;
 
       if not Exists ("cache/") then
          Create_Directory ("cache");
       end if;
+
       --  Write to disk cache
-      Create (SF, Out_File, "cache/" & URL.Encode (Name));
+      Create (SF, Out_File, Get_Cache_Path (Name));
       S := Stream (SF);
       Stream_Element_Array'Write (S, Content);
       Close (SF);

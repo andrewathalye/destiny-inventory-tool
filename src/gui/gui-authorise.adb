@@ -9,6 +9,7 @@ with Gtk.Main;
 --  Local Packages
 with API.Authorise; use API;
 with Secrets;
+with Constant_Secrets;
 
 procedure GUI.Authorise is
    --  Global Variables
@@ -55,24 +56,25 @@ procedure GUI.Authorise is
             Auth_URL    := Gtk_Entry (GUI.Builder.Get_Object ("auth_url"));
             Auth_URL.Set_Text
               (API.Authorise.OAuth_Authorise_Endpoint & "?client_id=" &
-               Secrets.Client_ID & "&response_type=code" & "&state=" & State);
+               Constant_Secrets.Client_ID & "&response_type=code" & "&state=" &
+               State);
             Auth_Window.Show;
             Gtk_Main_Loop :
-            loop
-               select
-                  accept Stop;
-                  exit Gtk_Main_Loop;
-
-               else
+               loop
                   select
-                     accept Close;
-                     Auth_Window.Hide;
+                     accept Stop;
+                     exit Gtk_Main_Loop;
 
                   else
-                     Discard := Gtk.Main.Main_Iteration;
+                     select
+                        accept Close;
+                        Auth_Window.Hide;
+
+                     else
+                        Discard := Gtk.Main.Main_Iteration;
+                     end select;
                   end select;
-               end select;
-            end loop Gtk_Main_Loop;
+               end loop Gtk_Main_Loop;
 
          or
             terminate;
@@ -82,7 +84,7 @@ procedure GUI.Authorise is
 
 begin
    Auth_Loop.Start;
-   GUI.Auth_Data := API.Authorise.Do_Authorise (State);
+   Secrets.Auth_Data := API.Authorise.Do_Authorise (State);
    Auth_Loop.Close;
    Auth_Loop.Stop;
 end GUI.Authorise;

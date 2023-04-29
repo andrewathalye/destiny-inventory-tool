@@ -18,12 +18,19 @@ with GUI.Handlers;
 with GUI.Character;
 with GUI.Global;
 with GUI.Authorise;
+
 with API.Inventories.Global;
+with API.Memberships;
 with API.Inventories.Character;
+with API.Manifest; use all type API.Manifest.Destiny_Item_Type;
+use API;
+
 with Shared.Files;
 with Shared.Debug;
 with Shared.Strings; use Shared.Strings;
 use Shared;
+
+with Secrets; use Secrets;
 
 package body GUI.Base is
    --  Instantiations
@@ -170,22 +177,25 @@ package body GUI.Base is
          Set
            (State_Overlay,
             (if
-               D.State.Masterwork and D.State.Crafted
+               (D.State.Masterwork or D.Item_Level >= 30) and D.State.Crafted
              then
                Crafted_Masterwork_Overlay
-             elsif D.State.Masterwork then Masterwork_Overlay
+             elsif D.State.Masterwork or D.Item_Level >= 30 then Masterwork_Overlay
              elsif D.State.Crafted then Crafted_Overlay
              else Normal_Overlay));
          State_Overlay.Show;
          Overlay.Add_Overlay (State_Overlay);
          Overlay.Set_Overlay_Pass_Through (State_Overlay, True);
       end if;
-      --  Setup Quantity Label if Needed
 
-      if D.Quantity > 1 then
+      --  Setup Quantity / Light Level Label if Needed
+      if D.Quantity > 1 or (D.Light_Level /= 0 and (D.Item_Type = Weapon or D.Item_Type = Armour)) then
          declare
 
-            Label     : Gtk_Label;
+            Label       : Gtk_Label;
+            Label_Value : constant String :=
+              (if D.Quantity > 1 then D.Quantity'Image
+               else D.Light_Level'Image);
             Alignment : Gtk_Alignment;
             Attrs     : Pango_Attr_List;
 
@@ -201,9 +211,7 @@ package body GUI.Base is
             Attrs.Change (Attr_Background_New (65_535, 65_535, 65_535));
             Attrs.Change (Attr_Foreground_New (0, 0, 0));
             Label.Set_Attributes (Attrs);
-            Label.Set_Label
-              (D.Quantity'Image
-                 (D.Quantity'Image'First + 1 .. D.Quantity'Image'Last));
+            Label.Set_Label (Label_Value (Label_Value'First + 1 .. Label_Value'Last));
             Label.Show;
             Alignment.Add (Label);
             Alignment.Show;
@@ -258,7 +266,6 @@ package body GUI.Base is
          <<Skip_Item>>
       end loop;
       Show (Bucket);
-      --  TODO: Render light level for weapons / armour instead of quantity?
    end Render_Items;
 
    procedure Do_Events is
@@ -290,7 +297,7 @@ package body GUI.Base is
       Debug.Put_Line ("Reloading profile data");
       Status_Name.Set_Label ("Loading profile...");
       Do_Events;
-      Profile := Profiles.Get_Profile (Membership);
+      Profile := Profiles.Get_Profile (Secrets.Membership);
       Status_Name.Set_Label ("Loading vault...");
       Do_Events;
       API.Inventories.Global.Update_Inventory
@@ -319,11 +326,11 @@ package body GUI.Base is
       Debug.Put_Line ("Reloading all data");
       Window.Hide;
       GUI.Authorise;
-      Headers := Create_Headers (Auth_Data);
+      Headers := API.Create_Headers (Auth_Data);
       Status_Window.Show;
       Status_Name.Set_Label ("Loading memberships...");
       Do_Events;
-      Membership := Memberships.Get_Memberships;
+      Secrets.Membership := Memberships.Get_Memberships;
       Status_Name.Set_Label ("Loading manifest... (this can take a bit)");
       Do_Events;
       The_Manifest := Manifest.Get_Manifest;

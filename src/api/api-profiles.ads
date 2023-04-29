@@ -10,6 +10,9 @@ with API.Memberships; use API.Memberships;
 with API.Manifest;    use API.Manifest;
 
 package API.Profiles is
+   --  Note: All types in this package correspond roughly to
+   --  datatypes returned from a call to GetProfile
+
    --  Characters
    package Stats_Maps is new Ada.Containers.Ordered_Maps
      (Manifest_Hash, Integer_32);
@@ -57,10 +60,13 @@ package API.Profiles is
       Item_Hash : Manifest_Hash;
       --  DestinyInventoryItemDefinition
       Item_Instance_ID : Unbounded_String; -- Nullable
-      Quantity         : Integer_32;
-      Bind_Status      : Bind_Status_Type;
-      Location         : Item_Location_Type;
-      Bucket_Hash      : Manifest_Hash;
+      --  Note: For compatibility reasons, the API returns
+      --  item instance IDs as strings rather than Integer_64 values.
+      --  Conversion is necessary for lookup in mapped tables
+      Quantity    : Integer_32;
+      Bind_Status : Bind_Status_Type;
+      Location    : Item_Location_Type;
+      Bucket_Hash : Manifest_Hash;
       --  DestinyInventoryBucketDefinition
       Transfer_Status          : Transfer_Status_Type;
       Lockable                 : Boolean;
@@ -71,22 +77,25 @@ package API.Profiles is
       Version_Number  : Integer_32 := -1; -- Nullable
       --  Items Omitted
    end record;
+
    package Item_Vectors is new Ada.Containers.Vectors (Natural, Item_Type);
    use Item_Vectors;
    subtype Item_List is Item_Vectors.Vector;
+
    package Inventory_Maps is new Ada.Containers.Hashed_Maps
      (Key_Type        => Unbounded_String,
       Element_Type    => Item_List,
       Hash            => Shared.Strings.Hash,
       Equivalent_Keys => Shared.Strings.Equivalent_Keys);
    subtype Inventory_Map is Inventory_Maps.Map;
+
    --  Loadouts
    package Manifest_Hash_Vectors is new Ada.Containers.Vectors
      (Natural, Manifest_Hash);
    subtype Manifest_Hash_List is Manifest_Hash_Vectors.Vector;
 
    type Loadout_Item_Type is record
-      Item_Instance_ID      : Unbounded_String;
+      Item_Instance_ID : Unbounded_String;
       Plug_Item_Hashes : Manifest_Hash_List;
       --  DestinyInventoryItemDefinition
    end record;
@@ -122,6 +131,64 @@ package API.Profiles is
           Bungie_Platform_Type'Succ (Bungie_Platform_Type'First) ..
             Bungie_Platform_Type'Last) of Item_Type;
 
+   --  Instanced Data
+   subtype Item_Instance_ID_Type is Integer_64;
+
+   type Perk_Type is record
+      Perk_Hash : Manifest_Hash;
+      --  DestinySandboxPerkDefinition
+      Icon_Path : Unbounded_String;
+      Is_Active : Boolean;
+      Visible   : Boolean;
+   end record;
+
+   package Perk_Lists is new Ada.Containers.Vectors (Natural, Perk_Type);
+   use type Perk_Lists.Vector;
+   subtype Perk_List is Perk_Lists.Vector;
+
+   package Perks_Maps is new Ada.Containers.Ordered_Maps
+     (Item_Instance_ID_Type, Perk_List);
+   subtype Perks_Map is Perks_Maps.Map;
+
+   type Socket_Type is record
+      Plug_Hash : Manifest_Hash := 0;
+      --  DestinyInventoryItemDefinition
+      Is_Enabled : Boolean;
+      Is_Visible : Boolean;
+   end record;
+
+   package Socket_Lists is new Ada.Containers.Vectors (Natural, Socket_Type);
+   use type Socket_Lists.Vector;
+   subtype Socket_List is Socket_Lists.Vector;
+
+   package Sockets_Maps is new Ada.Containers.Ordered_Maps
+     (Item_Instance_ID_Type, Socket_List);
+   subtype Sockets_Map is Sockets_Maps.Map;
+
+   type Instance_Type is record
+      Primary_Stat_Hash  : Manifest_Hash;
+      Primary_Stat_Value : Integer_32;
+      Item_Level         : Integer_32;
+      Energy_Capacity    : Integer_32;
+      Energy_Used        : Integer_32;
+   end record;
+
+   package Instance_Maps is new Ada.Containers.Ordered_Maps
+     (Item_Instance_ID_Type, Instance_Type);
+   subtype Instance_Map is Instance_Maps.Map;
+
+   use type Stats_Map;
+   package Stats_Maps_By_IID is new Ada.Containers.Ordered_Maps
+     (Item_Instance_ID_Type, Stats_Map);
+   subtype Stats_Map_By_IID is Stats_Maps_By_IID.Map;
+
+   type Item_Components_Type is record
+      Instances : Instance_Map;
+      Stats     : Stats_Map_By_IID;
+      Sockets   : Sockets_Map;
+      Perks     : Perks_Map;
+   end record;
+
    --  Profile
    type Profile_Type is record
       Profile_Inventory  : Item_List;
@@ -134,7 +201,9 @@ package API.Profiles is
       Character_Equipment   : Inventory_Map;
       --  Character Plug Sets?
       --  Character Currency Lookups? Items Omitted
+      Item_Components : Item_Components_Type;
    end record;
+
    --  Subprograms
    function Get_Profile (M : Membership_Type) return Profile_Type;
 end API.Profiles;
