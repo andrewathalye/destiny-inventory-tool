@@ -90,12 +90,19 @@ package body API.Manifest.Tools is
             then
               P.Item_Components.Instances (Instance_ID).Primary_Stat_Value
             else 0),
-         Item_Level =>
+         Energy_Capacity =>
            (if
               Instance_ID /= 0 and
               P.Item_Components.Instances.Contains (Instance_ID)
             then
-              P.Item_Components.Instances (Instance_ID).Item_Level
+              P.Item_Components.Instances (Instance_ID).Energy_Capacity
+            else 0),
+         Energy_Used =>
+           (if
+              Instance_ID /= 0 and
+              P.Item_Components.Instances.Contains (Instance_ID)
+            then
+              P.Item_Components.Instances (Instance_ID).Energy_Used
             else 0),
          Stats =>
            (if

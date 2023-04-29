@@ -22,7 +22,8 @@ with GUI.Authorise;
 with API.Inventories.Global;
 with API.Memberships;
 with API.Inventories.Character;
-with API.Manifest; use all type API.Manifest.Destiny_Item_Type;
+with API.Manifest;
+use all type API.Manifest.Destiny_Item_Type;
 use API;
 
 with Shared.Files;
@@ -96,6 +97,7 @@ package body GUI.Base is
              False,
            when others => True) with
         Inline;
+
       function Should_State_Overlay
         (D : Manifest.Tools.Item_Description) return Boolean is
         (case D.Item_Type is
@@ -103,6 +105,12 @@ package body GUI.Base is
            when Manifest.Engram   => False,
            when others            => True) with
         Inline;
+
+      function Should_Display_Label
+        (D : Manifest.Tools.Item_Description) return Boolean is
+        (D.Quantity > 1 or D.Item_Type = Weapon or D.Item_Type = Armour) with
+        Inline;
+
       --  Variables
       Image         : Gtk_Image;
       Button        : Gtk_Button;
@@ -177,10 +185,10 @@ package body GUI.Base is
          Set
            (State_Overlay,
             (if
-               (D.State.Masterwork or D.Item_Level >= 30) and D.State.Crafted
+               D.State.Masterwork and D.State.Crafted
              then
                Crafted_Masterwork_Overlay
-             elsif D.State.Masterwork or D.Item_Level >= 30 then Masterwork_Overlay
+             elsif D.State.Masterwork then Masterwork_Overlay
              elsif D.State.Crafted then Crafted_Overlay
              else Normal_Overlay));
          State_Overlay.Show;
@@ -189,7 +197,7 @@ package body GUI.Base is
       end if;
 
       --  Setup Quantity / Light Level Label if Needed
-      if D.Quantity > 1 or (D.Light_Level /= 0 and (D.Item_Type = Weapon or D.Item_Type = Armour)) then
+      if Should_Display_Label (D) then
          declare
 
             Label       : Gtk_Label;
@@ -211,7 +219,8 @@ package body GUI.Base is
             Attrs.Change (Attr_Background_New (65_535, 65_535, 65_535));
             Attrs.Change (Attr_Foreground_New (0, 0, 0));
             Label.Set_Attributes (Attrs);
-            Label.Set_Label (Label_Value (Label_Value'First + 1 .. Label_Value'Last));
+            Label.Set_Label
+              (Label_Value (Label_Value'First + 1 .. Label_Value'Last));
             Label.Show;
             Alignment.Add (Label);
             Alignment.Show;

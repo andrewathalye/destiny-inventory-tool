@@ -16,6 +16,8 @@ with Shared.Strings; use Shared.Strings;
 with Shared.Debug;   use Shared;
 with Tasks.Download;
 
+with API.Profiles.Read_Item_Components;
+
 package body API.Profiles is
    --  Note: Position Reader before "data"
    procedure Read_Characters
@@ -68,11 +70,6 @@ package body API.Profiles is
      (Reader  : in out JSON_Simple_Pull_Reader;
       Loadout :    out Loadout_Type) is separate;
 
-   --  Note: Position Reader at "itemComponents"
-   procedure Read_Item_Components
-     (Reader     : in out JSON_Simple_Pull_Reader;
-      Components :    out Item_Components_Type) is separate;
-
    function Get_Profile (M : Membership_Type) return Profile_Type is
 
       Result : Profile_Type;
@@ -91,7 +88,7 @@ package body API.Profiles is
                (API_Root & "/Destiny2/" &
                 Memberships.Find_Default_Platform_ID (M) & "/Profile/" &
                 (+M.Primary_Membership_ID) & "/" &
-                "?components=ProfileInventories,ProfileCurrencies,PlatformSilver,Characters,CharacterInventories,CharacterProgressions,CharacterEquipment,CharacterLoadouts,ItemInstances,ItemPerks,ItemStats,ItemSockets"),
+                "?components=ProfileInventories,ProfileCurrencies,PlatformSilver,Characters,CharacterInventories,CharacterProgressions,CharacterEquipment,CharacterLoadouts,ItemInstances,ItemStats,ItemSockets,ItemPlugObjectives,ItemPerks"),
                Needs_Auth => True,
                Caching    => Debug_Caching)));
       Set_Stream (Reader, Input_Text_Stream_Access (Stream));

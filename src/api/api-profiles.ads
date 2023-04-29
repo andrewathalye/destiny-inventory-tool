@@ -78,7 +78,8 @@ package API.Profiles is
       --  Items Omitted
    end record;
 
-   package Item_Vectors is new Ada.Containers.Vectors (Natural, Item_Type);
+   package Item_Vectors is new Ada.Containers.Vectors
+     (Index_Type => Natural, Element_Type => Item_Type);
    use Item_Vectors;
    subtype Item_List is Item_Vectors.Vector;
 
@@ -91,7 +92,7 @@ package API.Profiles is
 
    --  Loadouts
    package Manifest_Hash_Vectors is new Ada.Containers.Vectors
-     (Natural, Manifest_Hash);
+     (Index_Type => Natural, Element_Type => Manifest_Hash);
    subtype Manifest_Hash_List is Manifest_Hash_Vectors.Vector;
 
    type Loadout_Item_Type is record
@@ -100,7 +101,7 @@ package API.Profiles is
       --  DestinyInventoryItemDefinition
    end record;
    package Loadout_Item_Vectors is new Ada.Containers.Vectors
-     (Natural, Loadout_Item_Type);
+     (Index_Type => Natural, Element_Type => Loadout_Item_Type);
    subtype Loadout_Item_List is Loadout_Item_Vectors.Vector;
 
    type Loadout_Type is record
@@ -113,7 +114,7 @@ package API.Profiles is
       Items : Loadout_Item_List;
    end record;
    package Loadout_Vectors is new Ada.Containers.Vectors
-     (Natural, Loadout_Type);
+     (Index_Type => Natural, Element_Type => Loadout_Type);
    subtype Loadout_List is Loadout_Vectors.Vector;
    use all type Loadout_Vectors.Vector;
 
@@ -142,12 +143,13 @@ package API.Profiles is
       Visible   : Boolean;
    end record;
 
-   package Perk_Lists is new Ada.Containers.Vectors (Natural, Perk_Type);
+   package Perk_Lists is new Ada.Containers.Vectors
+     (Index_Type => Natural, Element_Type => Perk_Type);
    use type Perk_Lists.Vector;
    subtype Perk_List is Perk_Lists.Vector;
 
    package Perks_Maps is new Ada.Containers.Ordered_Maps
-     (Item_Instance_ID_Type, Perk_List);
+     (Key_Type => Item_Instance_ID_Type, Element_Type => Perk_List);
    subtype Perks_Map is Perks_Maps.Map;
 
    type Socket_Type is record
@@ -157,36 +159,62 @@ package API.Profiles is
       Is_Visible : Boolean;
    end record;
 
-   package Socket_Lists is new Ada.Containers.Vectors (Natural, Socket_Type);
+   package Socket_Lists is new Ada.Containers.Vectors
+     (Index_Type => Natural, Element_Type => Socket_Type);
    use type Socket_Lists.Vector;
    subtype Socket_List is Socket_Lists.Vector;
 
    package Sockets_Maps is new Ada.Containers.Ordered_Maps
-     (Item_Instance_ID_Type, Socket_List);
+     (Key_Type => Item_Instance_ID_Type, Element_Type => Socket_List);
    subtype Sockets_Map is Sockets_Maps.Map;
 
    type Instance_Type is record
       Primary_Stat_Hash  : Manifest_Hash;
       Primary_Stat_Value : Integer_32;
-      Item_Level         : Integer_32;
       Energy_Capacity    : Integer_32;
       Energy_Used        : Integer_32;
    end record;
 
    package Instance_Maps is new Ada.Containers.Ordered_Maps
-     (Item_Instance_ID_Type, Instance_Type);
+     (Key_Type => Item_Instance_ID_Type, Element_Type => Instance_Type);
    subtype Instance_Map is Instance_Maps.Map;
 
    use type Stats_Map;
    package Stats_Maps_By_IID is new Ada.Containers.Ordered_Maps
-     (Item_Instance_ID_Type, Stats_Map);
+     (Key_Type => Item_Instance_ID_Type, Element_Type => Stats_Map);
    subtype Stats_Map_By_IID is Stats_Maps_By_IID.Map;
 
+   type Plug_Objective_Type is record
+      Objective_Hash : Manifest_Hash;
+      --  DestinyObjectiveDefinition
+      Destination_Hash : Manifest_Hash := 0;
+      Activity_Hash    : Manifest_Hash := 0;
+      Progress         : Integer_32    := 0;
+      Completion_Value : Integer_32;
+      Complete         : Boolean;
+      Visible          : Boolean;
+   end record;
+
+   package Plug_Objective_Lists is new Ada.Containers.Vectors
+     (Index_Type => Natural, Element_Type => Plug_Objective_Type);
+   use type Plug_Objective_Lists.Vector;
+   subtype Plug_Objective_List is Plug_Objective_Lists.Vector;
+
+   package Plug_Objective_Maps is new Ada.Containers.Ordered_Maps
+     (Key_Type => Manifest_Hash, Element_Type => Plug_Objective_List);
+   use type Plug_Objective_Maps.Map;
+   subtype Plug_Objective_Map is Plug_Objective_Maps.Map;
+
+   package Plug_Objectives_Maps is new Ada.Containers.Ordered_Maps
+     (Key_Type => Item_Instance_ID_Type, Element_Type => Plug_Objective_Map);
+   subtype Plug_Objectives_Map is Plug_Objectives_Maps.Map;
+
    type Item_Components_Type is record
-      Instances : Instance_Map;
-      Stats     : Stats_Map_By_IID;
-      Sockets   : Sockets_Map;
-      Perks     : Perks_Map;
+      Instances       : Instance_Map;
+      Stats           : Stats_Map_By_IID;
+      Sockets         : Sockets_Map;
+      Plug_Objectives : Plug_Objectives_Map;
+      Perks           : Perks_Map;
    end record;
 
    --  Profile

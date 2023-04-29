@@ -114,11 +114,12 @@ package API.Manifest.Tools is
       Item_Type_And_Tier_Display_Name  : Unbounded_String;
 
       --  Instance-Specific Info (will not be filled for non-instanced items)
-      Light_Level : Integer_32 := 0;
-      Item_Level  : Integer_32 := 0;
-      Stats       : Stats_Map;
-      Sockets     : Socket_List;
-      Perks       : Perk_List;
+      Light_Level     : Integer_32 := 0;
+      Energy_Capacity : Integer_32 := 0;
+      Energy_Used     : Integer_32 := 0;
+      Stats           : Stats_Map;
+      Sockets         : Socket_List;
+      Perks           : Perk_List;
    end record;
 
    function Get_Description

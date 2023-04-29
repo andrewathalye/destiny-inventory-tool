@@ -17,7 +17,7 @@ with Shared.Files;   use Shared;
 
 package body Tasks.Download is
    --  Debugging
-   Simulate_Slow : constant Boolean := False;
+   Simulate_Slow : constant Boolean := True;
 
    --  Synchronous download functions
    function Download
@@ -32,7 +32,7 @@ package body Tasks.Download is
 
    begin
       if Simulate_Slow then
-         delay 0.1;
+         delay 0.05;
       end if;
 
       --  Note: We avoid using Client.Get because it results in a stack

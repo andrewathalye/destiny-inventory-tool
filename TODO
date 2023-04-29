@@ -1,0 +1,29 @@
+Parse objectives from profile response and add to instanced item data
+
+plugObjectives => data => instanceId => objectivesPerPlug => plugHash => LIST_OF_OBJECTIVE where
+	Objective =>
+		objectiveHash
+		NULLABLE destinationHash
+		NULLABLE activityHash
+		NULLABLE progress
+		completionValue
+		complete
+		visible
+
+In Manifest:
+Read DestinyObjectiveDefinitions for "progressDescription" and "uiLabel"
+
+OR
+
+hardcode **
+
+Crafting_Weapon_Level_Progress: 2899837482
+Crafting_Weapon_Level: 3077315735
+Crafting_Weapon_Timestamp: 3947811849
+
+In Manifest.Tools:
+Attach Weapon_Level, Weapon_Level_Progress, and Weapon_Timestamp to Item_Description:
+
+uiLabel = crafting_weapon_level_progress
+uiLabel = crafting_weapon_level
+uiLabel = crafting_weapon_timestamp

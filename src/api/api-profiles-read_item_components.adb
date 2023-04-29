@@ -1,12 +1,24 @@
 pragma Ada_2022;
 
-separate (API.Profiles)
-procedure Read_Item_Components
+--  VSS
+with VSS.JSON.Pull_Readers.Simple; use VSS.JSON.Pull_Readers;
+use VSS.JSON;
+
+--  Local Packages
+with Shared.Strings; use Shared.Strings;
+with Shared.JSON;    use Shared.JSON;
+with Shared.Debug;   use Shared;
+
+procedure API.Profiles.Read_Item_Components
   (Reader     : in out JSON_Simple_Pull_Reader;
    Components :    out Item_Components_Type)
 is
    Item_Instance_ID : Item_Instance_ID_Type;
 begin
+   -------------------------
+   --  ADD_INSTANCE_DATA  --
+   -------------------------
+
    Wait_Until_Key (Reader, "instances");
    Read_Next (Reader); -- START_OBJECT
    Read_Next (Reader); -- "data"
@@ -18,6 +30,7 @@ begin
             Primary_Stat_Hash  : Manifest_Hash;
             Primary_Stat_Value : Integer_32;
             Item_Level         : Integer_32;
+            pragma Unreferenced (Item_Level);
 
             --  Nullable
             Energy_Capacity : Integer_32 := -1;
@@ -94,7 +107,6 @@ begin
               (Item_Instance_ID,
               (Primary_Stat_Hash,
                 Primary_Stat_Value,
-                Item_Level,
                 Energy_Capacity,
                 Energy_Used));
 
@@ -104,6 +116,10 @@ begin
       end loop Add_Instances;
 
    Debug.Put_Line ("Instance data read");
+
+   -----------------
+   --  ADD_STATS  --
+   -----------------
 
    Wait_Until_Key (Reader, "stats");
    Read_Next (Reader); -- START_OBJECT
@@ -149,6 +165,10 @@ begin
       end loop Add_Stats;
 
    Debug.Put_Line ("Stats read");
+
+   -------------------
+   --  ADD_SOCKETS  --
+   -------------------
 
    Wait_Until_Key (Reader, "sockets");
    Read_Next (Reader); -- START_OBJECT
@@ -206,6 +226,123 @@ begin
 
    Debug.Put_Line ("Sockets read");
 
+   ---------------------------
+   --  ADD_PLUG_OBJECTIVES  --
+   ---------------------------
+   Wait_Until_Key (Reader, "plugObjectives");
+   Read_Next (Reader); -- START_OBJECT
+   Read_Next (Reader); -- "data"
+   Read_Next (Reader); -- START_OBJECT
+   Read_Next (Reader); -- instanceID as key_name or END_OBJECT
+
+   --  Note: Layout is _very_ complex
+   --  plugObjectives {
+   --     "<instance_id>": {
+   --        "objectivesPerPlug": {
+   --           "<plugHash>": [
+   --              {
+   --                 <data_fields>
+   --              }
+   --           ]
+   --        }
+   --     }
+   --  }
+   Add_Objective_Maps :
+      while Event_Kind (Reader) /= End_Object loop
+         declare
+            --  Temp Variables used for insertion
+            Map       : Plug_Objective_Map;
+            Plug_Hash : Manifest_Hash;
+         begin
+            Item_Instance_ID :=
+              Item_Instance_ID_Type'Value (VS2S (Key_Name (Reader)));
+            Read_Next (Reader); -- START_OBJECT
+            Read_Next (Reader); -- "objectivesPerPlug"
+            Read_Next (Reader); -- START_OBJECT
+            Read_Next (Reader); -- plugHash as key_name or END_OBJECT
+
+            Add_Plugs :
+               while Event_Kind (Reader) /= End_Object loop
+                  declare
+                     List : Plug_Objective_List;
+                  begin
+                     Plug_Hash :=
+                       Manifest_Hash'Value (VS2S (Key_Name (Reader)));
+                     Read_Next (Reader); -- Start_Array
+
+                     Add_Objectives :
+                        while Event_Kind (Reader) /= End_Array loop
+                           declare
+                              Objective : Plug_Objective_Type;
+                           begin
+                              Read_Next (Reader); -- "objectiveHash"
+                              Read_Next (Reader);
+                              Objective.Objective_Hash :=
+                                Manifest_Hash
+                                  (As_Integer (Number_Value (Reader)));
+
+                              Read_Next
+                                (Reader); -- "destinationHash" or "activityHash" or "progress" or "completionValue"
+
+                              --  Neither of these two fields are used at the moment
+                              if VS2S (Key_Name (Reader)) = "destinationHash"
+                              then
+                                 Read_Next (Reader);
+                                 Read_Next
+                                   (Reader); -- "activityHash" or "progress" or "completionValue"
+                              end if;
+
+                              if VS2S (Key_Name (Reader)) = "activityHash" then
+                                 Read_Next (Reader);
+                                 Read_Next
+                                   (Reader); -- "progress" or "completionValue"
+                              end if;
+
+                              if VS2S (Key_Name (Reader)) = "progress" then
+                                 Read_Next (Reader);
+                                 Objective.Progress :=
+                                   Integer_32
+                                     (As_Integer (Number_Value (Reader)));
+                                 Read_Next (Reader); -- "completionValue"
+                              end if;
+
+                              Read_Next (Reader);
+                              Objective.Completion_Value :=
+                                Integer_32
+                                  (As_Integer (Number_Value (Reader)));
+
+                              Read_Next (Reader); -- "complete"
+                              Read_Next (Reader);
+                              Objective.Complete := Boolean_Value (Reader);
+
+                              Read_Next (Reader); -- "visible"
+                              Read_Next (Reader);
+                              Objective.Visible := Boolean_Value (Reader);
+
+                              List.Append (Objective);
+                           end;
+
+                           Read_Next (Reader); -- END_OBJECT
+                           Read_Next (Reader); -- Start_Object or End_Array
+                        end loop Add_Objectives;
+
+                     Map.Insert (Plug_Hash, List);
+
+                     Read_Next (Reader); -- plugHash as key_name or END_OBJECT
+                  end;
+               end loop Add_Plugs;
+
+            Components.Plug_Objectives.Insert (Item_Instance_ID, Map);
+            Read_Next (Reader); -- END_OBJECT
+            Read_Next (Reader); -- plugHash as key_name or END_OBJECT
+         end;
+      end loop Add_Objective_Maps;
+   Debug.Put_Line ("Plug Objectives read");
+
+   -----------------
+   --  ADD_PERKS  --
+   -----------------
+
    Wait_Until_Key (Reader, "perks");
    Read_Next (Reader); -- START_OBJECT
    Read_Next (Reader); -- "data"
@@ -257,4 +394,4 @@ begin
       end loop Add_Perks;
 
    Debug.Put_Line ("Perks read");
-end Read_Item_Components;
+end API.Profiles.Read_Item_Components;

@@ -168,6 +168,7 @@ package API.Manifest is
       Destiny_Titles : Destiny_Title_Map;
       --  DestinyRecordDefinition (partial)
    end record;
+
    --  Subprograms
    function Get_Manifest return Manifest_Type;
 end API.Manifest;

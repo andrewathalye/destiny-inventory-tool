@@ -324,6 +324,7 @@ package body GUI.Handlers is
 
    begin
       Current_Item := User_Data;
+      Debug.Put_Line (Current_Item'Image);
       --  Don't show the normal transfer menu for nontransferrables
 
       if User_Data.Transfer_Status /= Can_Transfer then

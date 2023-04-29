@@ -17,7 +17,6 @@ with Destiny_Inventory_Tool_Config;
 procedure Inventory_Tool is
    --  Constants
    Discard_G : Guint;
-   Discard_B : Boolean;
    Error     : aliased GError;
 begin
    --  Print Welcome Message
