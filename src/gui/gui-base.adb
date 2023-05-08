@@ -112,6 +112,7 @@ package body GUI.Base is
       end loop;
       delay 0.1;
    end Do_Events;
+
    --  Public Subprograms
    --  There is likely another Gtk Main_Loop running on the main thread when
    --  this is called, so we pretend that is the case and only use synchronous
@@ -147,6 +148,15 @@ package body GUI.Base is
       Status_Window.Hide;
       Window.Show;
    end Reload_Profile_Data;
+
+   procedure Locked_Reload_Profile_Data is
+   begin
+      GUI.Lock_Object.Unlock;
+      begin
+         Reload_Profile_Data;
+      end;
+      GUI.Lock_Object.Lock;
+   end Locked_Reload_Profile_Data;
 
    procedure Reload_Data is
 

@@ -38,6 +38,10 @@ package body API.Transfers is
         Error_Codes.Error_Code_Type'Enum_Val
           (Integer'(JSON_Data.Get ("ErrorCode")));
 
+      if Error_Code = Success then
+         return;
+      end if;
+
       Put_Line
         (Standard_Error,
          "[Error] API.Transfers got " & Error_Code'Image &
@@ -183,7 +187,7 @@ package body API.Transfers is
       Data :=
         Client.Post
           (URL =>
-             Bungie_Root & API_Root & "/Destiny2/Actions/Items/TransferItem/",
+             API_Root & "/Destiny2/Actions/Items/TransferItem/",
            Data =>
              "{" & '"' & "itemReferenceHash" & '"' & ':' & D.Item_Hash'Image &
              ',' & '"' & "stackSize" & '"' & ':' & D.Quantity'Image & ',' &
@@ -218,11 +222,13 @@ package body API.Transfers is
          when others =>
             null;
       end case;
+
       Check_Character_Has_Room (Character_Inventory, Target, M, D);
+
       Data :=
         Client.Post
           (URL =>
-             Bungie_Root & API_Root & "/Destiny2/Actions/Items/TransferItem/",
+             API_Root & "/Destiny2/Actions/Items/TransferItem/",
            Data =>
              "{" & '"' & "itemReferenceHash" & '"' & ':' & D.Item_Hash'Image &
              ',' & '"' & "stackSize" & '"' & ':' & D.Quantity'Image & ',' &
@@ -277,7 +283,7 @@ package body API.Transfers is
       Data :=
         Client.Post
           (URL =>
-             Bungie_Root & API_Root &
+             API_Root &
              "/Destiny2/Actions/Items/PullFromPostmaster/",
            Data =>
              "{" & '"' & "itemReferenceHash" & '"' & ':' & D.Item_Hash'Image &
@@ -301,10 +307,11 @@ package body API.Transfers is
       --  Local Check
       --  An exception will be raised if any of these fail
       Check_Actions_Permitted (D);
+
       Data :=
         Client.Post
           (URL =>
-             Bungie_Root & API_Root & "/Destiny2/Actions/Items/EquipItem/",
+             API_Root & "/Destiny2/Actions/Items/EquipItem/",
            Data =>
              "{" & '"' & "itemId" & '"' & ':' & D.Item_Instance_ID'Image &
              ',' & '"' & "characterId" & '"' & ':' & ' ' &

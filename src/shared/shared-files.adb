@@ -5,8 +5,6 @@ use Ada.Streams;
 with Ada.Directories; use Ada.Directories;
 with Ada.Strings.Hash;
 
-with Shared.Debug; use Shared;
-
 package body Shared.Files is
    --  Cache Utilities
    function Get_Cache_Path (Name : String) return String is
@@ -33,7 +31,6 @@ package body Shared.Files is
       Discard_Name : String (Original_Name'Range);
 
    begin
-      Debug.Put_Line (Name & ":" & Original_Name);
       Open (SF, In_File, Name, "shared=yes");
       S := Stream (SF);
 

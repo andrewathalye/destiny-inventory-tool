@@ -12,8 +12,8 @@ package API is
    subtype Auth_Header_Type is AWS.Headers.List;
 
    --  Callbacks
-   procedure Null_Data_Wipe_Callback is null;
-   Wipe_Data : access procedure := Null_Data_Wipe_Callback'Access;
+   procedure Null_Wipe_Data_Callback;
+   Wipe_Data : access procedure := Null_Wipe_Data_Callback'Access;
 
    --  Subprograms
    function Create_Headers

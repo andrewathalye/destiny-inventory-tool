@@ -156,8 +156,8 @@ package body GUI.Handlers is
            (The_Manifest, GUI.Character.Current_Character));
       Debug.Put_Line
         ("Target: " & Manifest.Tools.Get_Description (The_Manifest, Target));
-      --  Unvault
 
+      --  Unvault
       if GUI.Current_Item.Location = Vault then
          Debug.Put_Line ("Method: Unvault");
 
@@ -178,6 +178,7 @@ package body GUI.Handlers is
                  ("Couldn't unvault is already where it would have been sent");
                return;
          end;
+
          --  Update UI State
          Inventories.Global.Remove_Item
            (GUI.Global.Inventory, GUI.Current_Item);
@@ -186,6 +187,7 @@ package body GUI.Handlers is
          GUI.Locked_Wrapper (GUI.Global.Render'Access);
          return;
       end if;
+
       --  Retrieve from Postmaster
       --  Note: Can't check Location because Postmaster isn't always returned
       --  for that
@@ -206,7 +208,6 @@ package body GUI.Handlers is
                return;
          end;
          --  Transfer to correct character
-
          if GUI.Character.Current_Character /= Target then
             begin
                Transfers.Transfer
@@ -222,6 +223,7 @@ package body GUI.Handlers is
                     ("Failed to finish transfer, but postmaster pull can't be rolled back!");
             end;
          end if;
+
          --  Update UI State
          Inventories.Character.Remove_Item
            (GUI.Character.Inventory,
@@ -279,6 +281,16 @@ package body GUI.Handlers is
    begin
       Debug.Put_Line ("Vault Item");
 
+      if GUI.Current_Item.Bucket_Location = Postmaster then
+         Debug.Put_Line ("Item was in Postmaster: pulling first");
+         Transfers.Postmaster_Pull
+           (GUI.Global.Inventory,
+            GUI.Character.Inventory,
+            GUI.The_Manifest,
+            GUI.Current_Item,
+            GUI.Character.Current_Character);
+      end if;
+
       begin
          Transfers.Vault
            (GUI.Global.Inventory,
@@ -295,18 +307,19 @@ package body GUI.Handlers is
             Debug.Put_Line ("The item was already there, aborting attempt");
             return;
       end;
+
       --  Update inventory state
       Inventories.Character.Remove_Item
         (GUI.Character.Inventory,
          GUI.Character.Current_Character,
          GUI.Current_Item);
+
       Inventories.Global.Add_Item (GUI.Global.Inventory, GUI.Current_Item);
       GUI.Locked_Wrapper (GUI.Global.Render'Access);
-      --  Redraw as little as possible for performance :)
 
+      --  Redraw as little as possible for performance :)
       if GUI.Current_Item.Location = Postmaster then
          GUI.Locked_Wrapper (GUI.Character.Render'Access);
-
       else
          GUI.Character.Locked_Render_Contents
            (GUI.Current_Item.Bucket_Location);

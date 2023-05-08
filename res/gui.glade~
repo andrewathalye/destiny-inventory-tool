@@ -274,6 +274,7 @@
           <object class="GtkGrid" id="item_details_sockets">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
+            <property name="halign">center</property>
             <child>
               <placeholder/>
             </child>
@@ -699,7 +700,7 @@
                             </child>
                             <child>
                               <!-- n-columns=2 n-rows=6 -->
-                              <object class="GtkGrid" id="descriptions">
+                              <object class="GtkGrid" id="character_descriptions">
                                 <property name="visible">True</property>
                                 <property name="can-focus">False</property>
                                 <property name="row-spacing">10</property>
@@ -925,10 +926,27 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkBox" id="spacer">
+                              <!-- n-columns=2 n-rows=3 -->
+                              <object class="GtkGrid" id="equipment_descriptions">
                                 <property name="visible">True</property>
                                 <property name="can-focus">False</property>
-                                <property name="orientation">vertical</property>
+                                <property name="row-spacing">10</property>
+                                <property name="column-spacing">10</property>
+                                <child>
+                                  <placeholder/>
+                                </child>
+                                <child>
+                                  <placeholder/>
+                                </child>
+                                <child>
+                                  <placeholder/>
+                                </child>
+                                <child>
+                                  <placeholder/>
+                                </child>
+                                <child>
+                                  <placeholder/>
+                                </child>
                                 <child>
                                   <placeholder/>
                                 </child>

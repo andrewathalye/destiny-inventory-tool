@@ -166,23 +166,39 @@ package body GUI.Global is
          Result.Show;
          return Result;
       end Make_Label;
-      Descriptions : constant Gtk_Grid :=
-        Gtk_Grid (GUI.Builder.Get_Object ("descriptions"));
+
+      Character_Descriptions : constant Gtk_Grid :=
+        Gtk_Grid (GUI.Builder.Get_Object ("character_descriptions"));
+      Equipment_Descriptions : constant Gtk_Grid :=
+        Gtk_Grid (GUI.Builder.Get_Object ("equipment_descriptions"));
 
    begin
-      Descriptions.Attach
+      --  Character
+      Character_Descriptions.Attach
         (Make_Label (Manifest.Tools.Subclass'Enum_Rep), 0, 0);
-      Descriptions.Attach (Make_Label (Kinetic'Enum_Rep), 0, 1);
-      Descriptions.Attach (Make_Label (Energy'Enum_Rep), 0, 2);
-      Descriptions.Attach (Make_Label (Power'Enum_Rep), 0, 3);
-      Descriptions.Attach (Make_Label (Shell'Enum_Rep), 0, 4);
-      Descriptions.Attach (Make_Label (Artefact'Enum_Rep), 0, 5);
-      Descriptions.Attach (Make_Label (Helmet'Enum_Rep), 1, 1);
-      Descriptions.Attach (Make_Label (Gauntlets'Enum_Rep), 1, 2);
-      Descriptions.Attach (Make_Label (Chest'Enum_Rep), 1, 3);
-      Descriptions.Attach (Make_Label (Leg'Enum_Rep), 1, 4);
-      Descriptions.Attach (Make_Label (Class'Enum_Rep), 1, 5);
+
+      Character_Descriptions.Attach (Make_Label (Kinetic'Enum_Rep), 0, 1);
+      Character_Descriptions.Attach (Make_Label (Energy'Enum_Rep), 0, 2);
+      Character_Descriptions.Attach (Make_Label (Power'Enum_Rep), 0, 3);
+      Character_Descriptions.Attach (Make_Label (Shell'Enum_Rep), 0, 4);
+      Character_Descriptions.Attach (Make_Label (Artefact'Enum_Rep), 0, 5);
+
+      Character_Descriptions.Attach (Make_Label (Helmet'Enum_Rep), 1, 1);
+      Character_Descriptions.Attach (Make_Label (Gauntlets'Enum_Rep), 1, 2);
+      Character_Descriptions.Attach (Make_Label (Chest'Enum_Rep), 1, 3);
+      Character_Descriptions.Attach (Make_Label (Leg'Enum_Rep), 1, 4);
+      Character_Descriptions.Attach (Make_Label (Class'Enum_Rep), 1, 5);
+
+      --  Equipment
+      Equipment_Descriptions.Attach (Make_Label (Emblem'Enum_Rep), 0, 0);
+      Equipment_Descriptions.Attach (Make_Label (Sparrow'Enum_Rep), 0, 1);
+      Equipment_Descriptions.Attach (Make_Label (Ship'Enum_Rep), 0, 2);
+
+      Equipment_Descriptions.Attach (Make_Label (Finisher'Enum_Rep), 1, 0);
+      Equipment_Descriptions.Attach
+        (Make_Label (Emote_Collection'Enum_Rep), 1, 1);
    end Setup_Descriptions;
+
    --  Public Subprograms
 
    --  Status Updates

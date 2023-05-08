@@ -31,9 +31,9 @@ is
      Gtk_Grid (Builder.Get_Object ("item_details_objectives"));
 
    --  Indices
-   Stat_Index                            : Gint := 1;
-   Socket_Index_Horiz, Socket_Index_Vert : Gint := 1;
-   Objective_Index                       : Gint := 1;
+   Stat_Index                            : Gint := 0;
+   Socket_Index_Horiz, Socket_Index_Vert : Gint := 0;
+   Objective_Index                       : Gint := 0;
 
 begin
    --  TODO set background colour by rarity
@@ -65,8 +65,8 @@ begin
             Progress_Bar.Set_Text (Profiles.Stats_Maps.Element (C)'Image);
             Progress_Bar.Show;
 
-            Stats.Attach (Name, 1, Stat_Index);
-            Stats.Attach (Progress_Bar, 2, Stat_Index);
+            Stats.Attach (Name, 0, Stat_Index);
+            Stats.Attach (Progress_Bar, 1, Stat_Index);
             Stat_Index := @ + 1;
          end;
       end loop Populate_Stats;
@@ -110,8 +110,8 @@ begin
                         Objective.Completion_Value'Image);
                      Progress_Bar.Show;
 
-                     Objectives.Attach (Name, 1, Objective_Index);
-                     Objectives.Attach (Progress_Bar, 2, Objective_Index);
+                     Objectives.Attach (Name, 0, Objective_Index);
+                     Objectives.Attach (Progress_Bar, 1, Objective_Index);
                      Objective_Index := @ + 1;
                   end;
                end if;
@@ -128,10 +128,11 @@ begin
             begin
                Overlay.Show;
                Sockets.Attach (Overlay, Socket_Index_Horiz, Socket_Index_Vert);
+
                --  Line-wrapping to avoid excessively-wide menus
                Socket_Index_Horiz := @ + 1;
-               if Socket_Index_Horiz > 5 then
-                  Socket_Index_Horiz := 1;
+               if Socket_Index_Horiz > 4 then
+                  Socket_Index_Horiz := 0;
                   Socket_Index_Vert  := @ + 1;
                end if;
             end;

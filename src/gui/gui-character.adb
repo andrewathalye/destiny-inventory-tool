@@ -127,6 +127,7 @@ package body GUI.Character is
       if Length (D.Name) = 0 then
          return;
       end if;
+
       Overlay :=
         Base.Get_Overlay
           (D,
@@ -134,6 +135,7 @@ package body GUI.Character is
            Base.User_Callback_Item_Description.To_Marshaller
              (Equipped_Clicked_Handler'Access));
       Overlay.Show;
+
       --  Note: The alignment ensures the button is the same size as the icon
       Alignment.Add (Overlay);
       Alignment.Show;
@@ -244,10 +246,12 @@ package body GUI.Character is
         ("Updating UI for " &
          Manifest.Tools.Get_Description (The_Manifest, Character));
       Current_Character := Character;
+
       --  Update Labels
       Set_Label
         (Title, +Manifest.Tools.Get_Title (The_Manifest, Current_Character));
       Set_Label (Light, Current_Character.Light'Image);
+
       --  Update Emblem
       Gtk_New (Emblem);
 
