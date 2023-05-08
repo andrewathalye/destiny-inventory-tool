@@ -12,6 +12,7 @@ with Gtk.Image;          use Gtk.Image;
 with Gtk.Label;          use Gtk.Label;
 with Gtk.Alignment;      use Gtk.Alignment;
 with Gtk.Progress_Bar;   use Gtk.Progress_Bar;
+with Gtk.Level_Bar;      use Gtk.Level_Bar;
 with Pango.Attributes;   use Pango.Attributes;
 
 --  Local Packages
@@ -36,9 +37,9 @@ with Secrets; use Secrets;
 
 package body GUI.Base is
    --  Instantiations
-
    package FUD_Container is new Gtk.Container.Foreach_User_Data
      (Gtk_Container);
+
    --  Cached High-Frequency Pixbufs
    Placeholder_Icon : constant Gdk_Pixbuf :=
      Load_Image ("png", Files.Get_Data ("res/placeholder_icon.png"));
@@ -52,9 +53,9 @@ package body GUI.Base is
      Load_Image ("png", Files.Get_Data ("res/normal_overlay.png"));
    Ornament_Overlay : constant Gdk_Pixbuf :=
      Load_Image ("png", Files.Get_Data ("res/ornament_overlay.png"));
+
    --  Bucket Management
    --  Internal
-
    procedure Remove_Callback
      (Widget    : not null access Gtk.Widget.Gtk_Widget_Record'Class;
       Container : Gtk_Container)
@@ -62,8 +63,8 @@ package body GUI.Base is
    begin
       Container.Remove (Widget);
    end Remove_Callback;
-   --  Exported
 
+   --  Exported
    procedure Clear_Bucket (G : Gtk_Grid) is
    begin
       FUD_Container.Foreach
@@ -75,8 +76,8 @@ package body GUI.Base is
       FUD_Container.Foreach
         (Gtk_Container (B), Remove_Callback'Access, Gtk_Container (B));
    end Clear_Bucket;
-   --  Inventory Item Rendering (Exported)
 
+   --  Inventory Item Rendering (Exported)
    function Get_Overlay
      (D       : Manifest.Tools.Item_Description;
       T       : Tasks.Download.Download_Task;
@@ -147,38 +148,36 @@ package body GUI.Base is
       --  Add Button to Overlay
       Overlay.Add (Button);
 
-      if Should_Watermark (D) then
-         --  First Overlay
-         --  Add Watermark to Overlay
-         if Length (D.Watermark_Path) > 0 then
-            declare
+      --  First Overlay
+      --  Add Watermark to Overlay
+      if Should_Watermark (D) and then Length (D.Watermark_Path) > 0 then
+         declare
 
-               Watermark : Gtk_Image;
+            Watermark : Gtk_Image;
 
-            begin
-               Gtk_New (Watermark);
+         begin
+            Gtk_New (Watermark);
 
-               if Global_Pixbuf_Cache.Contains
-                   (+(Bungie_Root & (+D.Watermark_Path)))
-               then
-                  Watermark.Set
-                    (Global_Pixbuf_Cache.Element
-                       (+(Bungie_Root & (+D.Watermark_Path))));
+            if Global_Pixbuf_Cache.Contains
+                (+(Bungie_Root & (+D.Watermark_Path)))
+            then
+               Watermark.Set
+                 (Global_Pixbuf_Cache.Element
+                    (+(Bungie_Root & (+D.Watermark_Path))));
 
-               else -- Asynchronously download the watermark
-                  T.Download
-                    (+(Bungie_Root & (+D.Watermark_Path)),
-                     Gtk_Widget (Watermark));
-               end if;
-               Watermark.Show;
-               Overlay.Add_Overlay (Watermark);
-               Overlay.Set_Overlay_Pass_Through (Watermark, True);
-            end;
-         end if;
+            else -- Asynchronously download the watermark
+               T.Download
+                 (+(Bungie_Root & (+D.Watermark_Path)),
+                  Gtk_Widget (Watermark));
+            end if;
+            Watermark.Show;
+            Overlay.Add_Overlay (Watermark);
+            Overlay.Set_Overlay_Pass_Through (Watermark, True);
+         end;
       end if;
+
       --  Intermediate Overlay
       --  Add Ornament Icon to Overlay
-
       if D.Style_Overridden then
          declare
 
@@ -231,18 +230,23 @@ package body GUI.Base is
                Yalign => 0.92,
                Xscale => 0.0,
                Yscale => 0.0);
+
             Attrs.Change (Attr_Background_New (65_535, 65_535, 65_535));
             Attrs.Change (Attr_Foreground_New (0, 0, 0));
+
             Label.Set_Attributes (Attrs);
             Label.Set_Label
               (Label_Value (Label_Value'First + 1 .. Label_Value'Last));
             Label.Show;
+
             Alignment.Add (Label);
             Alignment.Show;
+
             Overlay.Add_Overlay (Alignment);
             Overlay.Set_Overlay_Pass_Through (Alignment, True);
          end;
       end if;
+
       Overlay.Set_Tooltip_Text
         ((+D.Name) & ASCII.LF & (+D.Item_Type_And_Tier_Display_Name));
       return Overlay;
@@ -253,17 +257,30 @@ package body GUI.Base is
         Gtk_Label (Builder.Get_Object ("item_details_name"));
       Description : constant Gtk_Label :=
         Gtk_Label (Builder.Get_Object ("item_details_description"));
+      Energy : constant Gtk_Level_Bar :=
+        Gtk_Level_Bar (Builder.Get_Object ("item_details_energy"));
       Stats : constant Gtk_Grid :=
         Gtk_Grid (Builder.Get_Object ("item_details_stats"));
       Sockets : constant Gtk_Grid :=
         Gtk_Grid (Builder.Get_Object ("item_details_sockets"));
+      Objectives : constant Gtk_Grid :=
+        Gtk_Grid (Builder.Get_Object ("item_details_objectives"));
 
       Stat_Index                            : Gint := 1;
       Socket_Index_Horiz, Socket_Index_Vert : Gint := 1;
+      Objective_Index                       : Gint := 1;
    begin
       --  TODO set background colour by rarity
       Name.Set_Label (+D.Name);
       Description.Set_Label (+D.Item_Type_And_Tier_Display_Name);
+
+      --  Show armour energy capacity
+      if D.Energy_Capacity >= 0 then
+         Energy.Set_Value (Gdouble (D.Energy_Capacity));
+         Energy.Show;
+      else
+         Energy.Hide;
+      end if;
 
       --  Interrupt the download task so more items can be queued
       GUI.Lock_Object.Unlock;
@@ -292,8 +309,42 @@ package body GUI.Base is
          end;
       end loop;
 
+      Clear_Bucket (Objectives);
       Clear_Bucket (Sockets);
       for Socket of D.Sockets loop
+         --  Add objectives
+         for Objective of Socket.Objectives loop
+            if Objective.Visible then
+               declare
+                  Name         : constant Gtk_Label        := Gtk_Label_New;
+                  Progress_Bar : constant Gtk_Progress_Bar :=
+                    Gtk_Progress_Bar_New;
+               begin
+                  Name.Set_Label
+                    ((+The_Manifest.Destiny_Inventory_Items (Socket.Plug_Hash)
+                        .Name) &
+                     ": " &
+                     (+The_Manifest.Destiny_Objectives
+                        (Objective.Objective_Hash)
+                        .Progress_Description));
+                  Name.Show;
+
+                  Progress_Bar.Set_Fraction
+                    (Gdouble (Objective.Progress) /
+                     Gdouble (Objective.Completion_Value));
+                  Progress_Bar.Set_Show_Text (True);
+                  Progress_Bar.Set_Text
+                    (Objective.Progress'Image & "/" &
+                     Objective.Completion_Value'Image);
+                  Progress_Bar.Show;
+
+                  Objectives.Attach (Name, 1, Objective_Index);
+                  Objectives.Attach (Progress_Bar, 2, Objective_Index);
+                  Objective_Index := @ + 1;
+               end;
+            end if;
+         end loop;
+
          if Socket.Is_Visible then
             declare
                Overlay : constant Gtk_Overlay :=

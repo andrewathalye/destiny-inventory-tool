@@ -13,7 +13,8 @@ begin
    Read_Next (Reader); -- "itemInstanceId" or "quantity"
    if VS2S (Key_Name (Reader)) = "itemInstanceId" then
       Read_Next (Reader);
-      Item.Item_Instance_ID := VS2UB (String_Value (Reader));
+      Item.Item_Instance_ID :=
+        Item_Instance_ID_Type'Value (VS2S (String_Value (Reader)));
       Read_Next (Reader); -- "quantity"
    end if;
 

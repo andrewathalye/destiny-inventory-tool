@@ -13,6 +13,9 @@ package API.Profiles is
    --  Note: All types in this package correspond roughly to
    --  datatypes returned from a call to GetProfile
 
+   --  Basic Types
+   subtype Item_Instance_ID_Type is Integer_64;
+
    --  Characters
    package Stats_Maps is new Ada.Containers.Ordered_Maps
      (Manifest_Hash, Integer_32);
@@ -59,10 +62,9 @@ package API.Profiles is
    type Item_Type is record
       Item_Hash : Manifest_Hash;
       --  DestinyInventoryItemDefinition
-      Item_Instance_ID : Unbounded_String; -- Nullable
+      Item_Instance_ID : Item_Instance_ID_Type := -1; -- Nullable
       --  Note: For compatibility reasons, the API returns
       --  item instance IDs as strings rather than Integer_64 values.
-      --  Conversion is necessary for lookup in mapped tables
       Quantity    : Integer_32;
       Bind_Status : Bind_Status_Type;
       Location    : Item_Location_Type;
@@ -133,8 +135,6 @@ package API.Profiles is
             Bungie_Platform_Type'Last) of Item_Type;
 
    --  Instanced Data
-   subtype Item_Instance_ID_Type is Integer_64;
-
    type Perk_Type is record
       Perk_Hash : Manifest_Hash;
       --  DestinySandboxPerkDefinition
@@ -186,9 +186,9 @@ package API.Profiles is
    type Plug_Objective_Type is record
       Objective_Hash : Manifest_Hash;
       --  DestinyObjectiveDefinition
-      Destination_Hash : Manifest_Hash := 0;
-      Activity_Hash    : Manifest_Hash := 0;
-      Progress         : Integer_32    := 0;
+      Destination_Hash : Manifest_Hash := 0; --  Nullable
+      Activity_Hash    : Manifest_Hash := 0; --  Nullable
+      Progress         : Integer_32    := -1; --  Nullable
       Completion_Value : Integer_32;
       Complete         : Boolean;
       Visible          : Boolean;

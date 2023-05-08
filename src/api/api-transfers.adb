@@ -188,8 +188,8 @@ package body API.Transfers is
              "{" & '"' & "itemReferenceHash" & '"' & ':' & D.Item_Hash'Image &
              ',' & '"' & "stackSize" & '"' & ':' & D.Quantity'Image & ',' &
              '"' & "transferToVault" & '"' & ": true," & '"' & "itemId" & '"' &
-             ':' & D.Item_Instance_ID'Image & ',' & '"' & "characterId" &
-             '"' & ':' & ' ' & (+Source.Character_ID) & ',' & '"' &
+             ':' & D.Item_Instance_ID'Image & ',' & '"' & "characterId" & '"' &
+             ':' & ' ' & (+Source.Character_ID) & ',' & '"' &
              "membershipType" & '"' & ':' &
              Memberships.Find_Default_Platform_ID (Secrets.Membership) & "}",
            Headers => Secrets.Headers);
@@ -227,9 +227,9 @@ package body API.Transfers is
              "{" & '"' & "itemReferenceHash" & '"' & ':' & D.Item_Hash'Image &
              ',' & '"' & "stackSize" & '"' & ':' & D.Quantity'Image & ',' &
              '"' & "transferToVault" & '"' & ": false," & '"' & "itemId" &
-             '"' & ':' & D.Item_Instance_ID'Image & ',' & '"' &
-             "characterId" & '"' & ':' & ' ' & (+Target.Character_ID) & ',' &
-             '"' & "membershipType" & '"' & ':' &
+             '"' & ':' & D.Item_Instance_ID'Image & ',' & '"' & "characterId" &
+             '"' & ':' & ' ' & (+Target.Character_ID) & ',' & '"' &
+             "membershipType" & '"' & ':' &
              Memberships.Find_Default_Platform_ID (Secrets.Membership) & "}",
            Headers => Secrets.Headers);
       Server_Check (Data);

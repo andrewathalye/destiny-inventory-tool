@@ -7,6 +7,37 @@ with Shared.Strings; use Shared.Strings;
 
 package body API.Manifest.Tools is
    --  Private Subprograms
+   function Find_Objective_By_Hash
+     (Objectives : Plug_Objective_List;
+      Hash       : Manifest_Hash)
+      return Plug_Objective_Type
+   is
+   begin
+      Search_Objectives :
+         for Objective of Objectives loop
+            if Objective.Objective_Hash = Hash then
+               return Objective;
+            end if;
+         end loop Search_Objectives;
+      raise Constraint_Error with "No objective found for hash" & Hash'Image;
+   end Find_Objective_By_Hash;
+
+   function Find_Socket_By_Plug_Hash
+     (Sockets : Consolidated_Socket_List;
+      Hash    : Manifest_Hash)
+      return Consolidated_Socket_Type
+   is
+   begin
+      Search_Sockets :
+         for Socket of Sockets loop
+            if Socket.Plug_Hash = Hash then
+               return Socket;
+            end if;
+         end loop Search_Sockets;
+
+      raise Constraint_Error with "No socket found for hash" & Hash'Image;
+   end Find_Socket_By_Plug_Hash;
+
    function Get_Gender
      (M : Manifest_Type; C : Character_Type) return Destiny_Gender_Type is
      (M.Destiny_Genders (C.Gender_Hash).Gender_Type);
@@ -59,16 +90,13 @@ package body API.Manifest.Tools is
            when 0      => Manifest_Item,
            when others =>
              M.Destiny_Inventory_Items (I.Override_Style_Item_Hash));
-      Instance_ID : constant Item_Instance_ID_Type :=
-        (if Length (I.Item_Instance_ID) = 0 then -1
-         else Item_Instance_ID_Type'Value (+I.Item_Instance_ID));
 
    begin
       return
         (Name             => Manifest_Item.Name,
          Description      => Manifest_Item.Description,
          Item_Hash        => I.Item_Hash,
-         Item_Instance_ID => Instance_ID,
+         Item_Instance_ID => I.Item_Instance_ID,
 
           --  Stack
           Quantity      => I.Quantity,
@@ -112,55 +140,56 @@ package body API.Manifest.Tools is
           --  Instance-specific traits
           Light_Level =>
            (if
-              Instance_ID /= -1 and
-              P.Item_Components.Instances.Contains (Instance_ID)
+              I.Item_Instance_ID /= -1 and
+              P.Item_Components.Instances.Contains (I.Item_Instance_ID)
             then
-              P.Item_Components.Instances (Instance_ID).Light_Level
+              P.Item_Components.Instances (I.Item_Instance_ID).Light_Level
             else -1),
          Energy_Capacity =>
            (if
-              Instance_ID /= -1 and
-              P.Item_Components.Instances.Contains (Instance_ID)
+              I.Item_Instance_ID /= -1 and
+              P.Item_Components.Instances.Contains (I.Item_Instance_ID)
             then
-              P.Item_Components.Instances (Instance_ID).Energy_Capacity
+              P.Item_Components.Instances (I.Item_Instance_ID).Energy_Capacity
             else -1),
          Energy_Used =>
            (if
-              Instance_ID /= -1 and
-              P.Item_Components.Instances.Contains (Instance_ID)
+              I.Item_Instance_ID /= -1 and
+              P.Item_Components.Instances.Contains (I.Item_Instance_ID)
             then
-              P.Item_Components.Instances (Instance_ID).Energy_Used
+              P.Item_Components.Instances (I.Item_Instance_ID).Energy_Used
             else -1),
          Stats =>
            (if
-              Instance_ID /= -1 and
-              P.Item_Components.Stats.Contains (Instance_ID)
+              I.Item_Instance_ID /= -1 and
+              P.Item_Components.Stats.Contains (I.Item_Instance_ID)
             then
-              P.Item_Components.Stats (Instance_ID)
+              P.Item_Components.Stats (I.Item_Instance_ID)
             else []),
          Sockets =>
            Consolidate_Sockets
              (Sockets =>
                 (if
-                   Instance_ID /= -1
-                   and then P.Item_Components.Sockets.Contains (Instance_ID)
+                   I.Item_Instance_ID /= -1
+                   and then P.Item_Components.Sockets.Contains
+                     (I.Item_Instance_ID)
                  then
-                   P.Item_Components.Sockets (Instance_ID)
+                   P.Item_Components.Sockets (I.Item_Instance_ID)
                  else []),
               Objectives =>
                 (if
-                   Instance_ID /= -1
+                   I.Item_Instance_ID /= -1
                    and then P.Item_Components.Plug_Objectives.Contains
-                     (Instance_ID)
+                     (I.Item_Instance_ID)
                  then
-                   P.Item_Components.Plug_Objectives (Instance_ID)
+                   P.Item_Components.Plug_Objectives (I.Item_Instance_ID)
                  else [])),
          Perks =>
            (if
-              Instance_ID /= -1 and
-              P.Item_Components.Perks.Contains (Instance_ID)
+              I.Item_Instance_ID /= -1 and
+              P.Item_Components.Perks.Contains (I.Item_Instance_ID)
             then
-              P.Item_Components.Perks (Instance_ID)
+              P.Item_Components.Perks (I.Item_Instance_ID)
             else []));
    exception
       when E : Constraint_Error =>
@@ -214,37 +243,6 @@ package body API.Manifest.Tools is
       return Null_Unbounded_String;
    end Get_Title;
 
-   function Find_Objective_By_Hash
-     (Objectives : Plug_Objective_List;
-      Hash       : Manifest_Hash)
-      return Plug_Objective_Type
-   is
-   begin
-      Search_Objectives :
-         for Objective of Objectives loop
-            if Objective.Objective_Hash = Hash then
-               return Objective;
-            end if;
-         end loop Search_Objectives;
-      raise Constraint_Error with "No objective found for hash" & Hash'Image;
-   end Find_Objective_By_Hash;
-
-   function Find_Socket_By_Plug_Hash
-     (Sockets : Consolidated_Socket_List;
-      Hash    : Manifest_Hash)
-      return Consolidated_Socket_Type
-   is
-   begin
-      Search_Sockets :
-         for Socket of Sockets loop
-            if Socket.Plug_Hash = Hash then
-               return Socket;
-            end if;
-         end loop Search_Sockets;
-
-      raise Constraint_Error with "No socket found for hash" & Hash'Image;
-   end Find_Socket_By_Plug_Hash;
-
    function Get_Weapon_Level (D : Item_Description) return Integer_32 is
       --  Variables
       Shaped_Weapon_Socket : Consolidated_Socket_Type;
@@ -253,6 +251,7 @@ package body API.Manifest.Tools is
       Shaped_Weapon_Plug_Hash_1            : constant := 659_359_923;
       Shaped_Weapon_Plug_Hash_2            : constant := 1_922_808_508;
       Shaped_Weapon_Plug_Hash_3            : constant := 4_029_346_515;
+
       Weapon_Crafting_Level_Objective_Hash : constant := 3_077_315_735;
    begin
       --  Check to make sure the input item is a crafted weapon
