@@ -1,34 +1,28 @@
 pragma Ada_2022;
 
-with Interfaces; use Interfaces;
-
 --  Gtk
 with Gtk.Container;      use Gtk.Container;
-with Gtk.Button;         use Gtk.Button;
 with Gtk.Window;         use Gtk.Window;
 with Gtk.Main;
 with Gtk.Message_Dialog; use Gtk.Message_Dialog;
-with Gtk.Image;          use Gtk.Image;
 with Gtk.Label;          use Gtk.Label;
-with Gtk.Alignment;      use Gtk.Alignment;
-with Gtk.Progress_Bar;   use Gtk.Progress_Bar;
-with Gtk.Level_Bar;      use Gtk.Level_Bar;
-with Pango.Attributes;   use Pango.Attributes;
+with Gtk.Overlay;        use Gtk.Overlay;
 
 --  Local Packages
 with GUI.Handlers;
 with GUI.Character;
 with GUI.Global;
 with GUI.Authorise;
+with GUI.Base.Get_Overlay;
 
 with API.Inventories.Global;
 with API.Memberships;
 with API.Inventories.Character;
 with API.Manifest;
+with API.Profiles;
 use all type API.Manifest.Destiny_Item_Type;
 use API;
 
-with Shared.Files;
 with Shared.Debug;
 with Shared.Strings; use Shared.Strings;
 use Shared;
@@ -39,20 +33,6 @@ package body GUI.Base is
    --  Instantiations
    package FUD_Container is new Gtk.Container.Foreach_User_Data
      (Gtk_Container);
-
-   --  Cached High-Frequency Pixbufs
-   Placeholder_Icon : constant Gdk_Pixbuf :=
-     Load_Image ("png", Files.Get_Data ("res/placeholder_icon.png"));
-   Crafted_Masterwork_Overlay : constant Gdk_Pixbuf :=
-     Load_Image ("png", Files.Get_Data ("res/crafted_masterwork_overlay.png"));
-   Crafted_Overlay : constant Gdk_Pixbuf :=
-     Load_Image ("png", Files.Get_Data ("res/crafted_overlay.png"));
-   Masterwork_Overlay : constant Gdk_Pixbuf :=
-     Load_Image ("png", Files.Get_Data ("res/masterwork_overlay.png"));
-   Normal_Overlay : constant Gdk_Pixbuf :=
-     Load_Image ("png", Files.Get_Data ("res/normal_overlay.png"));
-   Ornament_Overlay : constant Gdk_Pixbuf :=
-     Load_Image ("png", Files.Get_Data ("res/ornament_overlay.png"));
 
    --  Bucket Management
    --  Internal
@@ -78,298 +58,6 @@ package body GUI.Base is
    end Clear_Bucket;
 
    --  Inventory Item Rendering (Exported)
-   function Get_Overlay
-     (D       : Manifest.Tools.Item_Description;
-      T       : Tasks.Download.Download_Task;
-      Handler : User_Callback_Item_Description.Marshallers.Marshaller)
-      return Gtk_Overlay
-   is
-      --  Subprograms
-      --  TODO: Not 100% game accurate, but fast
-
-      function Should_Watermark
-        (D : Manifest.Tools.Item_Description) return Boolean is
-        (case D.Item_Type is
-           when Manifest.Emblem  |
-             Manifest.Subclass   |
-             Manifest.Consumable |
-             Manifest.DIT_Mod    |
-             Manifest.Dummy      |
-             Manifest.None       =>
-             False,
-           when others => True) with
-        Inline;
-
-      function Should_State_Overlay
-        (D : Manifest.Tools.Item_Description) return Boolean is
-        (case D.Item_Type is
-           when Manifest.Subclass => False,
-           when Manifest.Engram   => False,
-           when others            => True) with
-        Inline;
-
-      function Should_Display_Label
-        (D : Manifest.Tools.Item_Description) return Boolean is
-        (D.Quantity > 1 or D.Item_Type = Weapon or D.Item_Type = Armour) with
-        Inline;
-
-      function Is_Crafted_Item_Masterworked
-        (D : Manifest.Tools.Item_Description) return Boolean is
-        (D.State.Crafted
-         and then Manifest.Tools.Get_Weapon_Level (D) >= 30) with
-        Inline;
-
-      --  Variables
-      Image         : Gtk_Image;
-      Button        : Gtk_Button;
-      Overlay       : Gtk_Overlay;
-      State_Overlay : Gtk_Image;
-
-   begin
-      Gtk_New (Image);
-      Gtk_New (Button);
-      Gtk_New (Overlay);
-
-      --  Setup Icon and Button
-      if Global_Pixbuf_Cache.Contains (+(Bungie_Root & (+D.Icon_Path))) then
-         Image.Set
-           (Global_Pixbuf_Cache.Element (+(Bungie_Root & (+D.Icon_Path))));
-
-      else -- Asynchronously download the icon
-         Image.Set (Placeholder_Icon);
-         T.Download (+(Bungie_Root & (+D.Icon_Path)), Gtk_Widget (Image));
-      end if;
-
-      Set_Image (Button, Image);
-      User_Callback_Item_Description.Connect
-        (Button, "clicked", Handler, User_Data => D);
-      Button.Show;
-
-      --  Add Button to Overlay
-      Overlay.Add (Button);
-
-      --  First Overlay
-      --  Add Watermark to Overlay
-      if Should_Watermark (D) and then Length (D.Watermark_Path) > 0 then
-         declare
-
-            Watermark : Gtk_Image;
-
-         begin
-            Gtk_New (Watermark);
-
-            if Global_Pixbuf_Cache.Contains
-                (+(Bungie_Root & (+D.Watermark_Path)))
-            then
-               Watermark.Set
-                 (Global_Pixbuf_Cache.Element
-                    (+(Bungie_Root & (+D.Watermark_Path))));
-
-            else -- Asynchronously download the watermark
-               T.Download
-                 (+(Bungie_Root & (+D.Watermark_Path)),
-                  Gtk_Widget (Watermark));
-            end if;
-            Watermark.Show;
-            Overlay.Add_Overlay (Watermark);
-            Overlay.Set_Overlay_Pass_Through (Watermark, True);
-         end;
-      end if;
-
-      --  Intermediate Overlay
-      --  Add Ornament Icon to Overlay
-      if D.Style_Overridden then
-         declare
-
-            Ornament_Overlay_GI : Gtk_Image;
-
-         begin
-            Gtk_New (Ornament_Overlay_GI);
-            Set (Ornament_Overlay_GI, Ornament_Overlay);
-            Ornament_Overlay_GI.Show;
-            Overlay.Add_Overlay (Ornament_Overlay_GI);
-            Overlay.Set_Overlay_Pass_Through (Ornament_Overlay_GI, True);
-         end;
-      end if;
-
-      if Should_State_Overlay (D) then
-         --  Final Overlay
-         --  Add Masterwork / Crafted / Normal Overlay
-         Gtk_New (State_Overlay);
-         Set
-           (State_Overlay,
-            (if
-               Is_Crafted_Item_Masterworked (D)
-             then
-               Crafted_Masterwork_Overlay
-             elsif D.State.Masterwork then Masterwork_Overlay
-             elsif D.State.Crafted then Crafted_Overlay
-             else Normal_Overlay));
-         State_Overlay.Show;
-         Overlay.Add_Overlay (State_Overlay);
-         Overlay.Set_Overlay_Pass_Through (State_Overlay, True);
-      end if;
-
-      --  Setup Quantity / Light Level Label if Needed
-      if Should_Display_Label (D) then
-         declare
-
-            Label       : Gtk_Label;
-            Label_Value : constant String :=
-              (if D.Quantity > 1 then D.Quantity'Image
-               else D.Light_Level'Image);
-            Alignment : Gtk_Alignment;
-            Attrs     : Pango_Attr_List;
-
-         begin
-            Gdk_New (Attrs);
-            Gtk_New (Label);
-            Gtk_New
-              (Alignment,
-               Xalign => 0.92,
-               Yalign => 0.92,
-               Xscale => 0.0,
-               Yscale => 0.0);
-
-            Attrs.Change (Attr_Background_New (65_535, 65_535, 65_535));
-            Attrs.Change (Attr_Foreground_New (0, 0, 0));
-
-            Label.Set_Attributes (Attrs);
-            Label.Set_Label
-              (Label_Value (Label_Value'First + 1 .. Label_Value'Last));
-            Label.Show;
-
-            Alignment.Add (Label);
-            Alignment.Show;
-
-            Overlay.Add_Overlay (Alignment);
-            Overlay.Set_Overlay_Pass_Through (Alignment, True);
-         end;
-      end if;
-
-      Overlay.Set_Tooltip_Text
-        ((+D.Name) & ASCII.LF & (+D.Item_Type_And_Tier_Display_Name));
-      return Overlay;
-   end Get_Overlay;
-
-   procedure Populate_Item_Details (D : Manifest.Tools.Item_Description) is
-      Name : constant Gtk_Label :=
-        Gtk_Label (Builder.Get_Object ("item_details_name"));
-      Description : constant Gtk_Label :=
-        Gtk_Label (Builder.Get_Object ("item_details_description"));
-      Energy : constant Gtk_Level_Bar :=
-        Gtk_Level_Bar (Builder.Get_Object ("item_details_energy"));
-      Stats : constant Gtk_Grid :=
-        Gtk_Grid (Builder.Get_Object ("item_details_stats"));
-      Sockets : constant Gtk_Grid :=
-        Gtk_Grid (Builder.Get_Object ("item_details_sockets"));
-      Objectives : constant Gtk_Grid :=
-        Gtk_Grid (Builder.Get_Object ("item_details_objectives"));
-
-      Stat_Index                            : Gint := 1;
-      Socket_Index_Horiz, Socket_Index_Vert : Gint := 1;
-      Objective_Index                       : Gint := 1;
-   begin
-      --  TODO set background colour by rarity
-      Name.Set_Label (+D.Name);
-      Description.Set_Label (+D.Item_Type_And_Tier_Display_Name);
-
-      --  Show armour energy capacity
-      if D.Energy_Capacity >= 0 then
-         Energy.Set_Value (Gdouble (D.Energy_Capacity));
-         Energy.Show;
-      else
-         Energy.Hide;
-      end if;
-
-      --  Interrupt the download task so more items can be queued
-      GUI.Lock_Object.Unlock;
-      begin
-         Tasks.Download.Contents_Task.Interrupt;
-      end;
-      GUI.Lock_Object.Lock;
-
-      Clear_Bucket (Stats);
-      for Stat of D.Stats loop
-         declare
-            Name         : constant Gtk_Label        := Gtk_Label_New;
-            Progress_Bar : constant Gtk_Progress_Bar := Gtk_Progress_Bar_New;
-         begin
-            Name.Set_Label ("<unimplemented>");
-            Name.Show;
-
-            Progress_Bar.Set_Fraction (Gdouble (Stat) / Gdouble (100));
-            Progress_Bar.Set_Show_Text (True);
-            Progress_Bar.Set_Text (Stat'Image);
-            Progress_Bar.Show;
-
-            Stats.Attach (Name, 1, Stat_Index);
-            Stats.Attach (Progress_Bar, 2, Stat_Index);
-            Stat_Index := @ + 1;
-         end;
-      end loop;
-
-      Clear_Bucket (Objectives);
-      Clear_Bucket (Sockets);
-      for Socket of D.Sockets loop
-         --  Add objectives
-         for Objective of Socket.Objectives loop
-            if Objective.Visible then
-               declare
-                  Name         : constant Gtk_Label        := Gtk_Label_New;
-                  Progress_Bar : constant Gtk_Progress_Bar :=
-                    Gtk_Progress_Bar_New;
-               begin
-                  Name.Set_Label
-                    ((+The_Manifest.Destiny_Inventory_Items (Socket.Plug_Hash)
-                        .Name) &
-                     ": " &
-                     (+The_Manifest.Destiny_Objectives
-                        (Objective.Objective_Hash)
-                        .Progress_Description));
-                  Name.Show;
-
-                  Progress_Bar.Set_Fraction
-                    (Gdouble (Objective.Progress) /
-                     Gdouble (Objective.Completion_Value));
-                  Progress_Bar.Set_Show_Text (True);
-                  Progress_Bar.Set_Text
-                    (Objective.Progress'Image & "/" &
-                     Objective.Completion_Value'Image);
-                  Progress_Bar.Show;
-
-                  Objectives.Attach (Name, 1, Objective_Index);
-                  Objectives.Attach (Progress_Bar, 2, Objective_Index);
-                  Objective_Index := @ + 1;
-               end;
-            end if;
-         end loop;
-
-         if Socket.Is_Visible then
-            declare
-               Overlay : constant Gtk_Overlay :=
-                 Get_Overlay
-                   (Get_Description (The_Manifest, Socket.Plug_Hash),
-                    Tasks.Download.Contents_Task,
-                    User_Callback_Item_Description.To_Marshaller
-                      (Handlers.Null_Item_Button_Handler'Access));
-            begin
-               Overlay.Show;
-               Sockets.Attach (Overlay, Socket_Index_Horiz, Socket_Index_Vert);
-               --  Line-wrapping to avoid excessively-wide menus
-               Socket_Index_Horiz := @ + 1;
-               if Socket_Index_Horiz > 5 then
-                  Socket_Index_Horiz := 1;
-                  Socket_Index_Vert  := @ + 1;
-               end if;
-            end;
-         end if;
-      end loop;
-
-      --  Resume the download task
-      Tasks.Download.Contents_Task.Execute (GUI.Image_Callback'Access);
-   end Populate_Item_Details;
-
    procedure Render_Items
      (List     : Inventories.Item_Description_List;
       Bucket   : Gtk_Grid;

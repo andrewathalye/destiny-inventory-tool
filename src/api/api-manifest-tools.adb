@@ -248,9 +248,9 @@ package body API.Manifest.Tools is
       Shaped_Weapon_Socket : Consolidated_Socket_Type;
 
       --  Constants
-      Shaped_Weapon_Plug_Hash_1            : constant := 659_359_923;
-      Shaped_Weapon_Plug_Hash_2            : constant := 1_922_808_508;
-      Shaped_Weapon_Plug_Hash_3            : constant := 4_029_346_515;
+      Shaped_Weapon_Plug_Hash_1 : constant := 659_359_923;
+      Shaped_Weapon_Plug_Hash_2 : constant := 1_922_808_508;
+      Shaped_Weapon_Plug_Hash_3 : constant := 4_029_346_515;
 
       Weapon_Crafting_Level_Objective_Hash : constant := 3_077_315_735;
    begin

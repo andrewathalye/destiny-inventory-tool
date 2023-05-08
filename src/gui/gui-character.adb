@@ -20,6 +20,7 @@ use all type API.Manifest.Tools.Bucket_Location_Type;
 use API; -- For general reference
 
 with GUI.Base;
+with GUI.Base.Get_Overlay;
 with Shared.Strings; use Shared.Strings;
 with Shared.Files;
 with Shared.Debug;   use Shared;

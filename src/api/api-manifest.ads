@@ -159,6 +159,11 @@ package API.Manifest is
      (Key_Type => Manifest_Hash, Element_Type => Destiny_Objective_Definition);
    subtype Destiny_Objective_Map is DODM.Map;
 
+   --  At the moment, only the name of the stat is computed / stored
+   package Destiny_Stat_Maps is new Ada.Containers.Ordered_Maps
+     (Key_Type => Manifest_Hash, Element_Type => Unbounded_String);
+   subtype Destiny_Stat_Map is Destiny_Stat_Maps.Map;
+
    --  Fields ordered by Manifest order
    type Manifest_Type is record
       Destiny_Classes : Destiny_Class_Map;
@@ -169,6 +174,8 @@ package API.Manifest is
       --  DestinyInventoryBucketDefinition
       Destiny_Races : Destiny_Race_Map;
       --  DestinyRaceDefinition
+      Destiny_Stats : Destiny_Stat_Map;
+      --  DestinyStatDefinition
       Destiny_Damage_Types : Destiny_Damage_Type_Map;
       --  DestinyDamageTypeDefinition
       Destiny_Inventory_Items : Destiny_Inventory_Item_Map;
@@ -182,5 +189,5 @@ package API.Manifest is
    --  Subprograms
    function Get_Manifest return Manifest_Type;
 private
-   Current_Manifest_Format_Version : constant := 1;
+   Current_Manifest_Format_Version : constant := 2;
 end API.Manifest;

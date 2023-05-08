@@ -1,37 +1,33 @@
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
+
 --  Gtk
 with Gtk.Grid;     use Gtk.Grid;
 with Gtk.Box;      use Gtk.Box;
-with Gtk.Overlay;  use Gtk.Overlay;
 with Gtk.Handlers; use Gtk.Handlers;
 with Glib;         use Glib;
+
+private with Gdk.Pixbuf;
+
 --  Local Packages
 with API.Manifest.Tools; use API.Manifest.Tools;
 with API.Inventories;    use API;
 with Tasks.Download;
 
+private with Shared.Files;
+
 package GUI.Base is
    --  Instantiations
    package User_Callback_Item_Description is new User_Callback
      (Gtk_Widget_Record, Manifest.Tools.Item_Description);
+
    --  State
    Search_Query : Unbounded_String;
+
    --  Bucket Management
    procedure Clear_Bucket (G : Gtk_Grid);
    procedure Clear_Bucket (B : Gtk_Box);
+
    --  Rendering Inventory Items
-
-   --  Returns an overlay for a generic inventory item
-   function Get_Overlay
-     (D       : Manifest.Tools.Item_Description;
-      T       : Tasks.Download.Download_Task;
-      Handler : User_Callback_Item_Description.Marshallers.Marshaller)
-      return Gtk_Overlay;
-
-   --  Populates the item details menu for a given item description.
-   --  The menu must then be shown by the caller when needed.
-   procedure Populate_Item_Details (D : Manifest.Tools.Item_Description);
-
    --  Renders a set of inventory items into a Gtk_Grid from an
    --  Item_Description_List. Each item will have an on-click handler added.
    procedure Render_Items
@@ -50,4 +46,21 @@ package GUI.Base is
    procedure Reload_Profile_Data;
    --  Reloads all data used by the GUI
    procedure Reload_Data;
+private
+   use Gdk.Pixbuf;
+   use Shared;
+
+   --  Cached High-Frequency Pixbufs
+   Placeholder_Icon : constant Gdk_Pixbuf :=
+     Load_Image ("png", Files.Get_Data ("res/placeholder_icon.png"));
+   Crafted_Masterwork_Overlay : constant Gdk_Pixbuf :=
+     Load_Image ("png", Files.Get_Data ("res/crafted_masterwork_overlay.png"));
+   Crafted_Overlay : constant Gdk_Pixbuf :=
+     Load_Image ("png", Files.Get_Data ("res/crafted_overlay.png"));
+   Masterwork_Overlay : constant Gdk_Pixbuf :=
+     Load_Image ("png", Files.Get_Data ("res/masterwork_overlay.png"));
+   Normal_Overlay : constant Gdk_Pixbuf :=
+     Load_Image ("png", Files.Get_Data ("res/normal_overlay.png"));
+   Ornament_Overlay : constant Gdk_Pixbuf :=
+     Load_Image ("png", Files.Get_Data ("res/ornament_overlay.png"));
 end GUI.Base;

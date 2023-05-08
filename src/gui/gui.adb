@@ -1,17 +1,18 @@
 pragma Ada_2022;
 with System;
+
 --  Gtkada
 with Gtk.Image;  use Gtk.Image;
 with Gtk.Main;
 with Gdk.Pixbuf; use Gdk.Pixbuf;
 with Glib.Error; use Glib.Error;
 use Glib;
+
 --  Local Packages
 with Shared.Strings; use Shared.Strings; -- Only for "+"
 
 package body GUI is
    --  Protected Object
-
    protected body Lock_Object is
 
       entry Lock when not Locked is
@@ -28,6 +29,7 @@ package body GUI is
       end Unlock;
 
    end Lock_Object;
+
    --  Private Subprograms
    --  Private-Exported
    --  Exclusively for JPEG / PNG format images
@@ -82,9 +84,12 @@ package body GUI is
       if Gdk_Pixbuf'(Convert (Pixbuf)) = null then
          raise Program_Error with "Image could not be processed";
       end if;
+
       Discard := Gdk_Pixbuf_Loader_Close (Loader, null);
+
       return Convert (Pixbuf);
    end Load_Image;
+
    --  Called by Download_Tasks as they finish downloads The lock must be
    --  acquired first to avoid data races (Lock set before each Main_Loop
    --  iteration)
@@ -112,8 +117,8 @@ package body GUI is
          end Critical_Section;
       GUI.Lock_Object.Unlock;
    end Image_Callback;
-   --  Public Subprograms
 
+   --  Public Subprograms
    procedure Locked_Wrapper (Unsafe_Subprogram : Unsafe_Subprogram_Type) is
    begin
       GUI.Lock_Object.Unlock;

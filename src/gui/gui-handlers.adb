@@ -9,6 +9,8 @@ with Gtk.Message_Dialog; use Gtk.Message_Dialog;
 with GUI.Character;
 with GUI.Global;
 with GUI.Base;
+with GUI.Base.Populate_Item_Details;
+
 with API.Transfers;
 with API.Manifest.Tools;
 use all type API.Manifest.Tools.Bucket_Location_Type;
@@ -20,8 +22,9 @@ use all type API.Manifest.Item_Location_Type;
 use all type API.Manifest.Destiny_Inventory_Bucket_Category;
 with API.Inventories.Character;
 with API.Inventories.Global; use API;
-with Shared.Strings;         use Shared.Strings; -- For "+"
-with Shared.Debug;           use Shared;
+
+with Shared.Strings; use Shared.Strings;
+with Shared.Debug;   use Shared;
 
 package body GUI.Handlers is
    --  Global Handlers (Private)
@@ -270,8 +273,8 @@ package body GUI.Handlers is
         (GUI.Character.Inventory, Target, GUI.Current_Item);
       GUI.Character.Locked_Render_Contents (GUI.Current_Item.Bucket_Location);
    end Transfer_Handler;
-   --  Vault an Item
 
+   --  Vault an Item
    procedure Vault_Handler (Button : access Gtk_Widget_Record'Class) is
    begin
       Debug.Put_Line ("Vault Item");
@@ -327,15 +330,11 @@ package body GUI.Handlers is
 
    begin
       Current_Item := User_Data;
-      Debug.Put_Line (Current_Item'Image);
 
       --  Display item details
       Base.Populate_Item_Details (Current_Item);
       Item_Details.Set_Relative_To (Widget);
       Item_Details.Popup;
-
-      pragma Warnings (Off, "unreachable code");
-      return;
 
       --  Don't show the normal transfer menu for nontransferrables
       if User_Data.Transfer_Status /= Can_Transfer then
@@ -344,12 +343,12 @@ package body GUI.Handlers is
          if User_Data.Bucket_Location = Postmaster and
            not User_Data.Postmaster_Pull_Has_Side_Effects
          then
-            Vault_Menu.Set_Relative_To (Widget);
+            Vault_Menu.Set_Relative_To (Item_Details);
             Vault_Menu.Popup;
          end if;
          --  For other items, we can’t perform any actions
       else
-         Transfer_Menu.Set_Relative_To (Widget);
+         Transfer_Menu.Set_Relative_To (Item_Details);
          Transfer_Menu.Popup;
       end if;
    end Item_Button_Handler;
