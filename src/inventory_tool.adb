@@ -11,8 +11,6 @@ use Glib;
 with GUI.Base;
 with GUI.Handlers;
 
-with API;
-
 --  Alire
 with Destiny_Inventory_Tool_Config;
 
@@ -37,8 +35,6 @@ begin
    --  Update GUI data
    --  This also creates all necessary windows
    GUI.Base.Reload_Data;
-
-   API.Wipe_Data := GUI.Base.Locked_Reload_Profile_Data'Access;
 
    --  Maintain an exclusive lock over the GUI while executing the main loop.
    --

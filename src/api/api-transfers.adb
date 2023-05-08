@@ -47,12 +47,6 @@ package body API.Transfers is
          "[Error] API.Transfers got " & Error_Code'Image &
          " after passing all local checks");
 
-      --  Wipe profile data and reload Reloading profile data requires the lock
-      --  to be unlocked, but we return to the Gtk event handler, so it should
-      --  be locked afterwards
-
-      API.Wipe_Data.all;
-
       case Error_Code is
          when DestinyNoRoomInDestination =>
             raise Out_Of_Space;
@@ -103,26 +97,30 @@ package body API.Transfers is
         Inventories.Global.Item_Count (Inventory, D.Bucket_Location);
       Max_Item_Count : constant Integer_32 :=
         M.Destiny_Inventory_Buckets (General'Enum_Rep).Item_Count;
-      Item_Stack_Quantity : constant Integer_32 :=
-        Inventories.Global.Get_Item_Stack (Inventory, D.Item_Hash).Quantity;
+      Item_Stack_Quantity : Integer_32 := 0;
 
    begin
+      --  Attempt to find the item stack quantity. There is not necessarily an item in the vault
+      --  with the same hash, so this could fail.
+      begin
+         Item_Stack_Quantity :=
+           Inventories.Global.Get_Item_Stack (Inventory, D.Item_Hash).Quantity;
+      exception
+         when Inventories.Item_Not_Found =>
+            null;
+      end;
+
       --  +1 because space is needed for the new item
       if Integer_32 (Bucket_Item_Count + 1) > Max_Item_Count then
          raise Out_Of_Space;
       end if;
-      --  Check if adding this item would overflow a stack in the vault This
-      --  only occurs for non-transferrable items
 
+      --  Check if adding this item would overflow a stack in the vault. This
+      --  only occurs for non-transferrable items
       if D.Transfer_Status /= Can_Transfer then
-         begin
-            if D.Quantity + Item_Stack_Quantity > D.Max_Stack_Size then
-               raise Out_Of_Space;
-            end if;
-         exception
-            when Inventories.Item_Not_Found =>
-               null;
-         end;
+         if D.Quantity + Item_Stack_Quantity > D.Max_Stack_Size then
+            raise Out_Of_Space;
+         end if;
       end if;
    end Check_Vault_Has_Room;
 
@@ -159,9 +157,10 @@ package body API.Transfers is
          when others =>
             null;
       end case;
-      Check_Vault_Has_Room (Vault_Inventory, M, D);
-      --  Check_Item_Not_Vaulted
 
+      Check_Vault_Has_Room (Vault_Inventory, M, D);
+
+      --  Check_Item_Not_Vaulted
       case D.Location is
          when Manifest.Vault =>
             raise Already_Here;
@@ -169,8 +168,8 @@ package body API.Transfers is
          when others =>
             null;
       end case;
-      --  Check_Item_Can_Transfer
 
+      --  Check_Item_Can_Transfer
       case D.Transfer_Status is
          when Can_Transfer =>
             null;
@@ -184,10 +183,10 @@ package body API.Transfers is
                   raise Cannot_Transfer;
             end case;
       end case;
+
       Data :=
         Client.Post
-          (URL =>
-             API_Root & "/Destiny2/Actions/Items/TransferItem/",
+          (URL  => API_Root & "/Destiny2/Actions/Items/TransferItem/",
            Data =>
              "{" & '"' & "itemReferenceHash" & '"' & ':' & D.Item_Hash'Image &
              ',' & '"' & "stackSize" & '"' & ':' & D.Quantity'Image & ',' &
@@ -211,11 +210,12 @@ package body API.Transfers is
 
    begin
       Debug.Put_Line ("Unvault item");
+
       --  Local Check
       Check_Actions_Permitted (D);
-      --  Check_Item_Belongs_Elsewhere
 
-      case D.Bucket_Location is
+      --  Check_Item_Belongs_Elsewhere
+      case D.Default_Bucket_Location is
          when Consumable | Modification =>
             raise Already_Here;
 
@@ -227,8 +227,7 @@ package body API.Transfers is
 
       Data :=
         Client.Post
-          (URL =>
-             API_Root & "/Destiny2/Actions/Items/TransferItem/",
+          (URL  => API_Root & "/Destiny2/Actions/Items/TransferItem/",
            Data =>
              "{" & '"' & "itemReferenceHash" & '"' & ':' & D.Item_Hash'Image &
              ',' & '"' & "stackSize" & '"' & ':' & D.Quantity'Image & ',' &
@@ -269,6 +268,7 @@ package body API.Transfers is
 
    begin
       Debug.Put_Line ("Pull from Postmaster");
+
       --  Local Check
       --  An exception will be raised if any of these fail
       Check_Actions_Permitted (D);
@@ -280,11 +280,10 @@ package body API.Transfers is
       else
          Check_Character_Has_Room (Character_Inventory, Source, M, D);
       end if;
+
       Data :=
         Client.Post
-          (URL =>
-             API_Root &
-             "/Destiny2/Actions/Items/PullFromPostmaster/",
+          (URL  => API_Root & "/Destiny2/Actions/Items/PullFromPostmaster/",
            Data =>
              "{" & '"' & "itemReferenceHash" & '"' & ':' & D.Item_Hash'Image &
              ',' & '"' & "stackSize" & '"' & ':' & D.Quantity'Image & ',' &
@@ -304,14 +303,14 @@ package body API.Transfers is
 
    begin
       Debug.Put_Line ("Equip item");
+
       --  Local Check
       --  An exception will be raised if any of these fail
       Check_Actions_Permitted (D);
 
       Data :=
         Client.Post
-          (URL =>
-             API_Root & "/Destiny2/Actions/Items/EquipItem/",
+          (URL  => API_Root & "/Destiny2/Actions/Items/EquipItem/",
            Data =>
              "{" & '"' & "itemId" & '"' & ':' & D.Item_Instance_ID'Image &
              ',' & '"' & "characterId" & '"' & ':' & ' ' &

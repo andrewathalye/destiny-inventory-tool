@@ -11,10 +11,6 @@ package API is
    type Auth_Storage_Type is private;
    subtype Auth_Header_Type is AWS.Headers.List;
 
-   --  Callbacks
-   procedure Null_Wipe_Data_Callback;
-   Wipe_Data : access procedure := Null_Wipe_Data_Callback'Access;
-
    --  Subprograms
    function Create_Headers
      (Auth_Data : Auth_Storage_Type) return Auth_Header_Type;

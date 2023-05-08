@@ -1,5 +1,8 @@
 pragma Ada_2022;
-with GNAT.OS_Lib; use GNAT.OS_Lib;
+
+with Ada.Exceptions; use Ada.Exceptions;
+with GNAT.OS_Lib;    use GNAT.OS_Lib;
+
 --  Gtk
 with Gtk.Search_Entry;   use Gtk.Search_Entry;
 with Gtk.Popover;        use Gtk.Popover;
@@ -73,34 +76,6 @@ package body GUI.Handlers is
       Error_Dialog.Hide;
    end Error_Dialog_Close_Button_Handler;
 
-   procedure Postmaster_Vault_Handler (Button : access Gtk_Widget_Record'Class)
-   is
-   begin
-      Debug.Put_Line ("Postmaster Vault Item");
-
-      begin
-         Transfers.Postmaster_Pull
-           (GUI.Global.Inventory,
-            GUI.Character.Inventory,
-            GUI.The_Manifest,
-            GUI.Current_Item,
-            GUI.Character.Current_Character);
-      exception
-         when Transfers.Out_Of_Space =>
-            Debug.Put_Line ("Out of Vault space, aborting attempt");
-            return;
-      end;
-      --  Update UI State
-      Inventories.Character.Remove_Item
-        (GUI.Character.Inventory,
-         GUI.Character.Current_Character,
-         GUI.Current_Item);
-      Inventories.Global.Add_Item (GUI.Global.Inventory, GUI.Current_Item);
-      GUI.Locked_Wrapper (GUI.Global.Render'Access);
-      GUI.Locked_Wrapper (GUI.Character.Render'Access);
-   end Postmaster_Vault_Handler;
-   pragma Warnings (On, "is not referenced");
-
    --  Install Handlers
    procedure Set_Handlers is
 
@@ -123,7 +98,7 @@ package body GUI.Handlers is
       Widget_Callback.Connect
         (Vault_Button,
          "clicked",
-         Widget_Callback.To_Marshaller (Postmaster_Vault_Handler'Access));
+         Widget_Callback.To_Marshaller (Vault_Handler'Access));
    end Set_Handlers;
 
    --  Dynamic Handlers (Public)
@@ -141,6 +116,7 @@ package body GUI.Handlers is
       Character.Update_For_Character (Profile.Characters (User_Data));
       GUI.Locked_Wrapper (Character.Render'Access);
    end Character_Menu_Button_Clicked_Handler;
+
    --  The two handlers below are additionally responsible for simulating the
    --  transfer clientside
 
@@ -171,6 +147,7 @@ package body GUI.Handlers is
             when Transfers.Out_Of_Space =>
                Debug.Put_Line
                  ("Couldn't unvault because the destination is out of space");
+               GUI.Base.Error_Message ("Item Transfer Failed", "Out of Space");
                return;
 
             when Transfers.Already_Here =>
@@ -205,8 +182,10 @@ package body GUI.Handlers is
          exception
             when Transfers.Out_Of_Space =>
                Debug.Put_Line ("Failed to pull from postmaster: out of space");
+               GUI.Base.Error_Message ("Item Transfer Failed", "Out of Space");
                return;
          end;
+
          --  Transfer to correct character
          if GUI.Character.Current_Character /= Target then
             begin
@@ -220,7 +199,11 @@ package body GUI.Handlers is
             exception -- The previous action cannot be undone, so keep going
                when Transfers.Out_Of_Space =>
                   Debug.Put_Line
-                    ("Failed to finish transfer, but postmaster pull can't be rolled back!");
+                    ("Failed to finish transfer, but postmaster pull can't be rolled back! Reloading for consistency.");
+                  GUI.Base.Locked_Reload_Profile_Data;
+                  GUI.Base.Error_Message
+                    ("Item Transfer Failed: Profile Reloaded", "Out of Space");
+                  return;
             end;
          end if;
 
@@ -234,8 +217,8 @@ package body GUI.Handlers is
          GUI.Locked_Wrapper (GUI.Character.Render'Access);
          return;
       end if;
-      --  Equip
 
+      --  Equip
       if GUI.Character.Current_Character = Target and
         Current_Item.Category = Equippable
       then
@@ -249,6 +232,7 @@ package body GUI.Handlers is
          GUI.Locked_Wrapper (GUI.Character.Render'Access);
          return;
       end if;
+
       --  Normal Transfer
       Debug.Put_Line ("Method: Transfer");
 
@@ -264,6 +248,7 @@ package body GUI.Handlers is
          when Transfers.Out_Of_Space =>
             Debug.Put_Line
               ("Out of space somewhere along the chain, aborting transfer");
+            GUI.Base.Error_Message ("Item Transfer Failed", "Out of Space");
             return;
       end;
       --  Update UI State
@@ -274,21 +259,36 @@ package body GUI.Handlers is
       Inventories.Character.Add_Item
         (GUI.Character.Inventory, Target, GUI.Current_Item);
       GUI.Character.Locked_Render_Contents (GUI.Current_Item.Bucket_Location);
+   exception
+      when C : others =>
+         Debug.Put_Line (Exception_Information (C));
+         GUI.Base.Locked_Reload_Profile_Data;
+         GUI.Base.Error_Message
+           ("Item Transfer Failed: Profile Reloaded", Exception_Name (C));
    end Transfer_Handler;
 
    --  Vault an Item
    procedure Vault_Handler (Button : access Gtk_Widget_Record'Class) is
    begin
       Debug.Put_Line ("Vault Item");
+      Debug.Put_Line (GUI.Current_Item'Image);
 
       if GUI.Current_Item.Bucket_Location = Postmaster then
          Debug.Put_Line ("Item was in Postmaster: pulling first");
-         Transfers.Postmaster_Pull
-           (GUI.Global.Inventory,
-            GUI.Character.Inventory,
-            GUI.The_Manifest,
-            GUI.Current_Item,
-            GUI.Character.Current_Character);
+         begin
+            Transfers.Postmaster_Pull
+              (GUI.Global.Inventory,
+               GUI.Character.Inventory,
+               GUI.The_Manifest,
+               GUI.Current_Item,
+               GUI.Character.Current_Character);
+         exception
+            when Transfers.Out_Of_Space =>
+               Debug.Put_Line
+                 ("No space to pull from postmaster: aborting transfer attempt");
+               GUI.Base.Error_Message ("Item Transfer Failed", "Out of Space");
+               return;
+         end;
       end if;
 
       begin
@@ -318,13 +318,19 @@ package body GUI.Handlers is
       GUI.Locked_Wrapper (GUI.Global.Render'Access);
 
       --  Redraw as little as possible for performance :)
-      if GUI.Current_Item.Location = Postmaster then
+      if GUI.Current_Item.Bucket_Location = Postmaster then
          GUI.Locked_Wrapper (GUI.Character.Render'Access);
       else
          GUI.Character.Locked_Render_Contents
            (GUI.Current_Item.Bucket_Location);
          --  A smaller render that will be faster (hopefully)
       end if;
+   exception
+      when E : others =>
+         Debug.Put_Line (Exception_Information (E));
+         GUI.Base.Locked_Reload_Profile_Data;
+         GUI.Base.Error_Message
+           ("Item Transfer Failed: Profile Reloaded", Exception_Name (E));
    end Vault_Handler;
    pragma Warnings (On, "is not referenced");
 

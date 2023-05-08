@@ -17,9 +17,4 @@ package body API is
       List.Add ("X-API-Key", Constant_Secrets.API_Key);
       return List;
    end Create_Headers;
-
-   procedure Null_Wipe_Data_Callback is
-   begin
-      raise Program_Error with "No wipe data callback was set!";
-   end Null_Wipe_Data_Callback;
 end API;

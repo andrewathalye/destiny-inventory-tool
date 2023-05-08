@@ -31,13 +31,12 @@ package API.Inventories.Global is
       return Natural;
 
    --  This accepts a Manifest Hash and searches the Vault for a matching item
-   --  stack The Hash should be of an item that is stackable, but this is not
-   --  checked.
+   --  stack. The Hash should be of an item that is stackable, but this is not
+   --  checked. Raises Item_Not_Found on failure.
    function Get_Item_Stack
      (Inventory : Global_Inventory_Type;
       Hash      : Manifest.Manifest_Hash)
       return Manifest.Tools.Item_Description;
-   --  Raises Item_Not_Found on failure
 
    --  Access and Initialisation
    function Vault_Inventory
