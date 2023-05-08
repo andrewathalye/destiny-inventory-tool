@@ -150,8 +150,16 @@ package API.Manifest is
      (Key_Type     => Manifest_Hash,
       Element_Type => Destiny_Inventory_Bucket_Definition);
    subtype Destiny_Inventory_Bucket_Map is DIBDM.Map;
-   --  Fields ordered by Manifest order
 
+   type Destiny_Objective_Definition is record
+      Icon_Path            : Unbounded_String; --  Nullable
+      Progress_Description : Unbounded_String; --  Nullable
+   end record;
+   package DODM is new Ada.Containers.Ordered_Maps
+     (Key_Type => Manifest_Hash, Element_Type => Destiny_Objective_Definition);
+   subtype Destiny_Objective_Map is DODM.Map;
+
+   --  Fields ordered by Manifest order
    type Manifest_Type is record
       Destiny_Classes : Destiny_Class_Map;
       --  DestinyClassDefinition
@@ -165,10 +173,14 @@ package API.Manifest is
       --  DestinyDamageTypeDefinition
       Destiny_Inventory_Items : Destiny_Inventory_Item_Map;
       --  DestinyInventoryItemDefinition
+      Destiny_Objectives : Destiny_Objective_Map;
+      --  DestinyObjectiveDefinition (partial)
       Destiny_Titles : Destiny_Title_Map;
       --  DestinyRecordDefinition (partial)
    end record;
 
    --  Subprograms
    function Get_Manifest return Manifest_Type;
+private
+   Current_Manifest_Format_Version : constant := 1;
 end API.Manifest;

@@ -67,8 +67,8 @@ package body GUI.Character is
       end;
       GUI.Lock_Object.Lock;
    end Locked_Render_Contents;
-   --  Popup full bucket contents if equipped item is clicked
 
+   --  Popup full bucket contents if equipped item is clicked
    procedure Equipped_Clicked_Handler
      (Widget    : access Gtk_Widget_Record'Class;
       User_Data : Manifest.Tools.Item_Description)
@@ -250,14 +250,18 @@ package body GUI.Character is
       --  Update Emblem
       Gtk_New (Emblem);
 
-      if Global_Pixbuf_Cache.Contains (Character.Emblem_Background_Path) then
+      if Global_Pixbuf_Cache.Contains
+          (+(Bungie_Root & (+Character.Emblem_Background_Path)))
+      then
          Emblem.Set
-           (Global_Pixbuf_Cache.Element (Character.Emblem_Background_Path));
+           (Global_Pixbuf_Cache.Element
+              (+(Bungie_Root & (+Character.Emblem_Background_Path))));
 
       else
          Emblem.Set (Placeholder_Emblem);
          Tasks.Download.Character_Task.Download
-           (Character.Emblem_Background_Path, Gtk_Widget (Emblem));
+           (+(Bungie_Root & (+Character.Emblem_Background_Path)),
+            Gtk_Widget (Emblem));
       end if;
       Emblem_Button.Set_Image (Emblem);
    end Update_For_Character;

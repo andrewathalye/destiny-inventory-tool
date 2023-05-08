@@ -75,12 +75,14 @@ package body GUI.Global is
             --  Load emblem
 
             if Global_Pixbuf_Cache.Contains (C.Emblem_Path) then
-               Image.Set (Global_Pixbuf_Cache.Element (C.Emblem_Path));
+               Image.Set
+                 (Global_Pixbuf_Cache.Element
+                    (+(Bungie_Root & (+C.Emblem_Path))));
 
             else
                Image.Set (Placeholder_Icon);
                Tasks.Download.Global_Task.Download
-                 (C.Emblem_Path, Gtk_Widget (Image));
+                 (+(Bungie_Root & (+C.Emblem_Path)), Gtk_Widget (Image));
             end if;
             User_Callback_Natural.Connect
               (Button,
@@ -117,14 +119,17 @@ package body GUI.Global is
             Gtk_New (Button, Manifest.Tools.Get_Description (The_Manifest, C));
             --  Load emblem
 
-            if Global_Pixbuf_Cache.Contains (C.Emblem_Path) then
-               Image.Set (Global_Pixbuf_Cache.Element (C.Emblem_Path));
+            if Global_Pixbuf_Cache.Contains (+(Bungie_Root & (+C.Emblem_Path)))
+            then
+               Image.Set
+                 (Global_Pixbuf_Cache.Element
+                    (+(Bungie_Root & (+C.Emblem_Path))));
 
             else
 --                                      Debug.Put_Line ("Get mini emblem");
                Image.Set (Placeholder_Icon);
                Tasks.Download.Global_Task.Download
-                 (C.Emblem_Path, Gtk_Widget (Image));
+                 (+(Bungie_Root & (+C.Emblem_Path)), Gtk_Widget (Image));
             end if;
             Image.Show;
             User_Callback_Character.Connect

@@ -1,3 +1,7 @@
+with Ada.Containers.Vectors;
+
+--  Local Packages
+
 with API.Profiles; use API.Profiles;
 
 package API.Manifest.Tools is
@@ -65,6 +69,21 @@ package API.Manifest.Tools is
       Emblem           => 4_274_335_291,
       Clan_Banner      => 4_292_445_962);
 
+   --  Identical to Socket_Type, but contains the
+   --  appropriate Objectives. Easier to parse as
+   --  a result.
+   type Consolidated_Socket_Type is record
+      Plug_Hash : Manifest_Hash := 0;
+      --  DestinyInventoryItemDefinition
+      Is_Enabled : Boolean;
+      Is_Visible : Boolean;
+      Objectives : Plug_Objective_List;
+   end record;
+
+   package Consolidated_Socket_Lists is new Ada.Containers.Vectors
+     (Index_Type => Natural, Element_Type => Consolidated_Socket_Type);
+   subtype Consolidated_Socket_List is Consolidated_Socket_Lists.Vector;
+
    --  Intended to store sufficient information about an item to display it
    --  without further Manifest lookups
    --
@@ -74,7 +93,7 @@ package API.Manifest.Tools is
    --  represents a real or dummy item, and should instead act based upon the metadata contained
    --  within the ID
    --
-   --  Location, Bucket_Location, Bucket_Hash, and Transfer_Status should be
+   --  Location, Bucket_Hash, Bucket_Location, and Transfer_Status should be
    --  modified if the item is to be virtually moved
 
    type Item_Description is record
@@ -82,25 +101,25 @@ package API.Manifest.Tools is
       Description : Unbounded_String;
       Item_Hash   : Manifest_Hash := 0;
       --  DestinyInventoryItemDefinition
-      Item_Instance_ID : Unbounded_String;
+      Item_Instance_ID : Item_Instance_ID_Type := -1;
 
       --  Item stack
-      Quantity       : Integer_32         := 0;
-      Max_Stack_Size : Integer_32         := 0;
-      Location       : Item_Location_Type := Unknown;
+      Quantity       : Integer_32 := -1;
+      Max_Stack_Size : Integer_32 := -1;
 
-      --  Buckets
-      Bucket_Hash, Default_Bucket_Hash : Manifest_Hash := 0;
+      --  Buckets and Location-Related Data
+      Location                         : Item_Location_Type := Unknown;
+      Bucket_Hash, Default_Bucket_Hash : Manifest_Hash      := 0;
       --  DestinyInventoryBucketDefinition
       Bucket_Location,
       Default_Bucket_Location : Bucket_Location_Type :=
         Unknown;
+      Transfer_Status : Transfer_Status_Type := Not_Transferable;
 
       --  Item state
-      Category        : Destiny_Inventory_Bucket_Category := Ignored;
-      State           : Item_State_Type                   := (others => False);
-      Allow_Actions   : Boolean                           := False;
-      Transfer_Status : Transfer_Status_Type              := Not_Transferable;
+      Category      : Destiny_Inventory_Bucket_Category := Ignored;
+      State         : Item_State_Type                   := (others => False);
+      Allow_Actions : Boolean                           := False;
 
       --  Display info
       Icon_Path        : Unbounded_String;
@@ -114,11 +133,11 @@ package API.Manifest.Tools is
       Item_Type_And_Tier_Display_Name  : Unbounded_String;
 
       --  Instance-Specific Info (will not be filled for non-instanced items)
-      Light_Level     : Integer_32 := 0;
-      Energy_Capacity : Integer_32 := 0;
-      Energy_Used     : Integer_32 := 0;
+      Light_Level     : Integer_32 := -1;
+      Energy_Capacity : Integer_32 := -1;
+      Energy_Used     : Integer_32 := -1;
       Stats           : Stats_Map;
-      Sockets         : Socket_List;
+      Sockets         : Consolidated_Socket_List;
       Perks           : Perk_List;
    end record;
 
@@ -131,6 +150,15 @@ package API.Manifest.Tools is
       I : Item_Type)
       return Item_Description;
 
+   function Get_Description
+     (M    : Manifest.Manifest_Type;
+      Hash : Manifest.Manifest_Hash)
+      return Item_Description;
+
    function Get_Title
      (M : Manifest_Type; C : Character_Type) return Unbounded_String;
+
+   Invalid_Item : exception;
+   --  Will raise Invalid_Item if 'D' does not describe a crafted weapon
+   function Get_Weapon_Level (D : Item_Description) return Integer_32;
 end API.Manifest.Tools;

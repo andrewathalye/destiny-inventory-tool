@@ -1,6 +1,9 @@
 with Ada.Streams;           use Ada.Streams;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
+--  AWS
+with AWS.Response;
+
 --  Gtkada
 with Gtk.Widget; use Gtk.Widget;
 
@@ -34,4 +37,8 @@ package Tasks.Download is
       return Stream_Element_Array;
    function Download --  Note: Uncached
      (Path : Unbounded_String; Needs_Auth : Boolean := False) return String;
+
+   --  Provided for convenience. Download already checks the status of downloads it manages.
+   --  Note: Will raise an exception if the status was not successful.
+   procedure Check_Status (Data : AWS.Response.Data);
 end Tasks.Download;

@@ -7,8 +7,10 @@ with API.Manifest.Tools; use API;
 package GUI.Handlers is
    --  Instantiations
    package Widget_Callback is new Callback (Gtk_Widget_Record);
+
    --  Global Handlers
    procedure Set_Handlers;
+
    --  Dynamic Handlers
    procedure Character_Menu_Button_Clicked_Handler
      (Button : access Gtk_Widget_Record'Class; User_Data : Natural);
@@ -19,4 +21,7 @@ package GUI.Handlers is
    procedure Item_Button_Handler
      (Widget    : access Gtk_Widget_Record'Class;
       User_Data : Manifest.Tools.Item_Description);
+   procedure Null_Item_Button_Handler
+     (Widget    : access Gtk_Widget_Record'Class;
+      User_Data : Manifest.Tools.Item_Description) is null;
 end GUI.Handlers;

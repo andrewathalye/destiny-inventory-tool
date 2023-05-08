@@ -12,13 +12,14 @@ package Shared.Files is
    function Get_Cached
      (Name : String) return Ada.Streams.Stream_Element_Array with
      Inline;
-   --  Get the actual path of a cached file
-   function Get_Cache_Path (Name : String) return String with
-     Inline;
+
+   --  Query whether a given file is cached
    function Has_Cached (Name : String) return Boolean with
      Inline;
+
    --  Save a file to the cache
    procedure Cache (Name : String; Content : Ada.Streams.Stream_Element_Array);
+
    --  General I/O
    --  Get a File as a Stream_Element_Array via its actual path
    function Get_Data (Name : String) return Ada.Streams.Stream_Element_Array;

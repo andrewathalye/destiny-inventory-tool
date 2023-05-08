@@ -21,7 +21,6 @@ with Tasks.Download;
 
 package body API.Manifest is
    --  Note Seek to "DestinyGenderDefinition"
-
    procedure Read_Genders
      (Reader  : in out JSON_Simple_Pull_Reader;
       Genders :    out Destiny_Gender_Map)
@@ -48,8 +47,8 @@ package body API.Manifest is
          Read_Next (Reader);
       end loop;
    end Read_Genders;
-   --  Note Seek to "DestinyRaceDefinition"
 
+   --  Note Seek to "DestinyRaceDefinition"
    procedure Read_Races
      (Reader : in out JSON_Simple_Pull_Reader; Races : out Destiny_Race_Map)
    is
@@ -77,8 +76,8 @@ package body API.Manifest is
          Read_Next (Reader);
       end loop;
    end Read_Races;
-   --  Note Seek to "DestinyClassDefinition"
 
+   --  Note Seek to "DestinyClassDefinition"
    procedure Read_Classes
      (Reader : in out JSON_Simple_Pull_Reader; Classes : out Destiny_Class_Map)
    is
@@ -106,8 +105,8 @@ package body API.Manifest is
          Read_Next (Reader);
       end loop;
    end Read_Classes;
-   --  Note Seek to "DestinyRecordDefinition"
 
+   --  Note Seek to "DestinyRecordDefinition"
    procedure Read_Titles
      (Reader : in out JSON_Simple_Pull_Reader; Titles : out Destiny_Title_Map)
    is
@@ -144,8 +143,8 @@ package body API.Manifest is
          Read_Next (Reader);
       end loop;
    end Read_Titles;
-   --  Note Seek to "DestinyInventoryBucketDefinition"
 
+   --  Note Seek to "DestinyInventoryBucketDefinition"
    procedure Read_Inventory_Buckets
      (Reader  : in out JSON_Simple_Pull_Reader;
       Buckets :    out Destiny_Inventory_Bucket_Map)
@@ -199,8 +198,8 @@ package body API.Manifest is
          Read_Next (Reader);
       end loop;
    end Read_Inventory_Buckets;
-   --  Note Seek to "DestinyDamageTypeDefinition"
 
+   --  Note Seek to "DestinyDamageTypeDefinition"
    procedure Read_Damage_Types
      (Reader       : in out JSON_Simple_Pull_Reader;
       Damage_Types :    out Destiny_Damage_Type_Map)
@@ -239,8 +238,8 @@ package body API.Manifest is
          Read_Next (Reader);
       end loop;
    end Read_Damage_Types;
-   --  Note Seek to "DestinyInventoryItemDefinition"
 
+   --  Note Seek to "DestinyInventoryItemDefinition"
    procedure Read_Inventory_Items
      (Reader : in out JSON_Simple_Pull_Reader;
       Items  :    out Destiny_Inventory_Item_Map)
@@ -253,6 +252,7 @@ package body API.Manifest is
       Item.Watermark_Path         := Null_Unbounded_String;
       Item.Shelved_Watermark_Path := Null_Unbounded_String;
       Item.Bucket_Type_Hash       := 0;
+
       Read_Next (Reader); -- START_OBJECT
 
       while Event_Kind (Reader) /= End_Object loop
@@ -364,6 +364,7 @@ package body API.Manifest is
                      Read_Next (Reader);
                end case;
             end loop Read_Variable_Fields;
+
             --  At "hash"
          Read_Next (Reader);
          Items.Insert
@@ -372,6 +373,59 @@ package body API.Manifest is
          Read_Next (Reader);
       end loop;
    end Read_Inventory_Items;
+
+   --  Note: Position at "DestinyObjectiveDefinition"
+   procedure Read_Objectives
+     (Reader     : in out JSON_Simple_Pull_Reader;
+      Objectives :    out Destiny_Objective_Map)
+   is
+      Objective : Destiny_Objective_Definition;
+   begin
+      Read_Next (Reader); --  START_OBJECT
+      Read_Next (Reader); --  HASH as key or END_OBJECT
+
+      Objective_Loop :
+         while Event_Kind (Reader) /= End_Object loop
+            Read_Next (Reader); --  START_OBJECT
+
+            --  "icon" is a nullable field. Parse it manually.
+            Read_Next (Reader); --  "displayProperties"
+            Read_Next (Reader); --  START_OBJECT
+            Read_Next (Reader); --  "description"
+            Read_Next (Reader);
+            Read_Next (Reader); --  "name"
+            Read_Next (Reader);
+            Read_Next (Reader); --  "icon" or "hasIcon"
+
+            if VS2S (Key_Name (Reader)) = "icon" then
+               Read_Next (Reader);
+               Objective.Icon_Path := VS2UB (String_Value (Reader));
+            else
+               Objective.Icon_Path := Null_Unbounded_String;
+            end if;
+
+            Wait_Until_Key (Reader, "progressDescription");
+            Read_Next (Reader);
+            Objective.Progress_Description := VS2UB (String_Value (Reader));
+
+            Wait_Until_Key (Reader, "hash");
+            Read_Next (Reader);
+            Objectives.Insert
+              (Manifest_Hash (As_Integer (Number_Value (Reader))), Objective);
+
+            Read_Next (Reader); -- "index"
+            Read_Next (Reader);
+
+            Read_Next (Reader); -- "redacted"
+            Read_Next (Reader);
+
+            Read_Next (Reader); -- "blacklisted"
+            Read_Next (Reader);
+
+            Read_Next (Reader); -- END_OBJECT
+            Read_Next (Reader); -- HASH as key or END_OBJECT
+         end loop Objective_Loop;
+   end Read_Objectives;
 
    function Fetch_Manifest
      (Localised_Manifest_Path : Unbounded_String) return Manifest_Type
@@ -386,34 +440,47 @@ package body API.Manifest is
       Set_Data
         (Stream.all,
          To_Stream_Element_Vector
-           (Tasks.Download.Download (Localised_Manifest_Path)));
+           (Tasks.Download.Download
+              (+(Bungie_Root & (+Localised_Manifest_Path)))));
+
       --  Read Fields from Manifest
       Set_Stream (Reader, Input_Text_Stream_Access (Stream));
+
       Wait_Until_Key (Reader, "DestinyClassDefinition");
       Read_Classes (Reader, Result.Destiny_Classes);
       Debug.Put_Line ("classes read");
+
       Wait_Until_Key (Reader, "DestinyGenderDefinition");
       Read_Genders (Reader, Result.Destiny_Genders);
       Debug.Put_Line ("genders read");
+
       Wait_Until_Key (Reader, "DestinyInventoryBucketDefinition");
       Read_Inventory_Buckets (Reader, Result.Destiny_Inventory_Buckets);
       Debug.Put_Line ("buckets read");
+
       Wait_Until_Key (Reader, "DestinyRaceDefinition");
       Read_Races (Reader, Result.Destiny_Races);
       Debug.Put_Line ("races read");
+
       Wait_Until_Key (Reader, "DestinyDamageTypeDefinition");
       Read_Damage_Types (Reader, Result.Destiny_Damage_Types);
       Debug.Put_Line ("damage types read");
+
       Wait_Until_Key (Reader, "DestinyInventoryItemDefinition");
       Read_Inventory_Items (Reader, Result.Destiny_Inventory_Items);
       Debug.Put_Line ("items read");
+
+      Wait_Until_Key (Reader, "DestinyObjectiveDefinition");
+      Read_Objectives (Reader, Result.Destiny_Objectives);
+      Debug.Put_Line ("objectives read");
+
       Wait_Until_Key (Reader, "DestinyRecordDefinition");
       Read_Titles (Reader, Result.Destiny_Titles);
       Debug.Put_Line ("records read");
-      Free (Stream);
---              Debug.Put_Line (Result'Image);
---              We can't use 'Image for Debug output here because the UB Strings are UTF-8 encoded
 
+      Free (Stream);
+
+      --  Cache manifest for later use
       declare
 
          use Ada.Streams.Stream_IO;
@@ -423,7 +490,12 @@ package body API.Manifest is
       begin
          Create (SF, Out_File, "dat/manifest.dat");
          S := Ada.Streams.Stream_IO.Stream (SF);
+
+         --   Compatibility metadata
+         Natural'Write (S, Current_Manifest_Format_Version);
          Unbounded_String'Write (S, Localised_Manifest_Path);
+
+         --  Raw manifest record
          Manifest_Type'Write (S, Result);
          Close (SF);
       end;
@@ -446,7 +518,8 @@ package body API.Manifest is
         (Stream.all,
          To_Stream_Element_Vector
            (Tasks.Download.Download
-              (+("/Platform/Destiny2/Manifest/"), Caching => Debug_Caching)));
+              (+(API_Root & "/Destiny2/Manifest/"),
+               Caching => Debug_Caching)));
       Set_Stream (Reader, Input_Text_Stream_Access (Stream));
       Wait_Until_Key (Reader, "jsonWorldContentPaths");
       Wait_Until_Key
@@ -462,18 +535,26 @@ package body API.Manifest is
          declare
 
             use Ada.Streams.Stream_IO;
-            SF               : File_Type;
-            S                : Stream_Access;
-            Manifest_Version : Unbounded_String;
+            SF                      : File_Type;
+            S                       : Stream_Access;
+            Manifest_Format_Version : Natural;
+            Manifest_Version        : Unbounded_String;
 
          begin
             Open (SF, In_File, "dat/manifest.dat");
             S := Ada.Streams.Stream_IO.Stream (SF);
+
+            --  Read compatibility metadata
+            Natural'Read (S, Manifest_Format_Version);
             Unbounded_String'Read (S, Manifest_Version);
+
+            --  Read raw manifest data
             Manifest_Type'Read (S, Result);
             Close (SF);
 
-            if Manifest_Version /= Localised_Manifest_Path then
+            if Manifest_Format_Version /= Current_Manifest_Format_Version or
+              Manifest_Version /= Localised_Manifest_Path
+            then
                Debug.Put_Line ("Update prepared manifest");
                Delete_File ("dat/manifest.dat");
                return Fetch_Manifest (Localised_Manifest_Path);

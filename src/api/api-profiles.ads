@@ -169,10 +169,9 @@ package API.Profiles is
    subtype Sockets_Map is Sockets_Maps.Map;
 
    type Instance_Type is record
-      Primary_Stat_Hash  : Manifest_Hash;
-      Primary_Stat_Value : Integer_32;
-      Energy_Capacity    : Integer_32;
-      Energy_Used        : Integer_32;
+      Light_Level     : Integer_32;
+      Energy_Capacity : Integer_32;
+      Energy_Used     : Integer_32;
    end record;
 
    package Instance_Maps is new Ada.Containers.Ordered_Maps
@@ -210,11 +209,14 @@ package API.Profiles is
    subtype Plug_Objectives_Map is Plug_Objectives_Maps.Map;
 
    type Item_Components_Type is record
-      Instances       : Instance_Map;
-      Stats           : Stats_Map_By_IID;
-      Sockets         : Sockets_Map;
+      Instances : Instance_Map;
+      Stats     : Stats_Map_By_IID;
+      --  Note: Map (Instance_ID) of Map (Stat Manifest_Hash) of Stat
+      Sockets : Sockets_Map;
+      --  Note: Map (Instance_ID) of List of Sockets
       Plug_Objectives : Plug_Objectives_Map;
-      Perks           : Perks_Map;
+      --  Note: Map (Instance_ID) of Map (Socket Manifest_Hash) of List of Objectives
+      Perks : Perks_Map; --  TODO: May not be necessary? Consider removing.
    end record;
 
    --  Profile

@@ -6,10 +6,10 @@ with Ada.Text_IO;            use Ada.Text_IO;
 --  AWS
 with AWS.Client;
 with AWS.Client.HTTP_Utils;
-with AWS.Response; use AWS;
+with AWS.Headers;
+with AWS.Messages; use AWS;
 
 --  Local Packages
-with API;            use API;
 with Secrets;        use Secrets;
 with Shared.Strings; use Shared.Strings;
 with Shared.Debug;
@@ -17,7 +17,22 @@ with Shared.Files;   use Shared;
 
 package body Tasks.Download is
    --  Debugging
-   Simulate_Slow : constant Boolean := True;
+   Simulate_Slow : constant Boolean := False;
+
+   --  Check the status of a request
+   --  Raises an exception on failure
+   procedure Check_Status (Data : AWS.Response.Data) is
+   begin
+      if AWS.Response.Status_Code (Data) not in AWS.Messages.Success then
+         Debug.Put_Line (AWS.Response.Status_Code (Data)'Image);
+         AWS.Headers.Debug (True);
+         AWS.Headers.Debug_Print (AWS.Response.Header (Data));
+         AWS.Headers.Debug (False);
+         Debug.Put_Line (AWS.Response.Message_Body (Data));
+
+         raise Program_Error with "Request failed.";
+      end if;
+   end Check_Status;
 
    --  Synchronous download functions
    function Download
@@ -31,6 +46,7 @@ package body Tasks.Download is
       Data       : Response.Data;
 
    begin
+      --  Debug.Put_Line ("Start Download " & (+Path));
       if Simulate_Slow then
          delay 0.05;
       end if;
@@ -42,22 +58,19 @@ package body Tasks.Download is
 
       else
          Debug.Put_Line ("Download " & (+Path));
-         Client.Create (Connection, API.Bungie_Root & (+Path));
+         Client.Create (Connection, +Path);
 
          if Needs_Auth then
             Client.HTTP_Utils.Send_Request
               (Connection => Connection,
                Kind       => Client.HTTP_Utils.GET,
                Result     => Data,
-               URI        => API.Bungie_Root & (+Path),
+               URI        => +Path,
                Headers    => Secrets.Headers);
 
          else
             Client.HTTP_Utils.Send_Request
-              (Connection,
-               Client.HTTP_Utils.GET,
-               Data,
-               API.Bungie_Root & (+Path));
+              (Connection, Client.HTTP_Utils.GET, Data, +Path);
          end if;
          Check_Status (Data);
 
@@ -83,21 +96,18 @@ package body Tasks.Download is
       --  overflow on musl libc
 
       Debug.Put_Line ("Download as string " & (+Path));
-      Client.Create (Connection, API.Bungie_Root & (+Path));
+      Client.Create (Connection, +Path);
 
       if Needs_Auth then
          Client.HTTP_Utils.Send_Request
            (Connection => Connection,
             Kind       => Client.HTTP_Utils.GET,
             Result     => Data,
-            URI        => API.Bungie_Root & (+Path),
+            URI        => +Path,
             Headers    => Secrets.Headers);
       else
          Client.HTTP_Utils.Send_Request
-           (Connection,
-            Client.HTTP_Utils.GET,
-            Data,
-            API.Bungie_Root & (+Path));
+           (Connection, Client.HTTP_Utils.GET, Data, +Path);
       end if;
       Check_Status (Data);
 

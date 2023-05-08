@@ -188,7 +188,7 @@ package body API.Transfers is
              "{" & '"' & "itemReferenceHash" & '"' & ':' & D.Item_Hash'Image &
              ',' & '"' & "stackSize" & '"' & ':' & D.Quantity'Image & ',' &
              '"' & "transferToVault" & '"' & ": true," & '"' & "itemId" & '"' &
-             ':' & ' ' & (+D.Item_Instance_ID) & ',' & '"' & "characterId" &
+             ':' & D.Item_Instance_ID'Image & ',' & '"' & "characterId" &
              '"' & ':' & ' ' & (+Source.Character_ID) & ',' & '"' &
              "membershipType" & '"' & ':' &
              Memberships.Find_Default_Platform_ID (Secrets.Membership) & "}",
@@ -227,7 +227,7 @@ package body API.Transfers is
              "{" & '"' & "itemReferenceHash" & '"' & ':' & D.Item_Hash'Image &
              ',' & '"' & "stackSize" & '"' & ':' & D.Quantity'Image & ',' &
              '"' & "transferToVault" & '"' & ": false," & '"' & "itemId" &
-             '"' & ':' & ' ' & (+D.Item_Instance_ID) & ',' & '"' &
+             '"' & ':' & D.Item_Instance_ID'Image & ',' & '"' &
              "characterId" & '"' & ':' & ' ' & (+Target.Character_ID) & ',' &
              '"' & "membershipType" & '"' & ':' &
              Memberships.Find_Default_Platform_ID (Secrets.Membership) & "}",
@@ -282,7 +282,7 @@ package body API.Transfers is
            Data =>
              "{" & '"' & "itemReferenceHash" & '"' & ':' & D.Item_Hash'Image &
              ',' & '"' & "stackSize" & '"' & ':' & D.Quantity'Image & ',' &
-             '"' & "itemId" & '"' & ':' & ' ' & (+D.Item_Instance_ID) & ',' &
+             '"' & "itemId" & '"' & ':' & D.Item_Instance_ID'Image & ',' &
              '"' & "characterId" & '"' & ':' & ' ' & (+Source.Character_ID) &
              ',' & '"' & "membershipType" & '"' & ':' &
              Memberships.Find_Default_Platform_ID (Secrets.Membership) & "}",
@@ -306,7 +306,7 @@ package body API.Transfers is
           (URL =>
              Bungie_Root & API_Root & "/Destiny2/Actions/Items/EquipItem/",
            Data =>
-             "{" & '"' & "itemId" & '"' & ':' & ' ' & (+D.Item_Instance_ID) &
+             "{" & '"' & "itemId" & '"' & ':' & D.Item_Instance_ID'Image &
              ',' & '"' & "characterId" & '"' & ':' & ' ' &
              (+Source.Character_ID) & ',' & '"' & "membershipType" & '"' &
              ':' & Memberships.Find_Default_Platform_ID (Secrets.Membership) &

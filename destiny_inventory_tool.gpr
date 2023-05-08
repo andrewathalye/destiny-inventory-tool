@@ -26,7 +26,8 @@ project Destiny_Inventory_Tool is
 
    package Linker is
       case Destiny_Inventory_Tool_Config.Build_Profile is
-      when "release" | "development" => null;
+      when "release" | "development" =>
+         for Default_Switches ("Ada") use ("-Wl,-z,stack-size=4194304");
       when "validation" =>
          for Default_Switches ("Ada") use ("-fsanitize=address");
    end case;

@@ -1,15 +1,3 @@
-Parse objectives from profile response and add to instanced item data
-
-plugObjectives => data => instanceId => objectivesPerPlug => plugHash => LIST_OF_OBJECTIVE where
-	Objective =>
-		objectiveHash
-		NULLABLE destinationHash
-		NULLABLE activityHash
-		NULLABLE progress
-		completionValue
-		complete
-		visible
-
 In Manifest:
 Read DestinyObjectiveDefinitions for "progressDescription" and "uiLabel"
 

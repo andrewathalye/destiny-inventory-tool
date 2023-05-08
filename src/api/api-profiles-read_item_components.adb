@@ -27,47 +27,40 @@ begin
    Add_Instances :
       while Event_Kind (Reader) /= End_Object loop
          declare
-            Primary_Stat_Hash  : Manifest_Hash;
-            Primary_Stat_Value : Integer_32;
-            Item_Level         : Integer_32;
-            pragma Unreferenced (Item_Level);
+            Item_Level : Integer_32;
+            Quality    : Integer_32;
 
             --  Nullable
             Energy_Capacity : Integer_32 := -1;
             Energy_Used     : Integer_32 := -1;
 
-            Objects_Remaining : Natural := 1;
-
          begin
             Item_Instance_ID :=
               Item_Instance_ID_Type'Value (VS2S (Key_Name (Reader)));
+
             --  Many fields omitted
-            Wait_Until_Key (Reader, "primaryStat");
-            Read_Next (Reader); -- START_OBJECT
 
-            Read_Next (Reader); -- "statHash"
-            Read_Next (Reader);
-            Primary_Stat_Hash :=
-              Manifest_Hash (As_Integer (Number_Value (Reader)));
-
-            Read_Next (Reader); -- "value"
-            Read_Next (Reader);
-            Primary_Stat_Value :=
-              Integer_32 (As_Integer (Number_Value (Reader)));
-
+            --  Note: Read Light Level
+            --  The below is a bodge - "primaryStat" is not present in
+            --  a number of "defective" 0-light items, so we would misalign
+            --  if trying to read it. Instead, calculate it via "Item_Level * 10 + Quality"
             Wait_Until_Key (Reader, "itemLevel");
             Read_Next (Reader);
             Item_Level := Integer_32 (As_Integer (Number_Value (Reader)));
 
-            --  A lot of nullable fields follow, so just loop through them
+            Read_Next (Reader); -- "quality"
+            Read_Next (Reader);
+            Quality := Integer_32 (As_Integer (Number_Value (Reader)));
+
+            --  A lot of nullable fields follow, but we only need "energy"
+            Read_Next (Reader);
             Finish_Up :
                loop
                   case Event_Kind (Reader) is
-                     when Start_Object =>
-                        Objects_Remaining := @ + 1;
                      when End_Object =>
-                        Objects_Remaining := @ - 1;
-                     when Key_Name =>
+                        --  Only possible to trigger if there is no "energy" object
+                        exit Finish_Up;
+                     when Key_Name => --  Read the key and value
                         if VS2S (Key_Name (Reader)) = "energy" then
                            Read_Next (Reader); -- START_OBJECT
 
@@ -90,28 +83,38 @@ begin
                            Read_Next (Reader); -- energyUnused
                            Read_Next (Reader);
 
-                           Read_Next (Reader); -- END_OBJECT
+                           Read_Next
+                             (Reader); -- END_OBJECT (just for "energy")
+                        else
+                           Read_Next (Reader);
+                           case Event_Kind (Reader) is
+                              when Start_Object =>
+                                 Wait_Until_Event (Reader, End_Object);
+                              when Start_Array =>
+                                 Wait_Until_Event (Reader, End_Array);
+                              when String_Value |
+                                Boolean_Value   |
+                                Number_Value    |
+                                Null_Value      =>
+                                 null;
+                              when others =>
+                                 raise Program_Error;
+                           end case;
                         end if;
                      when others =>
-                        null;
+                        raise Program_Error;
                   end case;
-
-                  if Objects_Remaining = 0 then
-                     exit Finish_Up;
-                  end if;
 
                   Read_Next (Reader);
                end loop Finish_Up;
 
+               --  END_OBJECT reached for the instance data segment
+
             Components.Instances.Insert
               (Item_Instance_ID,
-              (Primary_Stat_Hash,
-                Primary_Stat_Value,
-                Energy_Capacity,
-                Energy_Used));
+               (Item_Level * 10 + Quality, Energy_Capacity, Energy_Used));
 
             Read_Next (Reader); -- Key_Name for Instance_ID or END_OBJECT
-
          end;
       end loop Add_Instances;
 
@@ -125,13 +128,14 @@ begin
    Read_Next (Reader); -- START_OBJECT
    Read_Next (Reader); -- "data"
    Read_Next (Reader); -- START_OBJECT
+   Read_Next (Reader); -- key_name = item_instance_id or END_OBJECT
+
    Add_Stats :
       while Event_Kind (Reader) /= End_Object loop
          declare
             Stats     : Stats_Map;
             Stat_Hash : Manifest_Hash;
          begin
-            Read_Next (Reader); -- key_name = item_instance_id
             Item_Instance_ID :=
               Item_Instance_ID_Type'Value (VS2S (Key_Name (Reader)));
 
@@ -160,7 +164,8 @@ begin
                end loop Read_Stats;
 
             Components.Stats.Insert (Item_Instance_ID, Stats);
-            Read_Next (Reader); -- START_OBJECT or END_OBJECT
+            Read_Next (Reader); -- END_OBJECT (for "stats")
+            Read_Next (Reader); -- instance_id as key_name or end_object
          end;
       end loop Add_Stats;
 
@@ -268,7 +273,9 @@ begin
                   begin
                      Plug_Hash :=
                        Manifest_Hash'Value (VS2S (Key_Name (Reader)));
+
                      Read_Next (Reader); -- Start_Array
+                     Read_Next (Reader); -- START_OBJECT or END_ARRAY
 
                      Add_Objectives :
                         while Event_Kind (Reader) /= End_Array loop

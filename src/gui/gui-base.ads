@@ -27,6 +27,11 @@ package GUI.Base is
       T       : Tasks.Download.Download_Task;
       Handler : User_Callback_Item_Description.Marshallers.Marshaller)
       return Gtk_Overlay;
+
+   --  Populates the item details menu for a given item description.
+   --  The menu must then be shown by the caller when needed.
+   procedure Populate_Item_Details (D : Manifest.Tools.Item_Description);
+
    --  Renders a set of inventory items into a Gtk_Grid from an
    --  Item_Description_List. Each item will have an on-click handler added.
    procedure Render_Items
@@ -34,6 +39,7 @@ package GUI.Base is
       Bucket   : Gtk_Grid;
       T        : Tasks.Download.Download_Task;
       Max_Left : Gint := 2);
+
    --  Displays an error message on screen
    procedure Error_Message (Name : String; Message : String);
    --  Note: These subprograms require the GUI to be unlocked, so they should

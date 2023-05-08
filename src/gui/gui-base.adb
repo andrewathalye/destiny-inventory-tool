@@ -11,6 +11,7 @@ with Gtk.Message_Dialog; use Gtk.Message_Dialog;
 with Gtk.Image;          use Gtk.Image;
 with Gtk.Label;          use Gtk.Label;
 with Gtk.Alignment;      use Gtk.Alignment;
+with Gtk.Progress_Bar;   use Gtk.Progress_Bar;
 with Pango.Attributes;   use Pango.Attributes;
 
 --  Local Packages
@@ -111,6 +112,12 @@ package body GUI.Base is
         (D.Quantity > 1 or D.Item_Type = Weapon or D.Item_Type = Armour) with
         Inline;
 
+      function Is_Crafted_Item_Masterworked
+        (D : Manifest.Tools.Item_Description) return Boolean is
+        (D.State.Crafted
+         and then Manifest.Tools.Get_Weapon_Level (D) >= 30) with
+        Inline;
+
       --  Variables
       Image         : Gtk_Image;
       Button        : Gtk_Button;
@@ -121,19 +128,22 @@ package body GUI.Base is
       Gtk_New (Image);
       Gtk_New (Button);
       Gtk_New (Overlay);
-      --  Setup Icon and Button
 
-      if Global_Pixbuf_Cache.Contains (D.Icon_Path) then
-         Image.Set (Global_Pixbuf_Cache.Element (D.Icon_Path));
+      --  Setup Icon and Button
+      if Global_Pixbuf_Cache.Contains (+(Bungie_Root & (+D.Icon_Path))) then
+         Image.Set
+           (Global_Pixbuf_Cache.Element (+(Bungie_Root & (+D.Icon_Path))));
 
       else -- Asynchronously download the icon
          Image.Set (Placeholder_Icon);
-         T.Download (D.Icon_Path, Gtk_Widget (Image));
+         T.Download (+(Bungie_Root & (+D.Icon_Path)), Gtk_Widget (Image));
       end if;
+
       Set_Image (Button, Image);
       User_Callback_Item_Description.Connect
         (Button, "clicked", Handler, User_Data => D);
       Button.Show;
+
       --  Add Button to Overlay
       Overlay.Add (Button);
 
@@ -148,12 +158,17 @@ package body GUI.Base is
             begin
                Gtk_New (Watermark);
 
-               if Global_Pixbuf_Cache.Contains (D.Watermark_Path) then
+               if Global_Pixbuf_Cache.Contains
+                   (+(Bungie_Root & (+D.Watermark_Path)))
+               then
                   Watermark.Set
-                    (Global_Pixbuf_Cache.Element (D.Watermark_Path));
+                    (Global_Pixbuf_Cache.Element
+                       (+(Bungie_Root & (+D.Watermark_Path))));
 
                else -- Asynchronously download the watermark
-                  T.Download (D.Watermark_Path, Gtk_Widget (Watermark));
+                  T.Download
+                    (+(Bungie_Root & (+D.Watermark_Path)),
+                     Gtk_Widget (Watermark));
                end if;
                Watermark.Show;
                Overlay.Add_Overlay (Watermark);
@@ -185,7 +200,7 @@ package body GUI.Base is
          Set
            (State_Overlay,
             (if
-               D.State.Masterwork and D.State.Crafted
+               Is_Crafted_Item_Masterworked (D)
              then
                Crafted_Masterwork_Overlay
              elsif D.State.Masterwork then Masterwork_Overlay
@@ -212,7 +227,7 @@ package body GUI.Base is
             Gtk_New (Label);
             Gtk_New
               (Alignment,
-               Xalign => 0.95,
+               Xalign => 0.92,
                Yalign => 0.92,
                Xscale => 0.0,
                Yscale => 0.0);
@@ -232,6 +247,77 @@ package body GUI.Base is
         ((+D.Name) & ASCII.LF & (+D.Item_Type_And_Tier_Display_Name));
       return Overlay;
    end Get_Overlay;
+
+   procedure Populate_Item_Details (D : Manifest.Tools.Item_Description) is
+      Name : constant Gtk_Label :=
+        Gtk_Label (Builder.Get_Object ("item_details_name"));
+      Description : constant Gtk_Label :=
+        Gtk_Label (Builder.Get_Object ("item_details_description"));
+      Stats : constant Gtk_Grid :=
+        Gtk_Grid (Builder.Get_Object ("item_details_stats"));
+      Sockets : constant Gtk_Grid :=
+        Gtk_Grid (Builder.Get_Object ("item_details_sockets"));
+
+      Stat_Index                            : Gint := 1;
+      Socket_Index_Horiz, Socket_Index_Vert : Gint := 1;
+   begin
+      --  TODO set background colour by rarity
+      Name.Set_Label (+D.Name);
+      Description.Set_Label (+D.Item_Type_And_Tier_Display_Name);
+
+      --  Interrupt the download task so more items can be queued
+      GUI.Lock_Object.Unlock;
+      begin
+         Tasks.Download.Contents_Task.Interrupt;
+      end;
+      GUI.Lock_Object.Lock;
+
+      Clear_Bucket (Stats);
+      for Stat of D.Stats loop
+         declare
+            Name         : constant Gtk_Label        := Gtk_Label_New;
+            Progress_Bar : constant Gtk_Progress_Bar := Gtk_Progress_Bar_New;
+         begin
+            Name.Set_Label ("<unimplemented>");
+            Name.Show;
+
+            Progress_Bar.Set_Fraction (Gdouble (Stat) / Gdouble (100));
+            Progress_Bar.Set_Show_Text (True);
+            Progress_Bar.Set_Text (Stat'Image);
+            Progress_Bar.Show;
+
+            Stats.Attach (Name, 1, Stat_Index);
+            Stats.Attach (Progress_Bar, 2, Stat_Index);
+            Stat_Index := @ + 1;
+         end;
+      end loop;
+
+      Clear_Bucket (Sockets);
+      for Socket of D.Sockets loop
+         if Socket.Is_Visible then
+            declare
+               Overlay : constant Gtk_Overlay :=
+                 Get_Overlay
+                   (Get_Description (The_Manifest, Socket.Plug_Hash),
+                    Tasks.Download.Contents_Task,
+                    User_Callback_Item_Description.To_Marshaller
+                      (Handlers.Null_Item_Button_Handler'Access));
+            begin
+               Overlay.Show;
+               Sockets.Attach (Overlay, Socket_Index_Horiz, Socket_Index_Vert);
+               --  Line-wrapping to avoid excessively-wide menus
+               Socket_Index_Horiz := @ + 1;
+               if Socket_Index_Horiz > 5 then
+                  Socket_Index_Horiz := 1;
+                  Socket_Index_Vert  := @ + 1;
+               end if;
+            end;
+         end if;
+      end loop;
+
+      --  Resume the download task
+      Tasks.Download.Contents_Task.Execute (GUI.Image_Callback'Access);
+   end Populate_Item_Details;
 
    procedure Render_Items
      (List     : Inventories.Item_Description_List;

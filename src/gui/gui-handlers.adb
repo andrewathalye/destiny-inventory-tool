@@ -97,8 +97,8 @@ package body GUI.Handlers is
       GUI.Locked_Wrapper (GUI.Character.Render'Access);
    end Postmaster_Vault_Handler;
    pragma Warnings (On, "is not referenced");
-   --  Install Handlers
 
+   --  Install Handlers
    procedure Set_Handlers is
 
       Vault_Button : constant Gtk_Widget :=
@@ -122,6 +122,7 @@ package body GUI.Handlers is
          "clicked",
          Widget_Callback.To_Marshaller (Postmaster_Vault_Handler'Access));
    end Set_Handlers;
+
    --  Dynamic Handlers (Public)
    pragma Warnings (Off, "is not referenced");
 
@@ -310,13 +311,15 @@ package body GUI.Handlers is
       end if;
    end Vault_Handler;
    pragma Warnings (On, "is not referenced");
-   --  Display Transfer Menu When Item is Clicked
 
+   --  Display Transfer Menu When Item is Clicked
    procedure Item_Button_Handler
      (Widget    : access Gtk_Widget_Record'Class;
       User_Data : Manifest.Tools.Item_Description)
    is
 
+      Item_Details : constant Gtk_Popover :=
+        Gtk_Popover (Builder.Get_Object ("item_details"));
       Transfer_Menu : constant Gtk_Popover :=
         Gtk_Popover (Builder.Get_Object ("transfer_menu"));
       Vault_Menu : constant Gtk_Popover :=
@@ -325,8 +328,16 @@ package body GUI.Handlers is
    begin
       Current_Item := User_Data;
       Debug.Put_Line (Current_Item'Image);
-      --  Don't show the normal transfer menu for nontransferrables
 
+      --  Display item details
+      Base.Populate_Item_Details (Current_Item);
+      Item_Details.Set_Relative_To (Widget);
+      Item_Details.Popup;
+
+      pragma Warnings (Off, "unreachable code");
+      return;
+
+      --  Don't show the normal transfer menu for nontransferrables
       if User_Data.Transfer_Status /= Can_Transfer then
          --  It is often possible to transfer items in the postmaster to the
          --  Vault
@@ -336,10 +347,11 @@ package body GUI.Handlers is
             Vault_Menu.Set_Relative_To (Widget);
             Vault_Menu.Popup;
          end if;
-         return;
+         --  For other items, we can’t perform any actions
+      else
+         Transfer_Menu.Set_Relative_To (Widget);
+         Transfer_Menu.Popup;
       end if;
-      Transfer_Menu.Set_Relative_To (Widget);
-      Transfer_Menu.Popup;
    end Item_Button_Handler;
 
 end GUI.Handlers;

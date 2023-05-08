@@ -22,6 +22,7 @@ with GNATCOLL.JSON; use GNATCOLL.JSON;
 --  Local Packages
 with Shared.Strings; use Shared.Strings;
 with Shared.Debug;   use Shared;
+with Tasks.Download;
 with Constant_Secrets;
 
 package body API.Authorise is
@@ -135,7 +136,7 @@ package body API.Authorise is
            Content_Type => "application/x-www-form-urlencoded");
 --              Debug.Put_Line (Response.Message_Body (Data));
 
-      Check_Status (Data);
+      Tasks.Download.Check_Status (Data);
       return Parse_JSON (Response.Message_Body (Data));
    end Get_Token;
 
@@ -157,7 +158,7 @@ package body API.Authorise is
            Content_Type => "application/x-www-form-urlencoded");
 --              Debug.Put_Line (Response.Message_Body (Data));
 
-      Check_Status (Data);
+      Tasks.Download.Check_Status (Data);
       return Parse_JSON (Response.Message_Body (Data));
    end Get_Initial_Token;
 
