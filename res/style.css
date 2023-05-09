@@ -1,0 +1,38 @@
+progress, trough {
+	min-height: 5px;
+}
+
+separator {
+	min-height: 2px;
+}
+
+#divider {
+	background-image: linear-gradient(45deg, slategrey, dimgrey);
+}
+
+button {
+	background: rgba(128, 128, 128, 0);
+}
+
+popover, #item_details_box {
+	border-radius: 10px;
+}
+
+#item_details_name_type_box_common {
+	background-color: silver;
+	color: black;
+}
+
+#item_details_name_type_box_rare {
+	background-color: cornflowerblue;
+	color: white;
+}
+#item_details_name_type_box_superior {
+	background-color: indigo;
+	color: white;
+}
+
+#item_details_name_type_box_exotic {
+	background-color: gold;
+	color: white;
+}

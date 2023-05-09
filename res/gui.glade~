@@ -192,9 +192,11 @@
     </child>
   </object>
   <object class="GtkPopoverMenu" id="item_details">
+    <property name="name">item_details</property>
     <property name="can-focus">False</property>
     <child>
       <object class="GtkBox" id="item_details_box">
+        <property name="name">item_details_box</property>
         <property name="visible">True</property>
         <property name="can-focus">False</property>
         <property name="orientation">vertical</property>
@@ -243,7 +245,6 @@
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="padding">5</property>
             <property name="position">1</property>
           </packing>
         </child>
@@ -267,6 +268,7 @@
             <property name="can-focus">False</property>
             <property name="halign">center</property>
             <property name="column-spacing">5</property>
+            <property name="row-homogeneous">True</property>
             <child>
               <placeholder/>
             </child>
@@ -288,7 +290,6 @@
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="padding">5</property>
             <property name="position">4</property>
           </packing>
         </child>
@@ -331,7 +332,6 @@
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="padding">5</property>
             <property name="position">6</property>
           </packing>
         </child>
@@ -368,12 +368,14 @@
     <signal name="destroy" handler="window_close_handler" swapped="no"/>
     <child>
       <object class="GtkBox" id="divider">
+        <property name="name">divider</property>
         <property name="visible">True</property>
         <property name="can-focus">False</property>
         <property name="spacing">20</property>
         <property name="homogeneous">True</property>
         <child>
           <object class="GtkPaned" id="character_pane">
+            <property name="name">character_pane</property>
             <property name="visible">True</property>
             <property name="can-focus">True</property>
             <property name="orientation">vertical</property>
@@ -1122,7 +1124,7 @@
                             <property name="halign">end</property>
                             <property name="use-stock">True</property>
                             <property name="always-show-image">True</property>
-                            <signal name="clicked" handler="reload_button_handler" swapped="no"/>
+                            <signal name="clicked" handler="reload_button_clicked_handler" swapped="no"/>
                           </object>
                           <packing>
                             <property name="expand">False</property>

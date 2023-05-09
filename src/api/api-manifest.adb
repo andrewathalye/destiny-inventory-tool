@@ -165,7 +165,7 @@ package body API.Manifest is
       Set_Stream (Reader, Input_Text_Stream_Access (Stream));
       Wait_Until_Key (Reader, "jsonWorldContentPaths");
       Wait_Until_Key
-        (Reader, "it"); -- +M.Bungie_Net_User.Locale); -- TODO Needs to change
+        (Reader, "en"); -- +M.Bungie_Net_User.Locale); -- TODO Needs to change
       Read_Next (Reader); -- STRING_VALUE
 
       Localised_Manifest_Path := VS2UB (String_Value (Reader));

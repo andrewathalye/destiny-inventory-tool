@@ -9,6 +9,9 @@ with Gtk.Label;        use Gtk.Label;
 with Gtk.Overlay;      use Gtk.Overlay;
 
 --  Local Packages
+with API.Manifest;
+use all type API.Manifest.Destiny_Tier_Type;
+
 with GUI.Base.Get_Overlay;
 with GUI.Handlers; use GUI;
 
@@ -17,9 +20,11 @@ with Shared.Strings; use Shared.Strings;
 procedure GUI.Base.Populate_Item_Details (D : Manifest.Tools.Item_Description)
 is
    --  Widgets (Constant)
+   Name_Type_Box : constant Gtk_Box :=
+     Gtk_Box (Builder.Get_Object ("item_details_name_type_box"));
    Name : constant Gtk_Label :=
      Gtk_Label (Builder.Get_Object ("item_details_name"));
-   Description : constant Gtk_Label :=
+   Item_Type : constant Gtk_Label :=
      Gtk_Label (Builder.Get_Object ("item_details_description"));
    Energy : constant Gtk_Level_Bar :=
      Gtk_Level_Bar (Builder.Get_Object ("item_details_energy"));
@@ -36,9 +41,20 @@ is
    Objective_Index                       : Gint := 0;
 
 begin
-   --  TODO set background colour by rarity
+   --  Set background colour by rarity (using CSS)
+   case D.Tier_Type is
+      when Unknown | Currency | Basic | Common =>
+         Name_Type_Box.Set_Name ("item_details_name_type_box_common");
+      when Rare =>
+         Name_Type_Box.Set_Name ("item_details_name_type_box_rare");
+      when Superior =>
+         Name_Type_Box.Set_Name ("item_details_name_type_box_superior");
+      when Exotic =>
+         Name_Type_Box.Set_Name ("item_details_name_type_box_exotic");
+   end case;
+
    Name.Set_Label (+D.Name);
-   Description.Set_Label (+D.Item_Type_And_Tier_Display_Name);
+   Item_Type.Set_Label (+D.Item_Type_And_Tier_Display_Name);
 
    --  Show armour energy capacity
    if D.Energy_Capacity >= 0 then
@@ -90,6 +106,8 @@ begin
                      Name         : constant Gtk_Label        := Gtk_Label_New;
                      Progress_Bar : constant Gtk_Progress_Bar :=
                        Gtk_Progress_Bar_New;
+
+                     Label : constant Gtk_Label := Gtk_Label_New;
                   begin
                      Name.Set_Label
                        ((+The_Manifest.Destiny_Inventory_Items
@@ -100,18 +118,24 @@ begin
                            (Objective.Objective_Hash)
                            .Progress_Description));
                      Name.Show;
-
-                     Progress_Bar.Set_Fraction
-                       (Gdouble (Objective.Progress) /
-                        Gdouble (Objective.Completion_Value));
-                     Progress_Bar.Set_Show_Text (True);
-                     Progress_Bar.Set_Text
-                       (Objective.Progress'Image & "/" &
-                        Objective.Completion_Value'Image);
-                     Progress_Bar.Show;
-
                      Objectives.Attach (Name, 0, Objective_Index);
-                     Objectives.Attach (Progress_Bar, 1, Objective_Index);
+
+                     if Objective.Completion_Value > 1 then
+                        Progress_Bar.Set_Fraction
+                          (Gdouble (Objective.Progress) /
+                           Gdouble (Objective.Completion_Value));
+                        Progress_Bar.Set_Show_Text (True);
+                        Progress_Bar.Set_Text
+                          (Objective.Progress'Image & "/" &
+                           Objective.Completion_Value'Image);
+                        Progress_Bar.Show;
+                        Objectives.Attach (Progress_Bar, 1, Objective_Index);
+                     else
+                        Label.Set_Label (Objective.Progress'Image);
+                        Label.Show;
+                        Objectives.Attach (Label, 1, Objective_Index);
+                     end if;
+
                      Objective_Index := @ + 1;
                   end;
                end if;
