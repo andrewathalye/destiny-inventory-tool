@@ -142,8 +142,10 @@ package API.Manifest.Tools is
       Allow_Actions : Boolean                           := False;
 
       --  Display info
-      Icon_Path        : Unbounded_String;
-      Watermark_Path   : Unbounded_String;
+      Icon_Path                : Unbounded_String;
+      Watermark_Path           : Unbounded_String;
+      Default_Damage_Type_Hash : Manifest_Hash := 0;
+      --  DestinyDamageTypeDefinition
       Style_Overridden : Boolean := False;
 
       --  Item qualities

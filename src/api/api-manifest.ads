@@ -189,5 +189,5 @@ package API.Manifest is
    --  Subprograms
    function Get_Manifest return Manifest_Type;
 private
-   Current_Manifest_Format_Version : constant := 2;
+   Current_Manifest_Format_Version : constant := 3;
 end API.Manifest;

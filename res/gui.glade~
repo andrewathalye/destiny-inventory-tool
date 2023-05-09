@@ -1073,6 +1073,9 @@
                                 <child>
                                   <placeholder/>
                                 </child>
+                                <child>
+                                  <placeholder/>
+                                </child>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -1244,40 +1247,38 @@
                   </packing>
                 </child>
                 <child>
-                  <!-- n-columns=10 n-rows=1 -->
-                  <object class="GtkGrid" id="vault_currency">
+                  <object class="GtkExpander" id="vault_currency_expander">
                     <property name="visible">True</property>
-                    <property name="can-focus">False</property>
-                    <property name="column-homogeneous">True</property>
+                    <property name="can-focus">True</property>
                     <child>
-                      <placeholder/>
+                      <!-- n-columns=5 n-rows=1 -->
+                      <object class="GtkGrid" id="vault_currency">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="column-homogeneous">True</property>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
+                      </object>
                     </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
+                    <child type="label">
+                      <object class="GtkLabel">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">expander</property>
+                      </object>
                     </child>
                   </object>
                   <packing>

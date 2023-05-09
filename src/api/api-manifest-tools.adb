@@ -128,7 +128,8 @@ package body API.Manifest.Tools is
               Manifest_Item.Display_Version_Watermark_Icons
                 (Natural (I.Version_Number))
             else Manifest_Item.Watermark_Path),
-         Style_Overridden => I.Override_Style_Item_Hash /= 0,
+         Default_Damage_Type_Hash => Manifest_Item.Default_Damage_Type_Hash,
+         Style_Overridden         => I.Override_Style_Item_Hash /= 0,
 
           --  Item qualities
           Postmaster_Pull_Has_Side_Effects =>

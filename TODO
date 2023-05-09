@@ -1,6 +1,3 @@
-
-Show energy type
-
 For Search:
 	Character
 	[items]
@@ -9,7 +6,4 @@ For Search:
 	Vault
 	[items]
 
-Scale images?
-
-Read Vendor Database for Vault Icon + Text
-Vendor List?
+Vendor List (requires DestinyVendorDefinition)?

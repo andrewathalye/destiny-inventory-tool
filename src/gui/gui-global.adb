@@ -34,11 +34,20 @@ package body GUI.Global is
      (Gtk_Widget_Record, Natural);
    package User_Callback_Character is new User_Callback
      (Gtk_Widget_Record, Profiles.Character_Type);
+
+   --  Constants
+   --  Note: The rationale for hardcoding this icon is that the intended way to
+   --  fetch it requires parsing all Vendor data, which we otherwise do not need.
+   --  TODO change this?
+   Vault_Icon_Path : constant Unbounded_String :=
+     +(Bungie_Root &
+      "/common/destiny2_content/icons/42284fb3e73118f37cc7563c6ae70097.png");
+
    --  Cache
    Placeholder_Icon : constant Gdk_Pixbuf :=
      Load_Image ("png", Files.Get_Data ("res/placeholder_icon.png"));
-   --  Redirections
 
+   --  Redirections
    procedure Render_Items
      (List     : Inventories.Item_Description_List;
       Bucket   : Gtk_Grid;
@@ -48,6 +57,7 @@ package body GUI.Global is
    begin
       Base.Render_Items (List, Bucket, T, Max_Left);
    end Render_Items;
+
    --  Private Subprograms
 
    --  One-time init for "character_grid"
@@ -106,7 +116,9 @@ package body GUI.Global is
 
       Transfer_Grid : constant Gtk_Grid :=
         Gtk_Grid (GUI.Builder.Get_Object ("transfer_grid"));
-      Count        : Gint := 0;
+      Count : Gint := 0;
+
+      Vault_Image  : Gtk_Image;
       Vault_Button : Gtk_Button;
 
    begin
@@ -145,6 +157,18 @@ package body GUI.Global is
             Count := @ + 1;
          end;
       end loop;
+
+      --  Vault Icon and Button
+      Gtk_New (Vault_Image);
+      if Global_Pixbuf_Cache.Contains (Vault_Icon_Path) then
+         Vault_Image.Set (Global_Pixbuf_Cache (Vault_Icon_Path));
+      else
+         Vault_Image.Set (Placeholder_Icon);
+         Tasks.Download.Global_Task.Download
+           (Vault_Icon_Path, Gtk_Widget (Vault_Image));
+      end if;
+      Vault_Image.Show;
+
       Gtk_New (Vault_Button, "Vault");
       Handlers.Widget_Callback.Connect
         (Vault_Button,
@@ -152,6 +176,8 @@ package body GUI.Global is
          Handlers.Widget_Callback.To_Marshaller
            (Handlers.Vault_Handler'Access));
       Vault_Button.Show;
+
+      Transfer_Grid.Attach (Vault_Image, 0, Count);
       Transfer_Grid.Attach (Vault_Button, 1, Count);
    end Setup_Transfer_Menu;
 
@@ -185,6 +211,9 @@ package body GUI.Global is
       Blank_Label : constant Gtk_Label := Gtk_Label_New;
 
       --  Expander Labels
+      Vault_Currency_Label : constant Gtk_Label :=
+        Gtk_Label (GUI.Builder.Get_Object ("vault_currency_label"));
+
       Vault_Kinetic_Label : constant Gtk_Label :=
         Gtk_Label (GUI.Builder.Get_Object ("vault_kinetic_label"));
       Vault_Energy_Label : constant Gtk_Label :=
@@ -242,6 +271,15 @@ package body GUI.Global is
       Finisher_Emote_Descriptions.Add (Blank_Label);
 
       --  Vault Category Labels
+      Vault_Currency_Label.Set_Text
+        ((+The_Manifest.Destiny_Inventory_Buckets (Glimmer'Enum_Rep).Name) &
+         ", " &
+         (+The_Manifest.Destiny_Inventory_Buckets (Legendary_Shards'Enum_Rep)
+            .Name) &
+         ", " &
+         (+The_Manifest.Destiny_Inventory_Buckets (Silver'Enum_Rep).Name) &
+         "…");
+
       Vault_Kinetic_Label.Set_Text
         (+The_Manifest.Destiny_Inventory_Buckets (Kinetic'Enum_Rep).Name);
       Vault_Energy_Label.Set_Text
@@ -279,9 +317,7 @@ package body GUI.Global is
    begin
       Base.Clear_Bucket (Vault_Currency);
       Render_Items
-        (Inventories.Global.Currency_Inventory (Inventory),
-         Vault_Currency,
-         10);
+        (Inventories.Global.Currency_Inventory (Inventory), Vault_Currency, 7);
    end Render_Currencies;
 
    --  Public Subprograms

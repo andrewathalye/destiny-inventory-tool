@@ -111,6 +111,7 @@ package body GUI is
                Lock_Object.Unlock;
                return;
             end if;
+
             --  Cache Pixbuf
             Global_Pixbuf_Cache.Insert (File_Name, Temp);
             Gtk_Image (Widget).Set (Temp);

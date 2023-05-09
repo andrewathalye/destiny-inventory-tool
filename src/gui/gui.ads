@@ -51,6 +51,7 @@ private
    --  Subprograms (Other Utilities in GUI.Base) Image Loading
    function Load_Image
      (File_Name : String; Data : Stream_Element_Array) return Gdk_Pixbuf;
+
    --  Note: To be used with Tasks.Download.Download_Task
    procedure Image_Callback
      (File_Name : Unbounded_String;

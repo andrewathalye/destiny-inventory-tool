@@ -6,6 +6,7 @@ with Gtk.Label;     use Gtk.Label;
 with Gtk.Image;     use Gtk.Image;
 with Gtk.Button;    use Gtk.Button;
 
+with Gdk.Pixbuf;       use Gdk.Pixbuf;
 with Pango.Attributes; use Pango.Attributes;
 
 --  Local Packages
@@ -32,6 +33,7 @@ is
           Manifest.Consumable |
           Manifest.DIT_Mod    |
           Manifest.Dummy      |
+          Manifest.Currency   |
           Manifest.None       =>
           False,
         when others => True) with
@@ -56,40 +58,45 @@ is
      Inline;
 
    --  Variables
-   Image         : Gtk_Image;
-   Button        : Gtk_Button;
    Overlay       : Gtk_Overlay;
    State_Overlay : Gtk_Image;
 
 begin
-   Gtk_New (Image);
-   Gtk_New (Button);
    Gtk_New (Overlay);
 
    --  Setup Icon and Button
-   if Length (D.Icon_Path) > 0 then
-      if Global_Pixbuf_Cache.Contains (+(Bungie_Root & (+D.Icon_Path))) then
-         Image.Set
-           (Global_Pixbuf_Cache.Element (+(Bungie_Root & (+D.Icon_Path))));
-
-      else -- Asynchronously download the icon
-         Image.Set (Placeholder_Icon);
-         T.Download (+(Bungie_Root & (+D.Icon_Path)), Gtk_Widget (Image));
-      end if;
-   else -- No image available
-      Image.Set (Placeholder_Icon);
-   end if;
-
-   Set_Image (Button, Image);
-   User_Callback_Item_Description.Connect
-     (Button, "clicked", Handler, User_Data => D);
-   Button.Show;
-
-   --  Add Button to Overlay
-   Overlay.Add (Button);
-
    --  First Overlay
-   --  Add Watermark to Overlay
+   declare
+      Image  : Gtk_Image;
+      Button : Gtk_Button;
+   begin
+      Gtk_New (Image);
+      Gtk_New (Button);
+
+      if Length (D.Icon_Path) > 0 then
+         if Global_Pixbuf_Cache.Contains (+(Bungie_Root & (+D.Icon_Path))) then
+            Image.Set
+              (Global_Pixbuf_Cache.Element (+(Bungie_Root & (+D.Icon_Path))));
+
+         else -- Asynchronously download the icon
+            Image.Set (Placeholder_Icon);
+            T.Download (+(Bungie_Root & (+D.Icon_Path)), Gtk_Widget (Image));
+         end if;
+      else -- No image available
+         Image.Set (Placeholder_Icon);
+      end if;
+
+      Set_Image (Button, Image);
+      User_Callback_Item_Description.Connect
+        (Button, "clicked", Handler, User_Data => D);
+      Button.Show;
+
+      --  Add Button to Overlay
+      Overlay.Add (Button);
+   end;
+
+   --  Add Watermark
+   --  Second Overlay
    if Should_Watermark (D) and then Length (D.Watermark_Path) > 0 then
       declare
 
@@ -108,14 +115,15 @@ begin
             T.Download
               (+(Bungie_Root & (+D.Watermark_Path)), Gtk_Widget (Watermark));
          end if;
+
          Watermark.Show;
          Overlay.Add_Overlay (Watermark);
          Overlay.Set_Overlay_Pass_Through (Watermark, True);
       end;
    end if;
 
-   --  Intermediate Overlay
    --  Add Ornament Icon to Overlay
+   --  Third Overlay
    if D.Style_Overridden then
       declare
 
@@ -130,9 +138,9 @@ begin
       end;
    end if;
 
+   --  Add Masterwork / Crafted / Normal Overlay
+   --  Fourth Overlay
    if Should_State_Overlay (D) then
-      --  Final Overlay
-      --  Add Masterwork / Crafted / Normal Overlay
       Gtk_New (State_Overlay);
       Set
         (State_Overlay,
@@ -146,6 +154,7 @@ begin
    end if;
 
    --  Setup Quantity / Light Level Label if Needed
+   --  Fifth Overlay
    if Should_Display_Label (D) then
       declare
 
@@ -174,6 +183,52 @@ begin
          Label.Show;
 
          Alignment.Add (Label);
+         Alignment.Show;
+
+         Overlay.Add_Overlay (Alignment);
+         Overlay.Set_Overlay_Pass_Through (Alignment, True);
+      end;
+   end if;
+
+   --  Show Damage Type if Necessary
+   --  Sixth Overlay
+   if D.Default_Damage_Type_Hash /= 0
+     and then The_Manifest.Destiny_Damage_Types (D.Default_Damage_Type_Hash)
+       .Show_Icon
+   then
+      declare
+         Pixbuf    : Gdk_Pixbuf;
+         Image     : Gtk_Image;
+         Alignment : Gtk_Alignment;
+
+         Icon_Path : constant Unbounded_String :=
+           +(Bungie_Root &
+            (+The_Manifest.Destiny_Damage_Types (D.Default_Damage_Type_Hash)
+               .Icon_Path));
+      begin
+         Gtk_New (Image);
+
+         if Global_Pixbuf_Cache.Contains (Icon_Path) then
+            Image.Set (Global_Pixbuf_Cache (Icon_Path));
+         else -- **SYNCHRONOUSLY** download the damage type icon. This is done so it can be scaled.
+            Pixbuf :=
+              Scale_Simple
+                (Load_Image (+Icon_Path, Tasks.Download.Download (Icon_Path)),
+                 24,
+                 24);
+            Global_Pixbuf_Cache.Insert (Icon_Path, Pixbuf);
+            Image.Set (Pixbuf);
+         end if;
+
+         Image.Show;
+
+         Gtk_New
+           (Alignment,
+            Xalign => 0.90,
+            Yalign => 0.10,
+            Xscale => 0.0,
+            Yscale => 0.0);
+         Alignment.Add (Image);
          Alignment.Show;
 
          Overlay.Add_Overlay (Alignment);
