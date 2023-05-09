@@ -10,7 +10,14 @@ project Destiny_Inventory_Tool is
    for Main use ("inventory_tool.adb");
 
    package Compiler is
-      for Default_Switches ("Ada") use Destiny_Inventory_Tool_Config.Ada_Compiler_Switches;
+      Common_Switches := Destiny_Inventory_tool_Config.Ada_Compiler_Switches;
+      case Destiny_Inventory_Tool_Config.Build_Profile is
+         when "release" | "development" => null;
+	 when "validation" =>
+	    Common_Switches := Common_Switches & ("-fsanitize-recover=address");
+      end case;
+
+      for Default_Switches ("Ada") use Common_Switches;
    end Compiler;
 
    package Binder is
@@ -28,7 +35,7 @@ project Destiny_Inventory_Tool is
       case Destiny_Inventory_Tool_Config.Build_Profile is
          when "release" | "development" => null;
          when "validation" =>
-            for Default_Switches ("Ada") use ("-fsanitize=address");
+            for Default_Switches ("Ada") use ("-fsanitize=address", "-static-libasan");
    end case;
    end Linker;
 

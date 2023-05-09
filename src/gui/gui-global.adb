@@ -153,8 +153,8 @@ package body GUI.Global is
       Vault_Button.Show;
       Transfer_Grid.Attach (Vault_Button, 1, Count);
    end Setup_Transfer_Menu;
-   --  One-time label creation
 
+   --  One-time label creation
    procedure Setup_Descriptions is
 
       function Make_Label (Hash : Manifest.Manifest_Hash) return Gtk_Label is

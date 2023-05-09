@@ -2,9 +2,14 @@ pragma Ada_2022;
 with Ada.Text_IO; use Ada.Text_IO;
 
 --  GtkAda
-with Gtk.Main;
 with Gtkada.Builder; use Gtkada.Builder;
-with Glib.Error;     use Glib.Error;
+
+with Gtk.Main;
+with Gtk.Css_Provider;   use Gtk.Css_Provider;
+with Gtk.Style_Context;  use Gtk.Style_Context;
+with Gtk.Style_Provider; use Gtk.Style_Provider;
+
+with Glib.Error; use Glib.Error;
 use Glib;
 
 --  Local Packages
@@ -15,9 +20,11 @@ with GUI.Handlers;
 with Destiny_Inventory_Tool_Config;
 
 procedure Inventory_Tool is
-   --  Constants
    Discard_G : Guint;
+   Discard_B : Boolean;
    Error     : aliased GError;
+   Provider  : Gtk_Css_Provider;
+   Context   : Gtk_Style_Context;
 begin
    --  Print Welcome Message
    Put_Line
@@ -27,7 +34,13 @@ begin
    --  Load Interface
    Gtk.Main.Init;
    Gtk_New (GUI.Builder);
-   Discard_G := Add_From_File (GUI.Builder, "res/gui.glade", Error'Access);
+   Discard_G := GUI.Builder.Add_From_File ("res/gui.glade", Error'Access);
+
+   --  Load CSS
+   Gtk_New (Provider);
+   Discard_B := Provider.Load_From_Path ("res/style.css", Error'Access);
+   Gtk_New (Context);
+   Context.Add_Provider (+Provider, Priority_Application);
 
    GUI.Handlers.Set_Handlers;
    Do_Connect (GUI.Builder);

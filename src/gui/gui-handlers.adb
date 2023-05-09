@@ -76,12 +76,17 @@ package body GUI.Handlers is
       Error_Dialog.Hide;
    end Error_Dialog_Close_Button_Handler;
 
+   procedure Reload_Button_Clicked_Handler
+     (Builder : access Gtkada_Builder_Record'Class)
+   is
+   begin
+      GUI.Base.Locked_Reload_Profile_Data;
+   end Reload_Button_Clicked_Handler;
+
    --  Install Handlers
    procedure Set_Handlers is
-
       Vault_Button : constant Gtk_Widget :=
         Gtk_Widget (Builder.Get_Object ("vault_button"));
-
    begin
       Register_Handler
         (GUI.Builder, "window_close_handler", Window_Close_Handler'Access);
@@ -95,6 +100,10 @@ package body GUI.Handlers is
         (Builder,
          "error_dialog_close_button_handler",
          Error_Dialog_Close_Button_Handler'Access);
+      Register_Handler
+        (Builder,
+         "reload_button_clicked_handler",
+         Reload_Button_Clicked_Handler'Access);
       Widget_Callback.Connect
         (Vault_Button,
          "clicked",
@@ -271,7 +280,6 @@ package body GUI.Handlers is
    procedure Vault_Handler (Button : access Gtk_Widget_Record'Class) is
    begin
       Debug.Put_Line ("Vault Item");
-      Debug.Put_Line (GUI.Current_Item'Image);
 
       if GUI.Current_Item.Bucket_Location = Postmaster then
          Debug.Put_Line ("Item was in Postmaster: pulling first");
