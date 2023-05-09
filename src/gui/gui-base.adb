@@ -127,7 +127,6 @@ package body GUI.Base is
         Gtk_Label (Builder.Get_Object ("status_name"));
 
    begin
-      Window.Hide;
       Status_Window.Show;
       Debug.Put_Line ("Reloading profile data");
       Status_Name.Set_Label ("Loading profile...");

@@ -1,3 +1,4 @@
+private with Ada.Calendar.Formatting;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
 --  Gtk
@@ -66,4 +67,8 @@ private
      Load_Image ("png", Files.Get_Data ("res/normal_overlay.png"));
    Ornament_Overlay : constant Gdk_Pixbuf :=
      Load_Image ("png", Files.Get_Data ("res/ornament_overlay.png"));
+
+   --  Constants for separate subprograms
+   Unix_Epoch : constant Ada.Calendar.Time :=
+     Ada.Calendar.Formatting.Value ("1970-01-01 00:00:00");
 end GUI.Base;

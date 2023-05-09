@@ -1,6 +1,8 @@
 pragma Ada_2022;
 
-with Interfaces; use Interfaces;
+with Ada.Calendar.Formatting; use Ada.Calendar.Formatting;
+use Ada.Calendar;
+with Interfaces;              use Interfaces;
 
 --  Gtkada
 with Gtk.Progress_Bar; use Gtk.Progress_Bar;
@@ -19,6 +21,9 @@ with Shared.Strings; use Shared.Strings;
 
 procedure GUI.Base.Populate_Item_Details (D : Manifest.Tools.Item_Description)
 is
+   --  Compile-Time Constants (DestinyObjectiveDefinition)
+   Crafting_Weapon_Timestamp : constant := 3_947_811_849;
+
    --  Widgets (Constant)
    Name_Type_Box : constant Gtk_Box :=
      Gtk_Box (Builder.Get_Object ("item_details_name_type_box"));
@@ -120,6 +125,8 @@ begin
                      Name.Show;
                      Objectives.Attach (Name, 0, Objective_Index);
 
+                     --  Some objectives are really just numbers, rather than progress bars.
+                     --  Others, like Catalyst objectives, are really progress bars
                      if Objective.Completion_Value > 1 then
                         Progress_Bar.Set_Fraction
                           (Gdouble (Objective.Progress) /
@@ -130,8 +137,18 @@ begin
                            Objective.Completion_Value'Image);
                         Progress_Bar.Show;
                         Objectives.Attach (Progress_Bar, 1, Objective_Index);
-                     else
-                        Label.Set_Label (Objective.Progress'Image);
+                     else --  Not a progress bar
+                        --  Format the Crafting Weapon Timestamp as a Date
+                        case Objective.Objective_Hash is
+                           when Crafting_Weapon_Timestamp =>
+                              Label.Set_Label
+                                (Image
+                                   (Unix_Epoch +
+                                    Duration (Objective.Progress)));
+                           when others =>
+                              Label.Set_Label (Objective.Progress'Image);
+                        end case;
+
                         Label.Show;
                         Objectives.Attach (Label, 1, Objective_Index);
                      end if;

@@ -13,10 +13,12 @@ use VSS.JSON.Pull_Readers;
 use VSS.JSON;
 
 --  Local Packages
+with API.Debug;
+
 with Shared.JSON;    use Shared.JSON;
 with Shared.Debug;
 with Shared.Strings; use Shared.Strings;
-use Shared;
+
 with Tasks.Download;
 
 package body API.Manifest is
@@ -74,7 +76,7 @@ package body API.Manifest is
       Reader : JSON_Simple_Pull_Reader;
 
    begin
-      Debug.Put_Line ("Fetch and parse manifest");
+      Shared.Debug.Put_Line ("Fetch and parse manifest");
       Set_Data
         (Stream.all,
          To_Stream_Element_Vector
@@ -86,39 +88,39 @@ package body API.Manifest is
 
       Wait_Until_Key (Reader, "DestinyClassDefinition");
       Read_Classes (Reader, Result.Destiny_Classes);
-      Debug.Put_Line ("classes read");
+      Shared.Debug.Put_Line ("classes read");
 
       Wait_Until_Key (Reader, "DestinyGenderDefinition");
       Read_Genders (Reader, Result.Destiny_Genders);
-      Debug.Put_Line ("genders read");
+      Shared.Debug.Put_Line ("genders read");
 
       Wait_Until_Key (Reader, "DestinyInventoryBucketDefinition");
       Read_Inventory_Buckets (Reader, Result.Destiny_Inventory_Buckets);
-      Debug.Put_Line ("buckets read");
+      Shared.Debug.Put_Line ("buckets read");
 
       Wait_Until_Key (Reader, "DestinyRaceDefinition");
       Read_Races (Reader, Result.Destiny_Races);
-      Debug.Put_Line ("races read");
+      Shared.Debug.Put_Line ("races read");
 
       Wait_Until_Key (Reader, "DestinyDamageTypeDefinition");
       Read_Damage_Types (Reader, Result.Destiny_Damage_Types);
-      Debug.Put_Line ("damage types read");
+      Shared.Debug.Put_Line ("damage types read");
 
       Wait_Until_Key (Reader, "DestinyStatDefinition");
       Read_Stats (Reader, Result.Destiny_Stats);
-      Debug.Put_Line ("stats read");
+      Shared.Debug.Put_Line ("stats read");
 
       Wait_Until_Key (Reader, "DestinyInventoryItemDefinition");
       Read_Inventory_Items (Reader, Result.Destiny_Inventory_Items);
-      Debug.Put_Line ("items read");
+      Shared.Debug.Put_Line ("items read");
 
       Wait_Until_Key (Reader, "DestinyObjectiveDefinition");
       Read_Objectives (Reader, Result.Destiny_Objectives);
-      Debug.Put_Line ("objectives read");
+      Shared.Debug.Put_Line ("objectives read");
 
       Wait_Until_Key (Reader, "DestinyRecordDefinition");
       Read_Titles (Reader, Result.Destiny_Titles);
-      Debug.Put_Line ("records read");
+      Shared.Debug.Put_Line ("records read");
 
       Free (Stream);
 
@@ -155,13 +157,13 @@ package body API.Manifest is
       Result : Manifest_Type;
 
    begin
-      Debug.Put_Line ("Get manifest");
+      Shared.Debug.Put_Line ("Get manifest");
       Set_Data
         (Stream.all,
          To_Stream_Element_Vector
            (Tasks.Download.Download
               (+(API_Root & "/Destiny2/Manifest/"),
-               Caching => Debug_Caching)));
+               Caching => API.Debug.Caching)));
       Set_Stream (Reader, Input_Text_Stream_Access (Stream));
       Wait_Until_Key (Reader, "jsonWorldContentPaths");
       Wait_Until_Key
@@ -172,7 +174,7 @@ package body API.Manifest is
       Free (Stream);
 
       if Exists ("dat/manifest.dat") then
-         Debug.Put_Line ("Load preparsed manifest");
+         Shared.Debug.Put_Line ("Load preparsed manifest");
 
          declare
 
@@ -200,7 +202,7 @@ package body API.Manifest is
                return Result;
             else
                Close (SF);
-               Debug.Put_Line ("Update manifest");
+               Shared.Debug.Put_Line ("Update manifest");
                Delete_File ("dat/manifest.dat");
                return Fetch_Manifest (Localised_Manifest_Path);
             end if;

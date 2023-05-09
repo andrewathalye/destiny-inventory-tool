@@ -1,5 +1,6 @@
 pragma Ada_2022;
-with Ada.Text_IO; use Ada.Text_IO;
+with Ada.Text_IO;  use Ada.Text_IO;
+with Ada.Calendar; use Ada.Calendar;
 
 --  GtkAda
 with Gtkada.Builder; use Gtkada.Builder;
@@ -16,6 +17,10 @@ use Glib;
 --  Local Packages
 with GUI.Base;
 with GUI.Handlers;
+
+with API.Debug;
+
+with Shared.Debug; use Shared;
 
 --  Alire
 with Destiny_Inventory_Tool_Config;
@@ -58,5 +63,14 @@ begin
    --  being drawn
    loop
       GUI.Locking_Main_Iteration;
+
+      --  Reload profile data if it is more than 120 seconds old
+      if not API.Debug.Caching
+        and then (Clock - GUI.Profile.Response_Minted_Timestamp) > 120.0
+      then
+         Debug.Put_Line
+           ("Profile data is more than 120 seconds old, refreshing");
+         GUI.Base.Reload_Profile_Data;
+      end if;
    end loop;
 end Inventory_Tool;

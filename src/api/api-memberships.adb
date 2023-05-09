@@ -11,9 +11,12 @@ with VSS.Stream_Element_Vectors.Conversions;
 use VSS.Stream_Element_Vectors.Conversions;
 
 --  Local Packages
+with API.Debug;
+
 with Shared.JSON;    use Shared.JSON;
 with Shared.Strings; use Shared.Strings;
-with Shared.Debug;   use Shared;
+with Shared.Debug;
+
 with Tasks.Download;
 
 package body API.Memberships is
@@ -45,14 +48,14 @@ package body API.Memberships is
       Result : Membership_Type;
 
    begin
-      Debug.Put_Line ("Get memberships");
+      Shared.Debug.Put_Line ("Get memberships");
       Set_Data
         (Stream.all,
          To_Stream_Element_Vector
            (Tasks.Download.Download
               (+(API_Root & "/User/GetMembershipsForCurrentUser/"),
                Needs_Auth => True,
-               Caching    => Debug_Caching)));
+               Caching    => API.Debug.Caching)));
       Set_Stream (Reader, Input_Text_Stream_Access (Stream));
 
       Wait_Until_Key (Reader, "destinyMemberships");

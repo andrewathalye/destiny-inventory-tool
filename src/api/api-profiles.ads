@@ -1,6 +1,7 @@
 with Ada.Containers.Hashed_Maps;
 with Ada.Containers.Ordered_Maps;
 with Ada.Containers.Vectors;
+with Ada.Calendar;          use Ada.Calendar;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Interfaces;            use Interfaces;
 
@@ -221,9 +222,10 @@ package API.Profiles is
 
    --  Profile
    type Profile_Type is record
-      Profile_Inventory  : Item_List;
-      Profile_Currencies : Item_List;
-      Platform_Silver    : Platform_Silver_Array;
+      Response_Minted_Timestamp : Time;
+      Profile_Inventory         : Item_List;
+      Profile_Currencies        : Item_List;
+      Platform_Silver           : Platform_Silver_Array;
       --  Plug Sets?
       Characters            : Character_List;
       Character_Inventories : Inventory_Map;

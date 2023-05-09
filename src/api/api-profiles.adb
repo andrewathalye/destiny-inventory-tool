@@ -1,5 +1,7 @@
 pragma Ada_2022;
 
+with Ada.Calendar.Formatting; use Ada.Calendar.Formatting;
+
 --  VSS
 with VSS.Text_Streams.Memory_UTF8_Input;
 use VSS.Text_Streams.Memory_UTF8_Input;
@@ -11,9 +13,11 @@ with VSS.Stream_Element_Vectors.Conversions;
 use VSS.Stream_Element_Vectors.Conversions;
 
 --  Local Packages
+with API.Debug;
+
 with Shared.JSON;    use Shared.JSON;
 with Shared.Strings; use Shared.Strings;
-with Shared.Debug;   use Shared;
+with Shared.Debug;
 with Tasks.Download;
 
 with API.Profiles.Read_Item_Components;
@@ -77,7 +81,7 @@ package body API.Profiles is
       Reader : JSON_Simple_Pull_Reader;
 
    begin
-      Debug.Put_Line ("Get profiles");
+      Shared.Debug.Put_Line ("Get profiles");
 
       --  Get live profile
       Set_Data
@@ -90,24 +94,59 @@ package body API.Profiles is
                 (+M.Primary_Membership_ID) & "/" &
                 "?components=ProfileInventories,ProfileCurrencies,PlatformSilver,Characters,CharacterInventories,CharacterProgressions,CharacterEquipment,CharacterLoadouts,ItemInstances,ItemStats,ItemSockets,ItemPlugObjectives,ItemPerks"),
                Needs_Auth => True,
-               Caching    => Debug_Caching)));
+               Caching    => API.Debug.Caching)));
       Set_Stream (Reader, Input_Text_Stream_Access (Stream));
+
+      ------------------------
+      -- RESPONSE TIMESTAMP --
+      ------------------------
+
+      Wait_Until_Key (Reader, "responseMintedTimestamp");
+      Read_Next (Reader);
+      declare
+         Timestamp : constant String := VS2S (String_Value (Reader));
+         --  Format: yyyy-mm-ddThh:mm:ss.SSSZ
+      begin
+         Result.Response_Minted_Timestamp :=
+           Time_Of
+             (Year =>
+                Year_Number'Value
+                  (Timestamp (Timestamp'First .. Timestamp'First + 3)),
+              Month =>
+                Month_Number'Value
+                  (Timestamp (Timestamp'First + 5 .. Timestamp'First + 6)),
+              Day =>
+                Day_Number'Value
+                  (Timestamp (Timestamp'First + 8 .. Timestamp'First + 9)),
+              Hour =>
+                Hour_Number'Value
+                  (Timestamp (Timestamp'First + 11 .. Timestamp'First + 12)),
+              Minute =>
+                Minute_Number'Value
+                  (Timestamp (Timestamp'First + 14 .. Timestamp'First + 15)),
+              Second =>
+                Second_Number'Value
+                  (Timestamp (Timestamp'First + 17 .. Timestamp'First + 18)),
+              Sub_Second => --  Not always 3 digits long :(
+                Second_Duration'Value
+                  (Timestamp (Timestamp'First + 19 .. Timestamp'Last - 1)));
+      end;
 
       --  Profile Inventory
       Wait_Until_Key (Reader, "profileInventory");
       Read_Inventory (Reader, Result.Profile_Inventory);
-      Debug.Put_Line ("Done reading profile inventory");
+      Shared.Debug.Put_Line ("Done reading profile inventory");
 
       --  Profile Currencies
       Wait_Until_Key (Reader, "profileCurrencies");
       Read_Inventory (Reader, Result.Profile_Currencies);
-      Debug.Put_Line ("Done reading currencies");
+      Shared.Debug.Put_Line ("Done reading currencies");
 
       --  Silver
       Wait_Until_Key (Reader, "platformSilver");
       Read_Silver (Reader, Result);
 
-      Debug.Put_Line ("Done reading platform silver");
+      Shared.Debug.Put_Line ("Done reading platform silver");
 
       --  Characters
       Wait_Until_Key (Reader, "characters");
@@ -137,7 +176,7 @@ package body API.Profiles is
          end;
       end loop;
 
-      Debug.Put_Line ("Done reading character inventories");
+      Shared.Debug.Put_Line ("Done reading character inventories");
 
       ------------------------
       -- CHARACTER LOADOUTS --
@@ -174,7 +213,7 @@ package body API.Profiles is
          end;
       end loop;
 
-      Debug.Put_Line ("Done reading character loadouts");
+      Shared.Debug.Put_Line ("Done reading character loadouts");
 
       -------------------------
       -- CHARACTER EQUIPMENT --
@@ -200,7 +239,7 @@ package body API.Profiles is
          end;
       end loop;
 
-      Debug.Put_Line ("Done reading character equipment");
+      Shared.Debug.Put_Line ("Done reading character equipment");
 
       ---------------------
       -- ITEM COMPONENTS --
@@ -209,7 +248,7 @@ package body API.Profiles is
       Wait_Until_Key (Reader, "itemComponents");
       Read_Item_Components (Reader, Result.Item_Components);
 
-      Debug.Put_Line ("All item components loaded");
+      Shared.Debug.Put_Line ("All item components loaded");
 
       Free (Stream);
       return Result;

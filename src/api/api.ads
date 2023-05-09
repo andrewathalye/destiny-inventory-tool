@@ -16,9 +16,6 @@ package API is
      (Auth_Data : Auth_Storage_Type) return Auth_Header_Type;
 
 private
-   --  Use cached versions of API data files to reduce API calls This does not
-   --  currently apply to API.Authorise
-   Debug_Caching : Boolean := True;
    use Ada.Strings.Unbounded;
    API_Root : constant String := Bungie_Root & "/Platform";
 
