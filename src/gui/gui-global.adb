@@ -6,6 +6,7 @@ with Gtk.Handlers; use Gtk.Handlers;
 with Gtk.Widget;   use Gtk.Widget;
 with Gtk.Popover;  use Gtk.Popover;
 with Gtk.Grid;     use Gtk.Grid;
+with Gtk.Box;      use Gtk.Box;
 with Gtk.Image;    use Gtk.Image;
 with Gtk.Button;   use Gtk.Button;
 with Gdk.Pixbuf;   use Gdk.Pixbuf;
@@ -168,10 +169,20 @@ package body GUI.Global is
       end Make_Label;
 
       --  Inventory Section Labels
-      Character_Descriptions : constant Gtk_Grid :=
-        Gtk_Grid (GUI.Builder.Get_Object ("character_descriptions"));
-      Equipment_Descriptions : constant Gtk_Grid :=
-        Gtk_Grid (GUI.Builder.Get_Object ("equipment_descriptions"));
+      Subclass_Description : constant Gtk_Label :=
+        Gtk_Label (GUI.Builder.Get_Object ("subclass_description"));
+
+      Weapon_Descriptions : constant Gtk_Box :=
+        Gtk_Box (GUI.Builder.Get_Object ("weapon_descriptions"));
+      Armour_Descriptions : constant Gtk_Box :=
+        Gtk_Box (GUI.Builder.Get_Object ("armour_descriptions"));
+
+      Emblem_Sparrow_Ship_Descriptions : constant Gtk_Box :=
+        Gtk_Box (GUI.Builder.Get_Object ("emblem_sparrow_ship_descriptions"));
+      Finisher_Emote_Descriptions : constant Gtk_Box :=
+        Gtk_Box (GUI.Builder.Get_Object ("finisher_emote_descriptions"));
+
+      Blank_Label : constant Gtk_Label := Gtk_Label_New;
 
       --  Expander Labels
       Vault_Kinetic_Label : constant Gtk_Label :=
@@ -204,30 +215,31 @@ package body GUI.Global is
         Gtk_Label (GUI.Builder.Get_Object ("vault_modification_label"));
 
    begin
-      --  Character
-      Character_Descriptions.Attach
-        (Make_Label (Manifest.Tools.Subclass'Enum_Rep), 0, 0);
+      --  Inventory Section
+      Subclass_Description.Set_Text
+        (+The_Manifest.Destiny_Inventory_Buckets (Subclass'Enum_Rep).Name);
 
-      Character_Descriptions.Attach (Make_Label (Kinetic'Enum_Rep), 0, 1);
-      Character_Descriptions.Attach (Make_Label (Energy'Enum_Rep), 0, 2);
-      Character_Descriptions.Attach (Make_Label (Power'Enum_Rep), 0, 3);
-      Character_Descriptions.Attach (Make_Label (Shell'Enum_Rep), 0, 4);
-      Character_Descriptions.Attach (Make_Label (Artefact'Enum_Rep), 0, 5);
+      Weapon_Descriptions.Add (Make_Label (Kinetic'Enum_Rep));
+      Weapon_Descriptions.Add (Make_Label (Energy'Enum_Rep));
+      Weapon_Descriptions.Add (Make_Label (Power'Enum_Rep));
+      Weapon_Descriptions.Add (Make_Label (Shell'Enum_Rep));
+      Weapon_Descriptions.Add (Make_Label (Artefact'Enum_Rep));
 
-      Character_Descriptions.Attach (Make_Label (Helmet'Enum_Rep), 1, 1);
-      Character_Descriptions.Attach (Make_Label (Gauntlets'Enum_Rep), 1, 2);
-      Character_Descriptions.Attach (Make_Label (Chest'Enum_Rep), 1, 3);
-      Character_Descriptions.Attach (Make_Label (Leg'Enum_Rep), 1, 4);
-      Character_Descriptions.Attach (Make_Label (Class'Enum_Rep), 1, 5);
+      Armour_Descriptions.Add (Make_Label (Helmet'Enum_Rep));
+      Armour_Descriptions.Add (Make_Label (Gauntlets'Enum_Rep));
+      Armour_Descriptions.Add (Make_Label (Chest'Enum_Rep));
+      Armour_Descriptions.Add (Make_Label (Leg'Enum_Rep));
+      Armour_Descriptions.Add (Make_Label (Class'Enum_Rep));
 
-      --  Equipment
-      Equipment_Descriptions.Attach (Make_Label (Emblem'Enum_Rep), 0, 0);
-      Equipment_Descriptions.Attach (Make_Label (Sparrow'Enum_Rep), 0, 1);
-      Equipment_Descriptions.Attach (Make_Label (Ship'Enum_Rep), 0, 2);
+      --  Equipment (still technically Inventory)
+      Emblem_Sparrow_Ship_Descriptions.Add (Make_Label (Emblem'Enum_Rep));
+      Emblem_Sparrow_Ship_Descriptions.Add (Make_Label (Sparrow'Enum_Rep));
+      Emblem_Sparrow_Ship_Descriptions.Add (Make_Label (Ship'Enum_Rep));
 
-      Equipment_Descriptions.Attach (Make_Label (Finisher'Enum_Rep), 1, 0);
-      Equipment_Descriptions.Attach
-        (Make_Label (Emote_Collection'Enum_Rep), 1, 1);
+      Finisher_Emote_Descriptions.Add (Make_Label (Finisher'Enum_Rep));
+      Finisher_Emote_Descriptions.Add (Make_Label (Emote_Collection'Enum_Rep));
+      Blank_Label.Show;
+      Finisher_Emote_Descriptions.Add (Blank_Label);
 
       --  Vault Category Labels
       Vault_Kinetic_Label.Set_Text

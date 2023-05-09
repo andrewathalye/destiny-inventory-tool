@@ -119,7 +119,7 @@ begin
          end;
       end loop Populate_Stats;
 
-   --  Interrupt the download task so more items can be queued
+      --  Interrupt the download task so more items can be queued
    GUI.Lock_Object.Unlock;
    begin
       Tasks.Download.Contents_Task.Interrupt;
