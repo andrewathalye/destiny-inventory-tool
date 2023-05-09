@@ -67,13 +67,17 @@ begin
    Gtk_New (Overlay);
 
    --  Setup Icon and Button
-   if Global_Pixbuf_Cache.Contains (+(Bungie_Root & (+D.Icon_Path))) then
-      Image.Set
-        (Global_Pixbuf_Cache.Element (+(Bungie_Root & (+D.Icon_Path))));
+   if Length (D.Icon_Path) > 0 then
+      if Global_Pixbuf_Cache.Contains (+(Bungie_Root & (+D.Icon_Path))) then
+         Image.Set
+           (Global_Pixbuf_Cache.Element (+(Bungie_Root & (+D.Icon_Path))));
 
-   else -- Asynchronously download the icon
+      else -- Asynchronously download the icon
+         Image.Set (Placeholder_Icon);
+         T.Download (+(Bungie_Root & (+D.Icon_Path)), Gtk_Widget (Image));
+      end if;
+   else -- No image available
       Image.Set (Placeholder_Icon);
-      T.Download (+(Bungie_Root & (+D.Icon_Path)), Gtk_Widget (Image));
    end if;
 
    Set_Image (Button, Image);

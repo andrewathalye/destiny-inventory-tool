@@ -18,10 +18,15 @@ package GUI.Handlers is
      (Button : access Gtk_Widget_Record'Class;
       Target : Profiles.Character_Type);
    procedure Vault_Handler (Button : access Gtk_Widget_Record'Class);
+
+   --  Standard item button handler - shows item descriptions
    procedure Item_Button_Handler
      (Widget    : access Gtk_Widget_Record'Class;
       User_Data : Manifest.Tools.Item_Description);
-   procedure Null_Item_Button_Handler
+
+   --  Item button handler which displays only information relevant to
+   --  a socket plug.
+   procedure Socket_Item_Button_Handler
      (Widget    : access Gtk_Widget_Record'Class;
-      User_Data : Manifest.Tools.Item_Description) is null;
+      User_Data : Manifest.Tools.Item_Description);
 end GUI.Handlers;

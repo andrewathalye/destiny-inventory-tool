@@ -91,7 +91,12 @@ package body API.Inventories.Global is
       end loop;
       raise Item_Not_Found;
    end Get_Item_Stack;
+
    --  Inventory Updates and Access
+   function Currency_Inventory
+     (Inventory : Global_Inventory_Type) return Item_Description_List is
+     (Inventory.Currencies);
+
    function Vault_Inventory
      (Inventory : Global_Inventory_Type)
       return Item_Description_List_Bucket_Location_Type_Array is
@@ -103,12 +108,21 @@ package body API.Inventories.Global is
       M         :     Manifest.Manifest_Type)
    is
    begin
+      --  Clear old currency
+      Inventory.Currencies.Clear;
+
       --  Clear any old vault items
       for IDL of Inventory.Inventory loop
          IDL.Clear;
       end loop;
-      --  Load vault inventory
 
+      --  Load currency
+      for I of Profile.Profile_Currencies loop
+         Inventory.Currencies.Append
+           (Manifest.Tools.Get_Description (M, Profile, I));
+      end loop;
+
+      --  Load vault inventory
       for I of Profile.Profile_Inventory loop
          if I.Location = Manifest.Vault then
             declare

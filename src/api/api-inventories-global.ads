@@ -39,6 +39,10 @@ package API.Inventories.Global is
       return Manifest.Tools.Item_Description;
 
    --  Access and Initialisation
+   function Currency_Inventory
+     (Inventory : Global_Inventory_Type) return Item_Description_List with
+     Inline;
+
    function Vault_Inventory
      (Inventory : Global_Inventory_Type)
       return Item_Description_List_Bucket_Location_Type_Array with
@@ -50,6 +54,7 @@ package API.Inventories.Global is
       M         :     Manifest.Manifest_Type);
 private
    type Global_Inventory_Type is record
-      Inventory : Item_Description_List_Bucket_Location_Type_Array;
+      Currencies : Item_Description_List;
+      Inventory  : Item_Description_List_Bucket_Location_Type_Array;
    end record;
 end API.Inventories.Global;

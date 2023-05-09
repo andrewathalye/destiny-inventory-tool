@@ -21,6 +21,7 @@ use all type API.Manifest.Tools.Bucket_Location_Type;
 with Shared.Files;
 with Shared.Strings; use Shared.Strings;
 use Shared;
+
 with Tasks.Download;
 
 with Secrets; use Secrets;
@@ -126,7 +127,6 @@ package body GUI.Global is
                     (+(Bungie_Root & (+C.Emblem_Path))));
 
             else
---                                      Debug.Put_Line ("Get mini emblem");
                Image.Set (Placeholder_Icon);
                Tasks.Download.Global_Task.Download
                  (+(Bungie_Root & (+C.Emblem_Path)), Gtk_Widget (Image));
@@ -167,10 +167,41 @@ package body GUI.Global is
          return Result;
       end Make_Label;
 
+      --  Inventory Section Labels
       Character_Descriptions : constant Gtk_Grid :=
         Gtk_Grid (GUI.Builder.Get_Object ("character_descriptions"));
       Equipment_Descriptions : constant Gtk_Grid :=
         Gtk_Grid (GUI.Builder.Get_Object ("equipment_descriptions"));
+
+      --  Expander Labels
+      Vault_Kinetic_Label : constant Gtk_Label :=
+        Gtk_Label (GUI.Builder.Get_Object ("vault_kinetic_label"));
+      Vault_Energy_Label : constant Gtk_Label :=
+        Gtk_Label (GUI.Builder.Get_Object ("vault_energy_label"));
+      Vault_Power_Label : constant Gtk_Label :=
+        Gtk_Label (GUI.Builder.Get_Object ("vault_power_label"));
+      Vault_Shell_Label : constant Gtk_Label :=
+        Gtk_Label (GUI.Builder.Get_Object ("vault_shell_label"));
+
+      Vault_Helmet_Label : constant Gtk_Label :=
+        Gtk_Label (GUI.Builder.Get_Object ("vault_helmet_label"));
+      Vault_Gauntlets_Label : constant Gtk_Label :=
+        Gtk_Label (GUI.Builder.Get_Object ("vault_gauntlets_label"));
+      Vault_Chest_Label : constant Gtk_Label :=
+        Gtk_Label (GUI.Builder.Get_Object ("vault_chest_label"));
+      Vault_Leg_Label : constant Gtk_Label :=
+        Gtk_Label (GUI.Builder.Get_Object ("vault_leg_label"));
+      Vault_Class_Label : constant Gtk_Label :=
+        Gtk_Label (GUI.Builder.Get_Object ("vault_class_label"));
+
+      Vault_Sparrow_Label : constant Gtk_Label :=
+        Gtk_Label (GUI.Builder.Get_Object ("vault_sparrow_label"));
+      Vault_Ship_Label : constant Gtk_Label :=
+        Gtk_Label (GUI.Builder.Get_Object ("vault_ship_label"));
+      Vault_Consumable_Label : constant Gtk_Label :=
+        Gtk_Label (GUI.Builder.Get_Object ("vault_consumable_label"));
+      Vault_Modification_Label : constant Gtk_Label :=
+        Gtk_Label (GUI.Builder.Get_Object ("vault_modification_label"));
 
    begin
       --  Character
@@ -197,7 +228,49 @@ package body GUI.Global is
       Equipment_Descriptions.Attach (Make_Label (Finisher'Enum_Rep), 1, 0);
       Equipment_Descriptions.Attach
         (Make_Label (Emote_Collection'Enum_Rep), 1, 1);
+
+      --  Vault Category Labels
+      Vault_Kinetic_Label.Set_Text
+        (+The_Manifest.Destiny_Inventory_Buckets (Kinetic'Enum_Rep).Name);
+      Vault_Energy_Label.Set_Text
+        (+The_Manifest.Destiny_Inventory_Buckets (Energy'Enum_Rep).Name);
+      Vault_Power_Label.Set_Text
+        (+The_Manifest.Destiny_Inventory_Buckets (Power'Enum_Rep).Name);
+      Vault_Shell_Label.Set_Text
+        (+The_Manifest.Destiny_Inventory_Buckets (Shell'Enum_Rep).Name);
+
+      Vault_Helmet_Label.Set_Text
+        (+The_Manifest.Destiny_Inventory_Buckets (Helmet'Enum_Rep).Name);
+      Vault_Gauntlets_Label.Set_Text
+        (+The_Manifest.Destiny_Inventory_Buckets (Gauntlets'Enum_Rep).Name);
+      Vault_Chest_Label.Set_Text
+        (+The_Manifest.Destiny_Inventory_Buckets (Chest'Enum_Rep).Name);
+      Vault_Leg_Label.Set_Text
+        (+The_Manifest.Destiny_Inventory_Buckets (Leg'Enum_Rep).Name);
+      Vault_Class_Label.Set_Text
+        (+The_Manifest.Destiny_Inventory_Buckets (Class'Enum_Rep).Name);
+
+      Vault_Sparrow_Label.Set_Text
+        (+The_Manifest.Destiny_Inventory_Buckets (Sparrow'Enum_Rep).Name);
+      Vault_Ship_Label.Set_Text
+        (+The_Manifest.Destiny_Inventory_Buckets (Ship'Enum_Rep).Name);
+
+      Vault_Consumable_Label.Set_Text
+        (+The_Manifest.Destiny_Inventory_Buckets (Consumable'Enum_Rep).Name);
+      Vault_Modification_Label.Set_Text
+        (+The_Manifest.Destiny_Inventory_Buckets (Modification'Enum_Rep).Name);
    end Setup_Descriptions;
+
+   procedure Render_Currencies is
+      Vault_Currency : constant Gtk_Grid :=
+        Gtk_Grid (GUI.Builder.Get_Object ("vault_currency"));
+   begin
+      Base.Clear_Bucket (Vault_Currency);
+      Render_Items
+        (Inventories.Global.Currency_Inventory (Inventory),
+         Vault_Currency,
+         10);
+   end Render_Currencies;
 
    --  Public Subprograms
 
@@ -218,8 +291,6 @@ package body GUI.Global is
         Gtk_Grid (GUI.Builder.Get_Object ("vault_power"));
       Vault_Shell : constant Gtk_Grid :=
         Gtk_Grid (GUI.Builder.Get_Object ("vault_shell"));
-      Vault_Artefact : constant Gtk_Grid :=
-        Gtk_Grid (GUI.Builder.Get_Object ("vault_artefact"));
       Vault_Helmet : constant Gtk_Grid :=
         Gtk_Grid (GUI.Builder.Get_Object ("vault_helmet"));
       Vault_Gauntlets : constant Gtk_Grid :=
@@ -230,8 +301,6 @@ package body GUI.Global is
         Gtk_Grid (GUI.Builder.Get_Object ("vault_leg"));
       Vault_Class : constant Gtk_Grid :=
         Gtk_Grid (GUI.Builder.Get_Object ("vault_class"));
-      Vault_Emblem : constant Gtk_Grid :=
-        Gtk_Grid (GUI.Builder.Get_Object ("vault_emblem"));
       Vault_Sparrow : constant Gtk_Grid :=
         Gtk_Grid (GUI.Builder.Get_Object ("vault_sparrow"));
       Vault_Ship : constant Gtk_Grid :=
@@ -245,6 +314,7 @@ package body GUI.Global is
 
    begin
       Tasks.Download.Global_Task.Interrupt;
+
       GUI.Lock_Object.Lock;
       Critical_Section :
          begin
@@ -252,12 +322,11 @@ package body GUI.Global is
             Base.Clear_Bucket (Vault_Energy);
             Base.Clear_Bucket (Vault_Power);
             Base.Clear_Bucket (Vault_Shell);
-            Base.Clear_Bucket (Vault_Artefact);
             Render_Items (Vault_Inventory (Kinetic), Vault_Kinetic, 10);
             Render_Items (Vault_Inventory (Energy), Vault_Energy, 10);
             Render_Items (Vault_Inventory (Power), Vault_Power, 10);
             Render_Items (Vault_Inventory (Shell), Vault_Shell, 10);
-            Render_Items (Vault_Inventory (Artefact), Vault_Artefact, 10);
+
             Base.Clear_Bucket (Vault_Helmet);
             Base.Clear_Bucket (Vault_Gauntlets);
             Base.Clear_Bucket (Vault_Chest);
@@ -268,27 +337,29 @@ package body GUI.Global is
             Render_Items (Vault_Inventory (Chest), Vault_Chest, 10);
             Render_Items (Vault_Inventory (Leg), Vault_Leg, 10);
             Render_Items (Vault_Inventory (Class), Vault_Class, 10);
-            Base.Clear_Bucket (Vault_Emblem);
+
             Base.Clear_Bucket (Vault_Sparrow);
             Base.Clear_Bucket (Vault_Ship);
-            Render_Items (Vault_Inventory (Emblem), Vault_Emblem, 10);
             Render_Items (Vault_Inventory (Sparrow), Vault_Sparrow, 10);
             Render_Items (Vault_Inventory (Ship), Vault_Ship, 10);
+
             Base.Clear_Bucket (Vault_Consumable);
             Base.Clear_Bucket (Vault_Modification);
             Render_Items (Vault_Inventory (Consumable), Vault_Consumable, 10);
             Render_Items
               (Vault_Inventory (Modification), Vault_Modification, 10);
+
             --  Theoretically, no items should appear here.
             Base.Clear_Bucket (Vault_Other);
             Render_Items (Vault_Inventory (Unknown), Vault_Other, 10);
          end Critical_Section;
       GUI.Lock_Object.Unlock;
+
       --  Complete downloads queued by Render calls
       Tasks.Download.Global_Task.Execute (GUI.Image_Callback'Access);
    end Render;
-   --  Global Update_Inventory
 
+   --  Global Update_Inventory
    procedure Update_GUI is
 
       Name : constant Gtk_Label := Gtk_Label (GUI.Builder.Get_Object ("name"));
@@ -296,10 +367,12 @@ package body GUI.Global is
    begin
       --  Update username
       Set_Label (Name, +Secrets.Membership.Bungie_Net_User.Unique_Name);
+
       --  One-time setup per profile
       Setup_Transfer_Menu;
       Setup_Character_Menu;
       Setup_Descriptions;
+      Render_Currencies;
    end Update_GUI;
 
 end GUI.Global;

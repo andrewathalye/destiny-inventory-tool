@@ -7,6 +7,8 @@ with GNAT.OS_Lib;    use GNAT.OS_Lib;
 with Gtk.Search_Entry;   use Gtk.Search_Entry;
 with Gtk.Popover;        use Gtk.Popover;
 with Gtk.Message_Dialog; use Gtk.Message_Dialog;
+with Gtk.Label;          use Gtk.Label;
+with Gtk.Box;            use Gtk.Box;
 
 --  Local Packages
 with GUI.Character;
@@ -17,12 +19,16 @@ with GUI.Base.Populate_Item_Details;
 with API.Transfers;
 with API.Manifest.Tools;
 use all type API.Manifest.Tools.Bucket_Location_Type;
+
 with API.Profiles;
 use type API.Profiles.Character_Type;
 use all type API.Profiles.Transfer_Status_Type;
+
 with API.Manifest;
 use all type API.Manifest.Item_Location_Type;
 use all type API.Manifest.Destiny_Inventory_Bucket_Category;
+use all type API.Manifest.Destiny_Tier_Type;
+
 with API.Inventories.Character;
 with API.Inventories.Global; use API;
 
@@ -379,5 +385,41 @@ package body GUI.Handlers is
          Transfer_Menu.Popup;
       end if;
    end Item_Button_Handler;
+
+   procedure Socket_Item_Button_Handler
+     (Widget    : access Gtk_Widget_Record'Class;
+      User_Data : Manifest.Tools.Item_Description)
+   is
+      Socket_Name_Type_Box : constant Gtk_Box :=
+        Gtk_Box (Builder.Get_Object ("socket_name_type_box"));
+      Socket_Popover : constant Gtk_Popover :=
+        Gtk_Popover (Builder.Get_Object ("socket_popover"));
+      Socket_Name : constant Gtk_Label :=
+        Gtk_Label (Builder.Get_Object ("socket_name"));
+      Socket_Type_And_Tier_Display_Name : constant Gtk_Label :=
+        Gtk_Label (Builder.Get_Object ("socket_type_and_tier_display_name"));
+      Socket_Description : constant Gtk_Label :=
+        Gtk_Label (Builder.Get_Object ("socket_description"));
+   begin
+      Socket_Name.Set_Label (+User_Data.Name);
+
+      Socket_Type_And_Tier_Display_Name.Set_Label
+        (+User_Data.Item_Type_And_Tier_Display_Name);
+      Socket_Type_And_Tier_Display_Name.Show;
+
+      --  Set colour by rarity (using CSS)
+      Socket_Name_Type_Box.Set_Name
+        ((case User_Data.Tier_Type is
+            when Unknown | Basic | Currency => "socket_name_type_box_basic",
+            when Common   => "socket_name_type_box_common",
+            when Rare     => "socket_name_type_box_rare",
+            when Superior => "socket_name_type_box_superior",
+            when Exotic   => "socket_name_type_box_exotic"));
+
+      Socket_Description.Set_Label (+User_Data.Description);
+
+      Socket_Popover.Set_Relative_To (Widget);
+      Socket_Popover.Popup;
+   end Socket_Item_Button_Handler;
 
 end GUI.Handlers;

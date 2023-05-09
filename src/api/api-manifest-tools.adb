@@ -4,6 +4,7 @@ with Ada.Exceptions; use Ada.Exceptions;
 
 --  Local Packages
 with Shared.Strings; use Shared.Strings;
+with Shared.Debug;   use Shared;
 
 package body API.Manifest.Tools is
    --  Private Subprograms
@@ -199,6 +200,8 @@ package body API.Manifest.Tools is
             I.Item_Hash'Image);
 
          Put_Line (Standard_Error, Exception_Information (E));
+
+         Debug.Put_Line (I'Image);
 
          return
            (Name => +("Unknown Item No." & I.Item_Hash'Image), others => <>);
