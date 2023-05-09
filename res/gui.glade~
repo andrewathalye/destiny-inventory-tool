@@ -1274,10 +1274,10 @@
                       </object>
                     </child>
                     <child type="label">
-                      <object class="GtkLabel">
+                      <object class="GtkLabel" id="vault_currency_label">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
-                        <property name="label" translatable="yes">expander</property>
+                        <property name="label" translatable="yes">[currency_expander]</property>
                       </object>
                     </child>
                   </object>

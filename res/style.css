@@ -1,3 +1,6 @@
+* {
+	font: 12pt "Noto Sans UI";
+}
 /* Sufficient Width */
 progress, trough {
 	min-height: 5px;
@@ -21,29 +24,33 @@ popover, #item_details_box {
 	border-radius: 10px;
 }
 
+#item_details_box box, #socket_box box {
+	border-radius: 10px;
+}
+
 /* Style by Rarity */
 
 /* Also used for Unknown and Currency */
 #item_details_name_type_box_basic, #socket_name_type_box_basic {
-	background-color: silver;
+	background-color: #c1bdb4;
 	color: black;
 }
 
 #item_details_name_type_box_common, #socket_name_type_box_common {
-	background-color: green;
+	background-color: #366f42;
 	color: white;
 }
 
 #item_details_name_type_box_rare, #socket_name_type_box_rare {
-	background-color: cornflowerblue;
+	background-color: #5076a3;
 	color: white;
 }
 #item_details_name_type_box_superior, #socket_name_type_box_superior {
-	background-color: indigo;
+	background-color: #522f65;
 	color: white;
 }
 
 #item_details_name_type_box_exotic, #socket_name_type_box_exotic {
-	background-color: gold;
+	background-color: #ceae33;
 	color: white;
 }

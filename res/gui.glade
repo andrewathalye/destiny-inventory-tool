@@ -2078,6 +2078,7 @@
     <property name="can-focus">False</property>
     <child>
       <object class="GtkBox" id="socket_box">
+        <property name="name">socket_box</property>
         <property name="visible">True</property>
         <property name="can-focus">False</property>
         <property name="orientation">vertical</property>
