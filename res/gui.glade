@@ -191,8 +191,7 @@
       </object>
     </child>
   </object>
-  <object class="GtkPopoverMenu" id="item_details">
-    <property name="name">item_details</property>
+  <object class="GtkPopover" id="item_details">
     <property name="can-focus">False</property>
     <child>
       <object class="GtkBox" id="item_details_box">
@@ -370,10 +369,6 @@
           </packing>
         </child>
       </object>
-      <packing>
-        <property name="submenu">submenu0</property>
-        <property name="position">1</property>
-      </packing>
     </child>
   </object>
   <object class="GtkWindow" id="root">

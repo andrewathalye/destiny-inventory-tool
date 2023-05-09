@@ -48,8 +48,6 @@ begin
    --  Load CSS
    Gtk_New (Provider);
    Discard_B := Provider.Load_From_Path ("res/style.css", Error'Access);
-   Put_Line (Provider.To_String);
-   --   Put_Line (Get_Message (Error));
    Gtk.Style_Context.Add_Provider_For_Screen
      (Gdk.Screen.Get_Default, +Provider, Priority_Application);
 
