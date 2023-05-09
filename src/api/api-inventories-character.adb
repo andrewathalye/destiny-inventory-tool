@@ -91,8 +91,8 @@ package body API.Inventories.Character is
       Character : Profiles.Character_Type)
       return Item_Description_Bucket_Location_Type_Array is
      (Inventory.All_Equipped_Items (Character.Character_ID));
-   --  Update inventory data for characters TODO: Identify source of earlier
-   --  memory corruption
+
+   --  Update inventory data for characters
 
    procedure Update_Inventory
      (Inventory : out Character_Inventory_Type;

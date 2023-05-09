@@ -76,7 +76,7 @@ begin
                           Manifest_Hash (As_Integer (Number_Value (Reader)));
 
                      elsif VS2S (Key_Name (Reader)) = "collectibleHash" then
-                        Read_Next (Reader); -- value ignored TODO
+                        Read_Next (Reader);
                         Read_Next
                           (Reader); -- "iconWatermark", "iconWatermarkShelved", etc.
 

@@ -167,10 +167,6 @@ package body API.Authorise is
       Auth_Storage : Auth_Storage_Type;
 
    begin
-      --  TODO
-      pragma Warnings (Off);
-      return Auth_Storage;
-
       Local_State := +State;
 
       if Exists ("dat/refresh.dat") then -- Load token
