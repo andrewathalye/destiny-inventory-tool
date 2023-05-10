@@ -7,3 +7,7 @@ For Search:
 	[items]
 
 Vendor List (requires DestinyVendorDefinition)?
+
+Loadout Support
+
+Check for multiple exotics and raise an Exception locally in that case

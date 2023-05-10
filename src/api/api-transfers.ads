@@ -5,16 +5,13 @@ with API.Inventories.Global;
 with API.Inventories.Character;
 
 package API.Transfers is
-   --  Note: a major problem with this package is that it currently relies
-   --  on the presence of global state variables in GUI, making it unsafe
-   --  for multitasking
-
    --  Exceptions
    Out_Of_Space       : exception; --  DestinyNoRoomInDestination
    Already_Here       : exception;
    Cannot_Transfer    : exception; --  DestinyItemNotTransferrable
    Actions_Disallowed : exception; --  DestinyItemActionForbidden
    Item_Not_Found     : exception; --  DestinyItemNotFound
+   API_Unavailable    : exception; --  SystemDisabled
 
    Unknown_Error : exception;
 

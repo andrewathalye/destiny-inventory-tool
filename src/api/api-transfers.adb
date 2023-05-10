@@ -59,6 +59,8 @@ package body API.Transfers is
 
          when DestinyItemNotTransferrable =>
             raise Cannot_Transfer;
+         when SystemDisabled =>
+            raise API_Unavailable;
 
          when others =>
             raise Unknown_Error;
