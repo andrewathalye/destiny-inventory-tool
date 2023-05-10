@@ -167,16 +167,22 @@ package body GUI.Base is
 
    begin
       Debug.Put_Line ("Reloading all data");
+
       Window.Hide;
       GUI.Authorise;
       Headers := API.Create_Headers (Auth_Data);
+
       Status_Window.Show;
       Status_Name.Set_Label ("Loading memberships...");
       Do_Events;
+
       Secrets.Membership := Memberships.Get_Memberships;
       Status_Name.Set_Label ("Loading manifest... (this can take a bit)");
       Do_Events;
+
       The_Manifest := Manifest.Get_Manifest;
+      GUI.Global.Setup_Descriptions; -- One-time setup for GUI descriptions
+
       Reload_Profile_Data;
    end Reload_Data;
 
