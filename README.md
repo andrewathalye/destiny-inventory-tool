@@ -14,8 +14,14 @@ Tickets submitted upstream.
 
 Usage
 -----
-This is the simplest bit, just open the application, go to the URL, and it should
-download your profile and render your inventory.
+This is the simplest bit: just open the application, go to the auth URL in a web browser, and it should
+download your profile and render your inventory.  
+
+You may need to allow the tool to use TCP port 8888 in order for the authentication process to complete, but this
+is only required for initial setup. You can optionally perform authentication on a different computer and copy the token file.
+
+Please create an Issue for any errors you experience, along with the full output of the programme.  
+This allows for a much better experience when reproducing errors, and also makes it possible to find the issue more quickly.
 
 Contributing
 ------------
@@ -33,5 +39,5 @@ These are bound by the Bungie API Terms of Service, which are much narrower than
 
 Licence
 -------
-Destiny Inventory Tool is licensed under the GNU GPL Version 3.
+Destiny Inventory Tool is licensed under the GNU GPL Version 3.  
 The API code ("gpr/bungie_api.gpr") may optionally be used under the GNU LGPL Version 3.
