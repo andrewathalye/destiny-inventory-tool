@@ -23,6 +23,11 @@ with Tasks.Download;
 with API.Profiles.Read_Item_Components;
 
 package body API.Profiles is
+   --  Note: Position Reader before START_OBJECT
+   procedure Read_String_Variables
+     (Reader : in out JSON_Simple_Pull_Reader;
+      Map    :    out String_Variable_Map) is separate;
+
    --  Note: Position Reader before "data"
    procedure Read_Characters
      (Reader : in out JSON_Simple_Pull_Reader;
@@ -92,7 +97,7 @@ package body API.Profiles is
                (API_Root & "/Destiny2/" &
                 Memberships.Find_Default_Platform_ID (M) & "/Profile/" &
                 (+M.Primary_Membership_ID) & "/" &
-                "?components=ProfileInventories,ProfileCurrencies,PlatformSilver,Characters,CharacterInventories,CharacterProgressions,CharacterEquipment,CharacterLoadouts,ItemInstances,ItemStats,ItemSockets,ItemPlugObjectives,ItemPerks"),
+                "?components=ProfileInventories,ProfileCurrencies,PlatformSilver,Characters,CharacterInventories,CharacterProgressions,CharacterEquipment,CharacterLoadouts,ItemInstances,ItemStats,ItemSockets,ItemPlugObjectives,ItemPerks,StringVariables"),
                Needs_Auth => True,
                Caching    => API.Debug.Caching)));
       Set_Stream (Reader, Input_Text_Stream_Access (Stream));
@@ -145,8 +150,15 @@ package body API.Profiles is
       --  Silver
       Wait_Until_Key (Reader, "platformSilver");
       Read_Silver (Reader, Result);
-
       Shared.Debug.Put_Line ("Done reading platform silver");
+
+      ----------------------
+      -- STRING VARIABLES --
+      ----------------------
+
+      Wait_Until_Key (Reader, "profileStringVariables");
+      Read_String_Variables (Reader, Result.Profile_String_Variables);
+      Shared.Debug.Put_Line ("Done reading string variables");
 
       --  Characters
       Wait_Until_Key (Reader, "characters");

@@ -14,47 +14,17 @@ with Gtk.Separator;    use Gtk.Separator;
 --  Local Packages
 with API.Manifest;
 use all type API.Manifest.Destiny_Tier_Type;
-with API.Inventories.Global;
 
 with GUI.Base.Get_Overlay;
 with GUI.Handlers; use GUI;
-with GUI.Global;
 
 with Shared.Strings; use Shared.Strings;
-with Shared.Debug;   use Shared;
 
-pragma Warnings (Off);
 procedure GUI.Base.Populate_Item_Details (D : Manifest.Tools.Item_Description)
 is
    --  Compile-Time Constants (DestinyObjectiveDefinition)
    Crafting_Weapon_Timestamp : constant := 3_947_811_849;
-
-   --  Compile-Time Constants (Emblem Tracker Support)
-   type Engram_ID is
-     (War_Table, Iron_Banner, Vanguard, Gambit, Trials, Crucible);
-
-   for Engram_ID use
-     (War_Table   => 207_722_084,
-      Iron_Banner => 336_610_143,
-      Vanguard    => 836_216_236,
-      Gambit      => 1_813_448_508,
-      Trials      => 2_472_943_119,
-      Crucible    => 3_950_154_839);
-
-   type Engram_ID_Manifest_Hash_Map is
-     array (Engram_ID) of Manifest.Manifest_Hash;
-
-   --  Map for converting between Manifest_Hash and Engram_ID
-   Engram_ID_Map : constant Engram_ID_Manifest_Hash_Map :=
-     [War_Table  => 0, --  TODO UNKNOWN
-     Iron_Banner => 651_626_147,
-     Vanguard    => 554_159_122,
-     Gambit      => 451_915_085,
-     Trials      => 0, --  TODO UNKNOWN
-     Crucible    => 3_036_656_991];
-
-   --  The Hash of the Engram Tracker item itself
-   Engram_Tracker_Hash : constant := 1_624_697_519;
+   Engram_Tracker_Hash       : constant := 1_624_697_519;
 
    --  Widgets (Constant)
    Name_Type_Box : constant Gtk_Box :=
@@ -92,10 +62,9 @@ is
 
    --  Subprograms
 
-   --  Format the engram tracker description:
-   --  Text.....{var:[ID OF ENGRAM TYPE PER TABLE ABOVE]}Text.....
-   --  This should be converted from Engram_Type => Manifest_Hash => Quantity of that item in the global Currency inventory
-   function Format_Engram_Tracker_Text (Input : String) return String is
+   --  Format text with string variables
+   --  Text.....{var:[STRING VARIABLE]}Text.....
+   function Format_Description (Input : String) return String is
       Output : Unbounded_String;
 
       First_Pos, Second_Pos : Natural;
@@ -107,7 +76,6 @@ is
             if Input (I) /= '{' then
                Append (Output, Input (I));
             else
-               Debug.Put_Line ("1");
                First_Pos := I + 5; --  first digit of ID
 
                --  Exit the program if it is not possible to find the second bracket.
@@ -116,43 +84,36 @@ is
                   loop
                      Find_Second_Pos :
                         for I2 in I .. Input'Last loop
-                           Debug.Put_Line (Input (I2)'Image);
                            if Input (I2) = '}' then
-                              Debug.Put_Line ("2");
                               Second_Pos := I2 - 1; --  last digit of ID
                               exit Outer_Loop;
                            end if;
                         end loop Find_Second_Pos;
 
                      raise Program_Error
-                       with "Format_Engram_Tracker_Text: no corresponding closing bracket found.";
+                       with "Format_Description: no corresponding closing bracket found.";
                   end loop Outer_Loop;
 
-               --  Append the quantity of the item stack indicated by the manifest hash
-               --  surfaced by the table entry for the given engram id
+                  --  String variable formatting
+               declare
+                  Text : constant String :=
+                    Integer_32'Image
+                      (GUI.Profile.Profile_String_Variables
+                         (Unsigned_32'Value
+                            (Input (First_Pos .. Second_Pos))));
                begin
-                  Append
-                    (Output,
-                     Inventories.Global.Get_Currency_Item_Stack
-                       (GUI.Global.Inventory,
-                        Engram_ID_Map
-                          (Engram_ID'Enum_Val
-                             (Manifest.Manifest_Hash'Value
-                                (Input (First_Pos .. Second_Pos)))))
-                       .Quantity'
-                       Image);
-               exception
-                  when Inventories.Item_Not_Found => Append (Output, "N/A");
+                  Append (Output, Text (Text'First + 1 .. Text'Last));
                end;
 
-               I := Second_Pos + 1; -- matches the '}'. Will be skipped over by the next statement
+               I := Second_Pos + 1;
+               --  matches the '}'. Will be skipped over by the next statement
             end if;
 
             I := @ + 1;
          end loop Find_First_Pos;
 
       return +Output;
-   end Format_Engram_Tracker_Text;
+   end Format_Description;
 begin
    --  Set background colour by rarity (using CSS)
    Name_Type_Box.Set_Name
@@ -169,7 +130,7 @@ begin
    --  Show description. Note: Some items require description parsing.
    case D.Item_Hash is
       when Engram_Tracker_Hash =>
-         Description.Set_Text (Format_Engram_Tracker_Text (+D.Description));
+         Description.Set_Text (Format_Description (+D.Description));
          Description.Show;
       when others =>
          if Length (D.Description) > 0 then

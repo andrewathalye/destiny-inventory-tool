@@ -99,9 +99,9 @@ package body API.Inventories.Global is
    is
    begin
       for ID of Inventory.Currencies loop
-            if ID.Item_Hash = Hash then
-               return ID;
-            end if;
+         if ID.Item_Hash = Hash then
+            return ID;
+         end if;
       end loop;
       raise Item_Not_Found with Hash'Image;
    end Get_Currency_Item_Stack;

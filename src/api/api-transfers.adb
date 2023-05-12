@@ -107,7 +107,8 @@ package body API.Transfers is
       --  with the same hash, so this could fail.
       begin
          Item_Stack_Quantity :=
-           Inventories.Global.Get_Vault_Item_Stack (Inventory, D.Item_Hash).Quantity;
+           Inventories.Global.Get_Vault_Item_Stack (Inventory, D.Item_Hash)
+             .Quantity;
       exception
          when Inventories.Item_Not_Found =>
             null;

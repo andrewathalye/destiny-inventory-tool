@@ -220,6 +220,11 @@ package API.Profiles is
       Perks : Perks_Map; --  TODO: May not be necessary? Consider removing.
    end record;
 
+   package String_Variable_Maps is new Ada.Containers.Ordered_Maps
+     (Key_Type => Unsigned_32, Element_Type => Integer_32);
+
+   subtype String_Variable_Map is String_Variable_Maps.Map;
+
    --  Profile
    type Profile_Type is record
       Response_Minted_Timestamp : Time;
@@ -227,10 +232,11 @@ package API.Profiles is
       Profile_Currencies        : Item_List;
       Platform_Silver           : Platform_Silver_Array;
       --  Plug Sets?
-      Characters            : Character_List;
-      Character_Inventories : Inventory_Map;
-      Character_Loadouts    : Loadout_Map;
-      Character_Equipment   : Inventory_Map;
+      Profile_String_Variables : String_Variable_Map;
+      Characters               : Character_List;
+      Character_Inventories    : Inventory_Map;
+      Character_Loadouts       : Loadout_Map;
+      Character_Equipment      : Inventory_Map;
       --  Character Plug Sets?
       --  Character Currency Lookups? Items Omitted
       Item_Components : Item_Components_Type;
