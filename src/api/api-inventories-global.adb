@@ -76,7 +76,7 @@ package body API.Inventories.Global is
       end case;
    end Item_Count;
 
-   function Get_Item_Stack
+   function Get_Vault_Item_Stack
      (Inventory : Global_Inventory_Type;
       Hash      : Manifest.Manifest_Hash)
       return Manifest.Tools.Item_Description
@@ -89,8 +89,22 @@ package body API.Inventories.Global is
             end if;
          end loop;
       end loop;
-      raise Item_Not_Found;
-   end Get_Item_Stack;
+      raise Item_Not_Found with Hash'Image;
+   end Get_Vault_Item_Stack;
+
+   function Get_Currency_Item_Stack
+     (Inventory : Global_Inventory_Type;
+      Hash      : Manifest.Manifest_Hash)
+      return Manifest.Tools.Item_Description
+   is
+   begin
+      for ID of Inventory.Currencies loop
+            if ID.Item_Hash = Hash then
+               return ID;
+            end if;
+      end loop;
+      raise Item_Not_Found with Hash'Image;
+   end Get_Currency_Item_Stack;
 
    --  Inventory Updates and Access
    function Currency_Inventory

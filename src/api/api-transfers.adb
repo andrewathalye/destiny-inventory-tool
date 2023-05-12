@@ -12,9 +12,13 @@ with GNATCOLL.JSON; use GNATCOLL.JSON;
 --  Local Packages
 with API.Memberships;
 with API.Profiles;
+
 use all type API.Profiles.Transfer_Status_Type;
 with API.Manifest.Tools;
 use all type API.Manifest.Tools.Bucket_Location_Type;
+use all type API.Manifest.Destiny_Tier_Type;
+use all type API.Manifest.Destiny_Item_Type;
+
 with API.Error_Codes;
 use all type API.Error_Codes.Error_Code_Type;
 
@@ -48,22 +52,19 @@ package body API.Transfers is
          " after passing all local checks");
 
       case Error_Code is
-         when DestinyNoRoomInDestination =>
-            raise Out_Of_Space;
-
-         when DestinyItemActionForbidden =>
-            raise Actions_Disallowed;
-
-         when DestinyItemNotFound =>
-            raise Item_Not_Found;
-
-         when DestinyItemNotTransferrable =>
-            raise Cannot_Transfer;
+         when DestinyNoRoomInDestination    |
+           DestinyItemActionForbidden       |
+           DestinyItemNotFound              |
+           DestinyItemUniqueEquipRestricted |
+           DestinyItemNotTransferrable      =>
+            raise Desynchronised with Error_Code'Image;
          when SystemDisabled =>
-            raise API_Unavailable;
+            raise System_Disabled;
+         when DestinyCannotPerformActionAtThisLocation =>
+            raise Cannot_Perform_Action_At_This_Location;
 
          when others =>
-            raise Unknown_Error;
+            raise Unknown_Error with Error_Code'Image;
       end case;
    end Server_Check;
 
@@ -85,7 +86,7 @@ package body API.Transfers is
    begin
       --  +2 because space is needed for the equipped item and the new item
       if Integer_32 (Bucket_Item_Count + 2) > Max_Item_Count then
-         raise Out_Of_Space;
+         raise No_Room_In_Destination;
       end if;
    end Check_Character_Has_Room;
 
@@ -106,7 +107,7 @@ package body API.Transfers is
       --  with the same hash, so this could fail.
       begin
          Item_Stack_Quantity :=
-           Inventories.Global.Get_Item_Stack (Inventory, D.Item_Hash).Quantity;
+           Inventories.Global.Get_Vault_Item_Stack (Inventory, D.Item_Hash).Quantity;
       exception
          when Inventories.Item_Not_Found =>
             null;
@@ -114,14 +115,14 @@ package body API.Transfers is
 
       --  +1 because space is needed for the new item
       if Integer_32 (Bucket_Item_Count + 1) > Max_Item_Count then
-         raise Out_Of_Space;
+         raise No_Room_In_Destination;
       end if;
 
       --  Check if adding this item would overflow a stack in the vault. This
       --  only occurs for non-transferrable items
       if D.Transfer_Status /= Can_Transfer then
          if D.Quantity + Item_Stack_Quantity > D.Max_Stack_Size then
-            raise Out_Of_Space;
+            raise No_Room_In_Destination;
          end if;
       end if;
    end Check_Vault_Has_Room;
@@ -129,9 +130,65 @@ package body API.Transfers is
    procedure Check_Actions_Permitted (D : Manifest.Tools.Item_Description) is
    begin
       if not D.Allow_Actions then
-         raise Actions_Disallowed;
+         raise Item_Action_Forbidden;
       end if;
    end Check_Actions_Permitted;
+
+   procedure Check_One_Exotic
+     (Inventory : Inventories.Character.Character_Inventory_Type;
+      Character : Profiles.Character_Type;
+      D         : Manifest.Tools.Item_Description)
+   is
+      procedure Raise_Exception (Predicate : Boolean) is
+      begin
+         if Predicate then
+            raise Item_Unique_Equip_Restricted;
+         end if;
+      end Raise_Exception;
+      pragma Inline (Raise_Exception);
+
+      Equipped :
+        Inventories.Item_Description_Bucket_Location_Type_Array renames
+        Inventories.Character.Equipped_Items (Inventory, Character);
+   begin
+      case D.Tier_Type is
+         when Exotic =>
+            case D.Item_Type is
+               when Weapon =>
+                  Raise_Exception
+                    (Equipped (Kinetic).Tier_Type = Exotic and
+                     D.Bucket_Location /= Kinetic);
+                  Raise_Exception
+                    (Equipped (Energy).Tier_Type = Exotic and
+                     D.Bucket_Location /= Energy);
+                  Raise_Exception
+                    (Equipped (Power).Tier_Type = Exotic and
+                     D.Bucket_Location /= Power);
+
+               when Armour =>
+                  Raise_Exception
+                    (Equipped (Helmet).Tier_Type = Exotic and
+                     D.Bucket_Location /= Helmet);
+                  Raise_Exception
+                    (Equipped (Gauntlets).Tier_Type = Exotic and
+                     D.Bucket_Location /= Gauntlets);
+                  Raise_Exception
+                    (Equipped (Chest).Tier_Type = Exotic and
+                     D.Bucket_Location /= Chest);
+                  Raise_Exception
+                    (Equipped (Leg).Tier_Type = Exotic and
+                     D.Bucket_Location /= Leg);
+                  --  Au cas où
+                  Raise_Exception
+                    (Equipped (Class).Tier_Type = Exotic and
+                     D.Bucket_Location /= Class);
+               when others =>
+                  null;
+            end case;
+         when others =>
+            null;
+      end case;
+   end Check_One_Exotic;
 
    --  The below subprograms perform both local and remote checks See the
    --  specification for more information
@@ -146,15 +203,15 @@ package body API.Transfers is
 
    begin
       Debug.Put_Line ("Vault item");
+
       --  Local Check
       --  An exception will be raised if any of these fail
-
       Check_Actions_Permitted (D);
-      --  Check_Item_Belongs_Elsewhere
 
+      --  Check_Item_Belongs_Elsewhere
       case D.Bucket_Location is
          when Consumable | Modification =>
-            raise Already_Here;
+            raise Item_Already_Here;
 
          when others =>
             null;
@@ -165,7 +222,7 @@ package body API.Transfers is
       --  Check_Item_Not_Vaulted
       case D.Location is
          when Manifest.Vault =>
-            raise Already_Here;
+            raise Item_Already_Here;
 
          when others =>
             null;
@@ -182,7 +239,7 @@ package body API.Transfers is
                   null;
 
                when others =>
-                  raise Cannot_Transfer;
+                  raise Item_Not_Transferrable;
             end case;
       end case;
 
@@ -219,7 +276,7 @@ package body API.Transfers is
       --  Check_Item_Belongs_Elsewhere
       case D.Default_Bucket_Location is
          when Consumable | Modification =>
-            raise Already_Here;
+            raise Item_Already_Here;
 
          when others =>
             null;
@@ -298,7 +355,9 @@ package body API.Transfers is
    end Postmaster_Pull;
 
    procedure Equip
-     (D : Manifest.Tools.Item_Description; Source : Profiles.Character_Type)
+     (Inventory : Inventories.Character.Character_Inventory_Type;
+      D         : Manifest.Tools.Item_Description;
+      Source    : Profiles.Character_Type)
    is
 
       Data : Response.Data;
@@ -309,6 +368,8 @@ package body API.Transfers is
       --  Local Check
       --  An exception will be raised if any of these fail
       Check_Actions_Permitted (D);
+
+      Check_One_Exotic (Inventory, Source, D);
 
       Data :=
         Client.Post

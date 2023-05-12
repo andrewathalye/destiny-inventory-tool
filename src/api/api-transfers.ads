@@ -6,14 +6,19 @@ with API.Inventories.Character;
 
 package API.Transfers is
    --  Exceptions
-   Out_Of_Space       : exception; --  DestinyNoRoomInDestination
-   Already_Here       : exception;
-   Cannot_Transfer    : exception; --  DestinyItemNotTransferrable
-   Actions_Disallowed : exception; --  DestinyItemActionForbidden
-   Item_Not_Found     : exception; --  DestinyItemNotFound
-   API_Unavailable    : exception; --  SystemDisabled
+   --  Only raised for local checks
+   No_Room_In_Destination       : exception; --  DestinyNoRoomInDestination
+   Item_Already_Here            : exception;
+   Item_Not_Transferrable       : exception; --  DestinyItemNotTransferrable
+   Item_Action_Forbidden        : exception; --  DestinyItemActionForbidden
+   Item_Not_Found               : exception; --  DestinyItemNotFound
+   Item_Unique_Equip_Restricted : exception; --  DestinyItemUniqueEquipRestricted
 
-   Unknown_Error : exception;
+   --  Only raised for remote checks
+   System_Disabled                        : exception; --  SystemDisabled
+   Cannot_Perform_Action_At_This_Location : exception; --  DestinyCannotPerformActionAtThisLocation
+   Desynchronised : exception; --  Any of the above exceptions when not caught locally
+   Unknown_Error : exception; --  Any unknown exceptions
 
    --  Note: The below subprograms perform local checks for consistency and also
    --  interpret server responses.
@@ -50,5 +55,7 @@ package API.Transfers is
       Source              : Profiles.Character_Type);
 
    procedure Equip
-     (D : Manifest.Tools.Item_Description; Source : Profiles.Character_Type);
+     (Inventory : Inventories.Character.Character_Inventory_Type;
+      D         : Manifest.Tools.Item_Description;
+      Source    : Profiles.Character_Type);
 end API.Transfers;

@@ -163,7 +163,8 @@ package body API.Manifest is
          To_Stream_Element_Vector
            (Tasks.Download.Download
               (+(API_Root & "/Destiny2/Manifest/"),
-               Caching => API.Debug.Caching)));
+               Needs_Auth => True,
+               Caching    => API.Debug.Caching)));
       Set_Stream (Reader, Input_Text_Stream_Access (Stream));
       Wait_Until_Key (Reader, "jsonWorldContentPaths");
       Wait_Until_Key

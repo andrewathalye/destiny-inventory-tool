@@ -110,8 +110,8 @@ package body GUI.Global is
          end;
       end loop;
    end Setup_Character_Menu;
-   --  One-time init for "transfer_grid"
 
+   --  One-time init for "transfer_grid"
    procedure Setup_Transfer_Menu is
 
       Transfer_Grid : constant Gtk_Grid :=

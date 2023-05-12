@@ -128,20 +128,25 @@ package body GUI.Base is
 
    begin
       Status_Window.Show;
+
       Debug.Put_Line ("Reloading profile data");
       Status_Name.Set_Label ("Loading profile...");
       Do_Events;
+
       Profile := Profiles.Get_Profile (Secrets.Membership);
       Status_Name.Set_Label ("Loading vault...");
       Do_Events;
+
       API.Inventories.Global.Update_Inventory
         (GUI.Global.Inventory, GUI.Profile, GUI.The_Manifest);
       GUI.Global.Update_GUI;
       Status_Name.Set_Label ("Loading character inventories...");
       Do_Events;
+
       API.Inventories.Character.Update_Inventory
         (GUI.Character.Inventory, GUI.Profile, GUI.The_Manifest);
       GUI.Character.Update_For_Character (GUI.Profile.Characters (0));
+
       GUI.Global.Render;
       GUI.Character.Render;
       Status_Window.Hide;

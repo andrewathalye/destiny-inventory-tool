@@ -28,6 +28,7 @@ with API.Manifest;
 use all type API.Manifest.Item_Location_Type;
 use all type API.Manifest.Destiny_Inventory_Bucket_Category;
 use all type API.Manifest.Destiny_Tier_Type;
+use all type API.Manifest.Destiny_Item_Type;
 
 with API.Inventories.Character;
 with API.Inventories.Global; use API;
@@ -40,6 +41,7 @@ package body GUI.Handlers is
 
    pragma Warnings (Off, "is not referenced");
 
+   --  Exit after window closed
    procedure Window_Close_Handler
      (Builder : access Gtkada_Builder_Record'Class)
    is
@@ -47,6 +49,7 @@ package body GUI.Handlers is
       OS_Exit (0);
    end Window_Close_Handler;
 
+   --  Opens the character switching menu
    procedure Emblem_Button_Clicked_Handler
      (Builder : access Gtkada_Builder_Record'Class)
    is
@@ -58,6 +61,7 @@ package body GUI.Handlers is
       Character_Menu.Popup;
    end Emblem_Button_Clicked_Handler;
 
+   --  Update the search query when changed and re-render
    procedure Search_Changed_Handler
      (Builder : access Gtkada_Builder_Record'Class)
    is
@@ -71,6 +75,7 @@ package body GUI.Handlers is
       GUI.Locked_Wrapper (GUI.Character.Render'Access);
    end Search_Changed_Handler;
 
+   --  Dismiss an error dialogue
    procedure Error_Dialog_Close_Button_Handler
      (Builder : access Gtkada_Builder_Record'Class)
    is
@@ -82,12 +87,40 @@ package body GUI.Handlers is
       Error_Dialog.Hide;
    end Error_Dialog_Close_Button_Handler;
 
+   --  Reload all profile data
    procedure Reload_Button_Clicked_Handler
      (Builder : access Gtkada_Builder_Record'Class)
    is
    begin
       GUI.Base.Locked_Reload_Profile_Data;
    end Reload_Button_Clicked_Handler;
+
+   --  A button exclusively for equipping items which
+   --  cannot be transferred
+   procedure Equip_Button_Clicked_Handler
+     (Builder : access Gtkada_Builder_Record'Class)
+   is
+   begin
+      Debug.Put_Line ("Equip a non-transferrable item");
+
+      Transfers.Equip
+        (GUI.Character.Inventory,
+         GUI.Current_Item,
+         GUI.Character.Current_Character);
+
+      --  Update UI State
+      Inventories.Character.Remove_Item
+        (GUI.Character.Inventory,
+         GUI.Character.Current_Character,
+         GUI.Current_Item);
+
+      Inventories.Character.Equip_Item
+        (GUI.Character.Inventory,
+         GUI.Character.Current_Character,
+         GUI.Current_Item);
+
+      GUI.Locked_Wrapper (GUI.Character.Render'Access);
+   end Equip_Button_Clicked_Handler;
 
    --  Install Handlers
    procedure Set_Handlers is
@@ -114,6 +147,11 @@ package body GUI.Handlers is
         (Vault_Button,
          "clicked",
          Widget_Callback.To_Marshaller (Vault_Handler'Access));
+      Register_Handler
+        (Builder,
+         "equip_button_clicked_handler",
+         Equip_Button_Clicked_Handler'Access);
+
    end Set_Handlers;
 
    --  Dynamic Handlers (Public)
@@ -159,13 +197,12 @@ package body GUI.Handlers is
                GUI.Current_Item,
                Target);
          exception
-            when Transfers.Out_Of_Space =>
-               Debug.Put_Line
-                 ("Couldn't unvault because the destination is out of space");
-               GUI.Base.Error_Message ("Item Transfer Failed", "Out of Space");
+            when Transfers.No_Room_In_Destination =>
+               GUI.Base.Error_Message
+                 ("Item Transfer Failed", "No Room in Destination");
                return;
 
-            when Transfers.Already_Here =>
+            when Transfers.Item_Already_Here =>
                Debug.Put_Line
                  ("Couldn't unvault is already where it would have been sent");
                return;
@@ -195,9 +232,9 @@ package body GUI.Handlers is
                GUI.Current_Item,
                GUI.Character.Current_Character);
          exception
-            when Transfers.Out_Of_Space =>
-               Debug.Put_Line ("Failed to pull from postmaster: out of space");
-               GUI.Base.Error_Message ("Item Transfer Failed", "Out of Space");
+            when Transfers.No_Room_In_Destination =>
+               GUI.Base.Error_Message
+                 ("Item Transfer Failed", "No Room in Destination");
                return;
          end;
 
@@ -212,12 +249,13 @@ package body GUI.Handlers is
                   GUI.Character.Current_Character,
                   Target);
             exception -- The previous action cannot be undone, so keep going
-               when Transfers.Out_Of_Space =>
+               when Transfers.No_Room_In_Destination =>
                   Debug.Put_Line
                     ("Failed to finish transfer, but postmaster pull can't be rolled back! Reloading for consistency.");
                   GUI.Base.Locked_Reload_Profile_Data;
                   GUI.Base.Error_Message
-                    ("Item Transfer Failed: Profile Reloaded", "Out of Space");
+                    ("Item Transfer Failed: Profile Reloaded",
+                     "No Room in Destination");
                   return;
             end;
          end if;
@@ -238,7 +276,18 @@ package body GUI.Handlers is
         Current_Item.Category = Equippable
       then
          Debug.Put_Line ("Method: Equip");
-         Transfers.Equip (GUI.Current_Item, Target);
+
+         begin
+            Transfers.Equip
+              (GUI.Character.Inventory, GUI.Current_Item, Target);
+         exception
+            when Transfers.Item_Unique_Equip_Restricted =>
+               Base.Error_Message
+                 ("Item Equip Failed",
+                  "You may only equip one exotic at a time.");
+               return;
+         end;
+
          --  Update UI State
          Inventories.Character.Remove_Item
            (GUI.Character.Inventory, Target, GUI.Current_Item);
@@ -260,10 +309,9 @@ package body GUI.Handlers is
             GUI.Character.Current_Character,
             Target);
       exception
-         when Transfers.Out_Of_Space =>
-            Debug.Put_Line
-              ("Out of space somewhere along the chain, aborting transfer");
-            GUI.Base.Error_Message ("Item Transfer Failed", "Out of Space");
+         when Transfers.No_Room_In_Destination =>
+            GUI.Base.Error_Message
+              ("Item Transfer Failed", "No Room in Destination");
             return;
       end;
       --  Update UI State
@@ -279,7 +327,8 @@ package body GUI.Handlers is
          Debug.Put_Line (Exception_Information (C));
          GUI.Base.Locked_Reload_Profile_Data;
          GUI.Base.Error_Message
-           ("Item Transfer Failed: Profile Reloaded", Exception_Name (C));
+           ("Item Transfer Failed: Profile Reloaded",
+            Exception_Name (C) & ": " & Exception_Message (C));
    end Transfer_Handler;
 
    --  Vault an Item
@@ -297,10 +346,9 @@ package body GUI.Handlers is
                GUI.Current_Item,
                GUI.Character.Current_Character);
          exception
-            when Transfers.Out_Of_Space =>
-               Debug.Put_Line
-                 ("No space to pull from postmaster: aborting transfer attempt");
-               GUI.Base.Error_Message ("Item Transfer Failed", "Out of Space");
+            when Transfers.No_Room_In_Destination =>
+               GUI.Base.Error_Message
+                 ("Item Transfer Failed", "No Room in Destination");
                return;
          end;
       end if;
@@ -312,12 +360,12 @@ package body GUI.Handlers is
             GUI.Current_Item,
             GUI.Character.Current_Character);
       exception
-         when Transfers.Out_Of_Space =>
-            Debug.Put_Line ("Out of Vault space, aborting attempt");
-            GUI.Base.Error_Message ("Item Transfer Failed", "Out of Space");
+         when Transfers.No_Room_In_Destination =>
+            GUI.Base.Error_Message
+              ("Item Transfer Failed", "No Room in Destination");
             return;
 
-         when Transfers.Already_Here =>
+         when Transfers.Item_Already_Here =>
             Debug.Put_Line ("The item was already there, aborting attempt");
             return;
       end;
@@ -344,7 +392,8 @@ package body GUI.Handlers is
          Debug.Put_Line (Exception_Information (E));
          GUI.Base.Locked_Reload_Profile_Data;
          GUI.Base.Error_Message
-           ("Item Transfer Failed: Profile Reloaded", Exception_Name (E));
+           ("Item Transfer Failed: Profile Reloaded",
+            Exception_Name (E) & ": " & Exception_Message (E));
    end Vault_Handler;
    pragma Warnings (On, "is not referenced");
 
@@ -360,6 +409,8 @@ package body GUI.Handlers is
         Gtk_Popover (Builder.Get_Object ("transfer_menu"));
       Vault_Menu : constant Gtk_Popover :=
         Gtk_Popover (Builder.Get_Object ("vault_menu"));
+      Equip_Menu : constant Gtk_Popover :=
+        Gtk_Popover (Builder.Get_Object ("equip_menu"));
 
    begin
       Current_Item := User_Data;
@@ -370,7 +421,18 @@ package body GUI.Handlers is
       Item_Details.Popup;
 
       --  Don't show the normal transfer menu for nontransferrables
+      --  TODO handle some edge cases better
       if User_Data.Transfer_Status /= Can_Transfer then
+         --  Subclasses and Emblems can be Equipped, but not Transferred
+         case User_Data.Item_Type is
+            when Subclass | Emblem =>
+               Equip_Menu.Set_Relative_To (Item_Details);
+               Equip_Menu.Popup;
+               return;
+            when others =>
+               null;
+         end case;
+
          --  It is often possible to transfer items in the postmaster to the
          --  Vault
          if User_Data.Bucket_Location = Postmaster and
@@ -378,7 +440,9 @@ package body GUI.Handlers is
          then
             Vault_Menu.Set_Relative_To (Item_Details);
             Vault_Menu.Popup;
+            return;
          end if;
+
          --  For other items, we can’t perform any actions
       else
          Transfer_Menu.Set_Relative_To (Item_Details);

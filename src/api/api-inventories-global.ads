@@ -33,7 +33,13 @@ package API.Inventories.Global is
    --  This accepts a Manifest Hash and searches the Vault for a matching item
    --  stack. The Hash should be of an item that is stackable, but this is not
    --  checked. Raises Item_Not_Found on failure.
-   function Get_Item_Stack
+   function Get_Vault_Item_Stack
+     (Inventory : Global_Inventory_Type;
+      Hash      : Manifest.Manifest_Hash)
+      return Manifest.Tools.Item_Description;
+
+   --  Same as above, but specifically searches for currency items instead of vault items.
+   function Get_Currency_Item_Stack
      (Inventory : Global_Inventory_Type;
       Hash      : Manifest.Manifest_Hash)
       return Manifest.Tools.Item_Description;
