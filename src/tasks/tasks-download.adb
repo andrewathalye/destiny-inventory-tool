@@ -72,6 +72,7 @@ package body Tasks.Download is
             Client.HTTP_Utils.Send_Request
               (Connection, Client.HTTP_Utils.GET, Data, +Path);
          end if;
+
          Check_Status (Data);
 
          if Caching then
@@ -158,6 +159,7 @@ package body Tasks.Download is
             accept Execute (Callback : Download_Callback) do
                Callback_L := Callback;
             end Execute;
+
             Execute_Loop :
                for DQE of Download_Queue loop
                   select

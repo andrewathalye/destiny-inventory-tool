@@ -101,7 +101,7 @@ package body API.Authorise is
       when AWS.Net.Socket_Error =>
          Put_Line
            (Standard_Error,
-            "[API.Authorise] Failed to bind port 8888. Cannot authenticate.");
+            "[API.Authorise] Failed to bind port 8888. Cannot authenticate. Check if a firewall is preventing the connection, or if there is no cert.pem file in dat/");
          GNAT.OS_Lib.OS_Exit (-1);
    end Get_Code;
    --  Parse JSON

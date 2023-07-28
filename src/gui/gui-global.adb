@@ -35,14 +35,6 @@ package body GUI.Global is
    package User_Callback_Character is new User_Callback
      (Gtk_Widget_Record, Profiles.Character_Type);
 
-   --  Constants
-   --  Note: The rationale for hardcoding this icon is that the intended way to
-   --  fetch it requires parsing all Vendor data, which we otherwise do not need.
-   --  TODO change this?
-   Vault_Icon_Path : constant Unbounded_String :=
-     +(Bungie_Root &
-      "/common/destiny2_content/icons/42284fb3e73118f37cc7563c6ae70097.png");
-
    --  Cache
    Placeholder_Icon : constant Gdk_Pixbuf :=
      Load_Image ("png", Files.Get_Data ("res/placeholder_icon.png"));
@@ -160,13 +152,13 @@ package body GUI.Global is
 
       --  Vault Icon and Button
       Gtk_New (Vault_Image);
-      if Global_Pixbuf_Cache.Contains (Vault_Icon_Path) then
-         Vault_Image.Set (Global_Pixbuf_Cache (Vault_Icon_Path));
-      else
+--      if Global_Pixbuf_Cache.Contains (Vault_Icon_Path) then
+--         Vault_Image.Set (Global_Pixbuf_Cache (Vault_Icon_Path));
+--      else
          Vault_Image.Set (Placeholder_Icon);
-         Tasks.Download.Global_Task.Download
-           (Vault_Icon_Path, Gtk_Widget (Vault_Image));
-      end if;
+--         Tasks.Download.Global_Task.Download
+--           (Vault_Icon_Path, Gtk_Widget (Vault_Image));
+--      end if;
       Vault_Image.Show;
 
       Gtk_New (Vault_Button, "Vault");

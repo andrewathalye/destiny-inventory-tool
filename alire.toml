@@ -1,6 +1,7 @@
 name = "destiny_inventory_tool"
 description = "A Destiny inventory management tool for the desktop"
-version = "0.20.0-dev"
+version = "0.21.0-dev"
+licenses = "GPL-3.0-or-later"
 
 authors = ["Andrew Athalye"]
 maintainers = ["Andrew Athalye <andrewathalye@outlook.com>"]
@@ -9,14 +10,14 @@ maintainers-logins = ["andrewathalye"]
 executables = ["inventory_tool"]
 
 [[depends-on]]
-gtkada = "^23.0.0"
-aws = "^23.0.0"
+gtkada = "*"
+aws = "*"
 vss = "^23.0.0"
 gnatcoll = "^23.0.0"
 
 [[pins]]
-aws = { path = "alire_local/aws-23.0.0" }
-gtkada = { path = "alire_local/gtkada-23.0.0" }
+gtkada = { path = "alire_local/gtkada" }
+aws = { path = "alire_local/aws" }
 
 [build-switches]
 "*".compile_checks = "Errors"

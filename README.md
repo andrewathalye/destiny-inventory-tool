@@ -6,22 +6,28 @@ Destiny 1 support is planned, but has not been implemented.
 
 Installation
 ------------
-[TODO] Alire + GPRBuild  
-Alire currently has some issues building both AWS and GTKAda in the same project.  
-Additionally, AWS is building with OpenSSL support at the moment...
+Install GTK and OpenSSL systemwide, then install Alire.
 
-Tickets submitted upstream.
+`alr build` or for development `alr exec bash` and then `gprbuild -j0`
+
+Custom versions of AWS and Gtkada are bundled until an upstream source conflict is addressed in the next release (Gtkada)
+and (for AWS) the build system is fixed to work with AWS (currently config is not saved when building via GPRBuild)
+
+Tickets have been submitted upstream for both issues.
 
 Usage
 -----
-This is the simplest bit: just open the application, go to the auth URL in a web browser, and it should
-download your profile and render your inventory.  
+Create a self-signed certificate named "cert.pem" in the dat/ subdirectory containing both a public and private key.
+For example: `openssl req -newkey rsa:2048 -nodes -keyout key.pem -x509 -days 365 -out certificate.pem` and then `cat key.pem certificate.pem > cert.pem`
+
+Open the application and follow instructions to use :)
 
 You may need to allow the tool to use TCP port 8888 in order for the authentication process to complete, but this
 is only required for initial setup. You can optionally perform authentication on a different computer and copy the token file.
 
+It is also likely the browser will present a security error when you try to log in: please accept this and continue, as the insecure page is hosted on your local computer and does not present a risk.
+
 Please create an Issue for any errors you experience, along with the full output of the programme.  
-This allows for a much better experience when reproducing errors, and also makes it possible to find the issue more quickly.
 
 Contributing
 ------------

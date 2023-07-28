@@ -1,6 +1,5 @@
 # Exec
 /bin/
-/inventory_tool
 /obj/
 /lib/
 
@@ -18,7 +17,5 @@
 /config/
 
 # Local Alire Crates
-/alire_local/aws-23.0.0/
-/alire_local/aws-23.0.0.zip
-/alire_local/gtkada-23.0.0/
-/alire_local/gtkada-23.0.0.zip
+/alire_local/aws/
+/alire_local/gtkada/
