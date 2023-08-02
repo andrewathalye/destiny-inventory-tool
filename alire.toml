@@ -14,6 +14,7 @@ gtkada = "*"
 aws = "*"
 vss = "^23.0.0"
 gnatcoll = "^23.0.0"
+gnatcoll_sqlite = "^23.0.0"
 
 [[pins]]
 gtkada = { path = "alire_local/gtkada" }

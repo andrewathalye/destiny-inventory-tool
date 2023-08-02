@@ -155,7 +155,7 @@ package body GUI.Global is
 --      if Global_Pixbuf_Cache.Contains (Vault_Icon_Path) then
 --         Vault_Image.Set (Global_Pixbuf_Cache (Vault_Icon_Path));
 --      else
-         Vault_Image.Set (Placeholder_Icon);
+      Vault_Image.Set (Placeholder_Icon);
 --         Tasks.Download.Global_Task.Download
 --           (Vault_Icon_Path, Gtk_Widget (Vault_Image));
 --      end if;

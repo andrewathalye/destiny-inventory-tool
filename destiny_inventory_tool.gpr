@@ -1,5 +1,5 @@
-with "config/destiny_inventory_tool_config.gpr";
-with "gpr/bungie_api.gpr";
+with "config/destiny_inventory_tool_config";
+with "gpr/bungie_api";
 
 project Destiny_Inventory_Tool is
 
@@ -32,11 +32,13 @@ project Destiny_Inventory_Tool is
    end Binder;
 
    package Linker is
+      Linker_Switches := ("-larchive");
       case Destiny_Inventory_Tool_Config.Build_Profile is
-         when "release" | "development" => null;
+         when "release" | "development" => 
+	    for Default_Switches ("Ada") use Linker_Switches;
          when "validation" =>
-            for Default_Switches ("Ada") use ("-fsanitize=address", "-static-libasan");
-   end case;
+            for Default_Switches ("Ada") use Linker_Switches & ("-fsanitize=address", "-static-libasan");
+      end case;
    end Linker;
 
    package Install is

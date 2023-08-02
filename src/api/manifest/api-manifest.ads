@@ -97,23 +97,23 @@ package API.Manifest is
       Pattern             => 30);
 
    type Destiny_Inventory_Item_Definition is record
-      Description                     : Unbounded_String;
-      Name                            : Unbounded_String;
-      Icon_Path                       : Unbounded_String;
-      Watermark_Path                  : Unbounded_String;
-      Shelved_Watermark_Path          : Unbounded_String;
-      Item_Type_And_Tier_Display_Name : Unbounded_String;
-      Max_Stack_Size                  : Integer_32;
-      Bucket_Type_Hash                : Manifest_Hash;
-      Tier_Type                       : Destiny_Tier_Type;
-      Display_Version_Watermark_Icons : Unbounded_String_List;
-      --  Stats?
+      Description                      : Unbounded_String;
+      Name                             : Unbounded_String;
+      Icon_Path                        : Unbounded_String;
+      Watermark_Path                   : Unbounded_String;
+      Shelved_Watermark_Path           : Unbounded_String;
+      Item_Type_And_Tier_Display_Name  : Unbounded_String;
+      Max_Stack_Size                   : Integer_32;
+      Bucket_Type_Hash                 : Manifest_Hash;
+      Tier_Type                        : Destiny_Tier_Type;
+      Display_Version_Watermark_Icons  : Unbounded_String_List;
       Allow_Actions                    : Boolean;
       Postmaster_Pull_Has_Side_Effects : Boolean;
       Item_Type                        : Destiny_Item_Type;
       Default_Damage_Type_Hash         : Manifest_Hash := 0; -- Nullable
       --  DestinyDamageTypeDefinition
    end record;
+
    package DIIDM is new Ada.Containers.Ordered_Maps
      (Key_Type     => Manifest_Hash,
       Element_Type => Destiny_Inventory_Item_Definition);
@@ -125,6 +125,7 @@ package API.Manifest is
       Icon_Path   : Unbounded_String;
       Show_Icon   : Boolean;
    end record;
+
    package DDTDM is new Ada.Containers.Ordered_Maps
      (Key_Type     => Manifest_Hash,
       Element_Type => Destiny_Damage_Type_Definition);
