@@ -72,14 +72,16 @@ package body API.Inventories.Character is
       Relevant_Item                 := Item;
       Relevant_Item.Transfer_Status := Profiles.Item_Is_Equipped;
    end Equip_Item;
+
    function Item_Count
      (Inventory : Character_Inventory_Type;
       Character : Profiles.Character_Type;
       Location  : Manifest.Tools.Bucket_Location_Type)
-      return Natural is
-     (Natural
+      return API.Manifest.Quantity_Type is
+     (API.Manifest.Quantity_Type
         (Inventory.All_Character_Items (Character.Character_ID) (Location)
            .Length));
+
    --  Access to Item Data
    function Character_Items
      (Inventory : Character_Inventory_Type;

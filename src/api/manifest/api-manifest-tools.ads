@@ -124,8 +124,8 @@ package API.Manifest.Tools is
       Item_Instance_ID : Item_Instance_ID_Type := -1;
 
       --  Item stack
-      Quantity       : Integer_32 := -1;
-      Max_Stack_Size : Integer_32 := -1;
+      Quantity       : Quantity_Type := -1;
+      Max_Stack_Size : Quantity_Type := -1;
 
       --  Buckets and Location-Related Data
       Location                         : Item_Location_Type := Unknown;
@@ -155,9 +155,9 @@ package API.Manifest.Tools is
       Item_Type_And_Tier_Display_Name  : Unbounded_String;
 
       --  Instance-Specific Info (will not be filled for non-instanced items)
-      Light_Level     : Integer_32 := -1;
-      Energy_Capacity : Integer_32 := -1;
-      Energy_Used     : Integer_32 := -1;
+      Light_Level     : Quantity_Type := -1;
+      Energy_Capacity : Quantity_Type := -1;
+      Energy_Used     : Quantity_Type := -1;
       Stats           : Stats_Map;
       Sockets         : Consolidated_Socket_List;
       Perks           : Perk_List;
@@ -182,5 +182,5 @@ package API.Manifest.Tools is
 
    Invalid_Item : exception;
    --  Will raise Invalid_Item if 'D' does not describe a crafted weapon
-   function Get_Weapon_Level (D : Item_Description) return Integer_32;
+   function Get_Weapon_Level (D : Item_Description) return Quantity_Type;
 end API.Manifest.Tools;

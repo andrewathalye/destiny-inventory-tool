@@ -247,7 +247,7 @@ package body API.Manifest.Tools is
       return Null_Unbounded_String;
    end Get_Title;
 
-   function Get_Weapon_Level (D : Item_Description) return Integer_32 is
+   function Get_Weapon_Level (D : Item_Description) return Quantity_Type is
       --  Variables
       Shaped_Weapon_Socket : Consolidated_Socket_Type;
 

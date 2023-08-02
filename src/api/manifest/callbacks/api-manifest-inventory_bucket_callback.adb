@@ -36,7 +36,7 @@ begin
 
    Read_Next (Reader); -- "itemCount"
    Read_Next (Reader);
-   Bucket.Item_Count := Integer_32 (As_Integer (Number_Value (Reader)));
+   Bucket.Item_Count := Quantity_Type (As_Integer (Number_Value (Reader)));
 
    Read_Next (Reader); -- "location"
    Read_Next (Reader);

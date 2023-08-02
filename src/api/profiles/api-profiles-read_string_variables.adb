@@ -17,7 +17,7 @@ begin
       while Event_Kind (Reader) /= End_Object loop
          Key := Unsigned_32'Value (VS2S (Key_Name (Reader)));
          Read_Next (Reader); -- NUMBER_VALUE
-         Map.Insert (Key, Integer_32 (As_Integer (Number_Value (Reader))));
+         Map.Insert (Key, Quantity_Type (As_Integer (Number_Value (Reader))));
 
          Read_Next (Reader); -- KEY_NAME or END_OBJECT
       end loop Read_Variable;

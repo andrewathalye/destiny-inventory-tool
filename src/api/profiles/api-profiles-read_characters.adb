@@ -28,7 +28,7 @@ begin
 
          Wait_Until_Key (Reader, "light");
          Read_Next (Reader);
-         Character.Light := Integer_32 (As_Integer (Number_Value (Reader)));
+         Character.Light := Quantity_Type (As_Integer (Number_Value (Reader)));
 
          Wait_Until_Key (Reader, "stats");
          Read_Next (Reader); -- Start_Object
@@ -38,7 +38,7 @@ begin
               Manifest_Hash'Value (VS2S (Key_Name (Reader))); -- Stat Name Hash
             Read_Next (Reader); -- NUMBER_VALUE
             Character.Stats.Insert
-              (Stat_Temp, Integer_32 (As_Integer (Number_Value (Reader))));
+              (Stat_Temp, Quantity_Type (As_Integer (Number_Value (Reader))));
             Read_Next (Reader); -- KEY_NAME or END_OBJECT
          end loop;
 

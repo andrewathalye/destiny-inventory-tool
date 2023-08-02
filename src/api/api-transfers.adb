@@ -1,5 +1,4 @@
 pragma Ada_2022;
-with Interfaces;  use Interfaces;
 with Ada.Text_IO; use Ada.Text_IO;
 
 --  AWS
@@ -18,6 +17,7 @@ with API.Manifest.Tools;
 use all type API.Manifest.Tools.Bucket_Location_Type;
 use all type API.Manifest.Destiny_Tier_Type;
 use all type API.Manifest.Destiny_Item_Type;
+use type API.Manifest.Quantity_Type;
 
 with API.Error_Codes;
 use all type API.Error_Codes.Error_Code_Type;
@@ -77,15 +77,15 @@ package body API.Transfers is
       D         : Manifest.Tools.Item_Description)
    is
 
-      Bucket_Item_Count : constant Natural :=
+      Bucket_Item_Count : constant API.Manifest.Quantity_Type :=
         Inventories.Character.Item_Count
           (Inventory, Character, D.Default_Bucket_Location);
-      Max_Item_Count : constant Integer_32 :=
+      Max_Item_Count : constant API.Manifest.Quantity_Type :=
         M.Destiny_Inventory_Buckets (D.Default_Bucket_Hash).Item_Count;
 
    begin
       --  +2 because space is needed for the equipped item and the new item
-      if Integer_32 (Bucket_Item_Count + 2) > Max_Item_Count then
+      if (Bucket_Item_Count + 2) > Max_Item_Count then
          raise No_Room_In_Destination;
       end if;
    end Check_Character_Has_Room;
@@ -96,11 +96,11 @@ package body API.Transfers is
       D         : Manifest.Tools.Item_Description)
    is
 
-      Bucket_Item_Count : constant Natural :=
+      Bucket_Item_Count : constant API.Manifest.Quantity_Type :=
         Inventories.Global.Item_Count (Inventory, D.Bucket_Location);
-      Max_Item_Count : constant Integer_32 :=
+      Max_Item_Count : constant API.Manifest.Quantity_Type :=
         M.Destiny_Inventory_Buckets (General'Enum_Rep).Item_Count;
-      Item_Stack_Quantity : Integer_32 := 0;
+      Item_Stack_Quantity : API.Manifest.Quantity_Type := 0;
 
    begin
       --  Attempt to find the item stack quantity. There is not necessarily an item in the vault
@@ -115,7 +115,7 @@ package body API.Transfers is
       end;
 
       --  +1 because space is needed for the new item
-      if Integer_32 (Bucket_Item_Count + 1) > Max_Item_Count then
+      if (Bucket_Item_Count + 1) > Max_Item_Count then
          raise No_Room_In_Destination;
       end if;
 

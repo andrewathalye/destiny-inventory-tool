@@ -19,13 +19,13 @@ package API.Profiles is
 
    --  Characters
    package Stats_Maps is new Ada.Containers.Ordered_Maps
-     (Manifest_Hash, Integer_32);
+     (Manifest_Hash, Quantity_Type);
    subtype Stats_Map is Stats_Maps.Map;
 
    type Character_Type is record
       Character_ID     : Unbounded_String;
       Date_Last_Played : Unbounded_String;
-      Light            : Integer_32;
+      Light            : Quantity_Type;
       Stats            : Stats_Map;
       Race_Hash        : Manifest_Hash;
       --  DestinyRaceDefinition
@@ -66,7 +66,7 @@ package API.Profiles is
       Item_Instance_ID : Item_Instance_ID_Type := -1; -- Nullable
       --  Note: For compatibility reasons, the API returns
       --  item instance IDs as strings rather than Integer_64 values.
-      Quantity    : Integer_32;
+      Quantity    : Quantity_Type;
       Bind_Status : Bind_Status_Type;
       Location    : Item_Location_Type;
       Bucket_Hash : Manifest_Hash;
@@ -170,9 +170,9 @@ package API.Profiles is
    subtype Sockets_Map is Sockets_Maps.Map;
 
    type Instance_Type is record
-      Light_Level     : Integer_32;
-      Energy_Capacity : Integer_32;
-      Energy_Used     : Integer_32;
+      Light_Level     : Quantity_Type;
+      Energy_Capacity : Quantity_Type;
+      Energy_Used     : Quantity_Type;
    end record;
 
    package Instance_Maps is new Ada.Containers.Ordered_Maps
@@ -189,8 +189,8 @@ package API.Profiles is
       --  DestinyObjectiveDefinition
       Destination_Hash : Manifest_Hash := 0; --  Nullable
       Activity_Hash    : Manifest_Hash := 0; --  Nullable
-      Progress         : Integer_32    := -1; --  Nullable
-      Completion_Value : Integer_32;
+      Progress         : Quantity_Type := -1; --  Nullable
+      Completion_Value : Quantity_Type;
       Complete         : Boolean;
       Visible          : Boolean;
    end record;
@@ -221,7 +221,7 @@ package API.Profiles is
    end record;
 
    package String_Variable_Maps is new Ada.Containers.Ordered_Maps
-     (Key_Type => Unsigned_32, Element_Type => Integer_32);
+     (Key_Type => Unsigned_32, Element_Type => Quantity_Type);
 
    subtype String_Variable_Map is String_Variable_Maps.Map;
 

@@ -2,8 +2,9 @@ pragma Ada_2022;
 
 with Ada.Streams.Stream_IO;
 with Ada.Directories; use Ada.Directories;
-with Ada.Text_IO;
-with Ada.Exceptions;
+--  with Ada.Text_IO;
+--  with Ada.Exceptions;
+with Ada.Unchecked_Deallocation;
 
 --  VSS
 with VSS.JSON.Pull_Readers.Simple; use VSS.JSON.Pull_Readers.Simple;
@@ -41,6 +42,7 @@ with API.Manifest.Stat_Callback;
 with API.Manifest.Inventory_Item_Callback;
 with API.Manifest.Objective_Callback;
 with API.Manifest.Record_Callback;
+with API.Manifest.Vendor_Callback;
 
 package body API.Manifest is
    function Fetch_Manifest
@@ -48,11 +50,20 @@ package body API.Manifest is
       Localised_Manifest_Path  : Unbounded_String)
       return Manifest_Type
    is
+      --  Types
       type Stream_Element_Array_Access is
         access Ada.Streams.Stream_Element_Array;
+      procedure Free is new Ada.Unchecked_Deallocation
+        (Object => Ada.Streams.Stream_Element_Array,
+         Name   => Stream_Element_Array_Access);
 
+      --  Constants
+      Database_Path : constant String := "dat/manifest.sqlite";
+
+      --  Variables
       Result : Manifest_Type;
 
+      --  Note: These need to be freed after we are done
       Manifest_Data : Stream_Element_Array_Access;
       Archive_Data  : Stream_Element_Array_Access;
 
@@ -95,25 +106,39 @@ package body API.Manifest is
          Archive_Read_Free (Archive);
       end;
 
+      Free (Manifest_Data); --  Manifest unzipped
+
       Shared.Debug.Put_Line ("Load database and start parsing fields");
 
---      declare
---         SF : Ada.Streams.Stream_IO.File_Type;
---         SE : Ada.Streams.Stream_IO.Stream_Access;
---      begin
---         Ada.Streams.Stream_IO.Create (File => SF, Name => "database.dump");
---         SE := Ada.Streams.Stream_IO.Stream (SF);
---
---         Ada.Streams.Stream_Element_Array'Write (SE, Archive_Data.all);
---
---         Ada.Streams.Stream_IO.Close (SF);
---      end;
---
+      Write_Temp_Database :
+         declare
+            SF : Ada.Streams.Stream_IO.File_Type;
+            SE : Ada.Streams.Stream_IO.Stream_Access;
+         begin
+            --  If we crashed last time, remove the old database
+            if Exists (Database_Path) then
+               goto TODO_Skip;
+               --  Delete_File (Database_Path);
+            end if;
+
+            Ada.Streams.Stream_IO.Create (File => SF, Name => Database_Path);
+            SE := Ada.Streams.Stream_IO.Stream (SF);
+
+            Ada.Streams.Stream_Element_Array'Write (SE, Archive_Data.all);
+
+            Ada.Streams.Stream_IO.Close (SF);
+         end Write_Temp_Database;
+
+      <<TODO_Skip>>
+
+      Free (Archive_Data); --  Archive data written
+
       Read_Database :
          declare
             Description : GNATCOLL.SQL.Exec.Database_Description;
             Connection  : GNATCOLL.SQL.Exec.Database_Connection;
 
+            --  Nested subprogram to execute callbacks and fetch table data
             procedure Add_Data
               (Table    : String;
                Callback : access procedure
@@ -155,11 +180,11 @@ package body API.Manifest is
                        (As_Manifest_Hash (Cursor.Integer_Value (0)),
                         Reader,
                         Result);
-                  exception
-                     when X : others =>
-                        Ada.Text_IO.Put_Line
-                          (Ada.Text_IO.Standard_Error, Cursor.Value (1));
-                        Ada.Exceptions.Reraise_Occurrence (X);
+--                  exception
+--                     when X : others =>
+--                        Ada.Text_IO.Put_Line
+--                          (Ada.Text_IO.Standard_Error, Cursor.Value (1));
+--                        Ada.Exceptions.Reraise_Occurrence (X);
                   end;
 
                   Cursor.Next;
@@ -174,10 +199,12 @@ package body API.Manifest is
          begin
             --  Connect to Database
             Description :=
-              GNATCOLL.SQL.Sqlite.Setup (Database => "database.dump");
+              GNATCOLL.SQL.Sqlite.Setup (Database => Database_Path);
             Connection := GNATCOLL.SQL.Exec.Build_Connection (Description);
 
             --  Add data from tables using callbacks
+            pragma Warnings (Off, "unreachable code");
+            goto Read_Vendor_Definition; -- TODO TODO
             Add_Data
               ("DestinyClassDefinition", API.Manifest.Class_Callback'Access);
             Add_Data
@@ -200,10 +227,20 @@ package body API.Manifest is
                API.Manifest.Objective_Callback'Access);
             Add_Data
               ("DestinyRecordDefinition", API.Manifest.Record_Callback'Access);
+            <<Read_Vendor_Definition>> -- TODO TODO
+            Add_Data
+              ("DestinyVendorDefinition", API.Manifest.Vendor_Callback'Access);
+
+            --  Done reading, free connection and description
+            GNATCOLL.SQL.Exec.Free (Connection);
+            GNATCOLL.SQL.Exec.Free (Description);
+
          end Read_Database;
 
       return Result;
       pragma Warnings (Off);
+
+      Delete_File (Database_Path);
 
       --  Cache manifest for later use
       --  TODO TODO TODO TODO use Sqlite directly and don’t cache?
@@ -269,46 +306,44 @@ package body API.Manifest is
       if Exists ("dat/manifest.dat") then
          Shared.Debug.Put_Line ("Load preparsed manifest");
 
-         declare
+         Load_Cached_Manifest :
+            declare
 
-            use Ada.Streams.Stream_IO;
-            SF                      : File_Type;
-            S                       : Stream_Access;
-            Manifest_Format_Version : Natural;
-            Cached_Manifest_Version : Unbounded_String;
+               use Ada.Streams.Stream_IO;
+               SF                      : File_Type;
+               S                       : Stream_Access;
+               Manifest_Format_Version : Natural;
+               Cached_Manifest_Version : Unbounded_String;
 
-         begin
-            Open (SF, In_File, "dat/manifest.dat");
-            S := Ada.Streams.Stream_IO.Stream (SF);
+            begin
+               Open (SF, In_File, "dat/manifest.dat");
+               S := Ada.Streams.Stream_IO.Stream (SF);
 
-            --  Read compatibility metadata
-            Natural'Read
-              (S, Manifest_Format_Version); --  Manifest serialisation format
-            Unbounded_String'Read
-              (S, Cached_Manifest_Version); --  Bungie Manifest version
+               --  Read compatibility metadata
+               Natural'Read
+                 (S,
+                  Manifest_Format_Version); --  Manifest serialisation format
+               Unbounded_String'Read
+                 (S, Cached_Manifest_Version); --  Bungie Manifest version
 
-            --  Read raw manifest data after format check
-            if Manifest_Format_Version = Current_Manifest_Format_Version and
-              Cached_Manifest_Version = Current_Manifest_Version
-            then
-               Manifest_Type'Read (S, Result);
-               Close (SF);
+               --  Read raw manifest data after format check
+               if Manifest_Format_Version = Current_Manifest_Format_Version and
+                 Cached_Manifest_Version = Current_Manifest_Version
+               then
+                  Manifest_Type'Read (S, Result);
+                  Close (SF);
 
-               return Result;
-            else
-               Close (SF);
-               Shared.Debug.Put_Line ("Update manifest");
-               Delete_File ("dat/manifest.dat");
-               return
-                 Fetch_Manifest
-                   (Current_Manifest_Version, Localised_Manifest_Path);
-            end if;
-         end;
+                  return Result;
+               else
+                  Close (SF);
+                  Shared.Debug.Put_Line ("Update manifest");
+                  Delete_File ("dat/manifest.dat");
+               end if;
+            end Load_Cached_Manifest;
 
-      else
-         return
-           Fetch_Manifest (Current_Manifest_Version, Localised_Manifest_Path);
       end if;
+      return
+        Fetch_Manifest (Current_Manifest_Version, Localised_Manifest_Path);
    end Get_Manifest;
 
 end API.Manifest;

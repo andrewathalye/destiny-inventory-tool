@@ -28,7 +28,7 @@ package API.Inventories.Global is
    function Item_Count
      (Inventory : Global_Inventory_Type;
       Location  : Manifest.Tools.Bucket_Location_Type)
-      return Natural;
+      return API.Manifest.Quantity_Type;
 
    --  This accepts a Manifest Hash and searches the Vault for a matching item
    --  stack. The Hash should be of an item that is stackable, but this is not

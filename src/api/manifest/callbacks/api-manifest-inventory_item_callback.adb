@@ -40,7 +40,7 @@ begin
                elsif VS2S (Key_Name (Reader)) = "maxStackSize" then
                   Read_Next (Reader);
                   Item.Max_Stack_Size :=
-                    Integer_32 (As_Integer (Number_Value (Reader)));
+                    Quantity_Type (As_Integer (Number_Value (Reader)));
 
                elsif VS2S (Key_Name (Reader)) = "bucketTypeHash" then
                   Read_Next (Reader);

@@ -19,7 +19,7 @@ begin
    end if;
 
    Read_Next (Reader);
-   Item.Quantity := Integer_32 (As_Integer (Number_Value (Reader)));
+   Item.Quantity := Quantity_Type (As_Integer (Number_Value (Reader)));
 
    Read_Next (Reader); -- "bindStatus"
    Read_Next (Reader);

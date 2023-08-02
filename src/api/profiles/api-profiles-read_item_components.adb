@@ -27,12 +27,12 @@ begin
    Add_Instances :
       while Event_Kind (Reader) /= End_Object loop
          declare
-            Item_Level : Integer_32;
-            Quality    : Integer_32;
+            Item_Level : Quantity_Type;
+            Quality    : Quantity_Type;
 
             --  Nullable
-            Energy_Capacity : Integer_32 := -1;
-            Energy_Used     : Integer_32 := -1;
+            Energy_Capacity : Quantity_Type := -1;
+            Energy_Used     : Quantity_Type := -1;
 
          begin
             Item_Instance_ID :=
@@ -46,11 +46,11 @@ begin
             --  if trying to read it. Instead, calculate it via "Item_Level * 10 + Quality"
             Wait_Until_Key (Reader, "itemLevel");
             Read_Next (Reader);
-            Item_Level := Integer_32 (As_Integer (Number_Value (Reader)));
+            Item_Level := Quantity_Type (As_Integer (Number_Value (Reader)));
 
             Read_Next (Reader); -- "quality"
             Read_Next (Reader);
-            Quality := Integer_32 (As_Integer (Number_Value (Reader)));
+            Quality := Quantity_Type (As_Integer (Number_Value (Reader)));
 
             --  A lot of nullable fields follow, but we only need "energy"
             Read_Next (Reader);
@@ -73,12 +73,14 @@ begin
                            Read_Next (Reader); -- energyCapacity
                            Read_Next (Reader);
                            Energy_Capacity :=
-                             Integer_32 (As_Integer (Number_Value (Reader)));
+                             Quantity_Type
+                               (As_Integer (Number_Value (Reader)));
 
                            Read_Next (Reader); -- energyUsed
                            Read_Next (Reader);
                            Energy_Used :=
-                             Integer_32 (As_Integer (Number_Value (Reader)));
+                             Quantity_Type
+                               (As_Integer (Number_Value (Reader)));
 
                            Read_Next (Reader); -- energyUnused
                            Read_Next (Reader);
@@ -157,7 +159,7 @@ begin
                   Read_Next (Reader);
                   Stats.Insert
                     (Stat_Hash,
-                     Integer_32 (As_Integer (Number_Value (Reader))));
+                     Quantity_Type (As_Integer (Number_Value (Reader))));
 
                   Read_Next (Reader); -- END_OBJECT
                   Read_Next (Reader); -- statHash as key or END_OBJECT
@@ -308,14 +310,14 @@ begin
                               if VS2S (Key_Name (Reader)) = "progress" then
                                  Read_Next (Reader);
                                  Objective.Progress :=
-                                   Integer_32
+                                   Quantity_Type
                                      (As_Integer (Number_Value (Reader)));
                                  Read_Next (Reader); -- "completionValue"
                               end if;
 
                               Read_Next (Reader);
                               Objective.Completion_Value :=
-                                Integer_32
+                                Quantity_Type
                                   (As_Integer (Number_Value (Reader)));
 
                               Read_Next (Reader); -- "complete"

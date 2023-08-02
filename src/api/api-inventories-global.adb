@@ -5,6 +5,7 @@ with Interfaces; use Interfaces;
 with API.Manifest.Tools;
 use type API.Manifest.Item_Location_Type;
 use all type API.Manifest.Tools.Bucket_Location_Type;
+use type API.Manifest.Quantity_Type;
 
 package body API.Inventories.Global is
    --  (Virtual) Inventory Management
@@ -48,18 +49,22 @@ package body API.Inventories.Global is
    function Item_Count
      (Inventory : Global_Inventory_Type;
       Location  : Manifest.Tools.Bucket_Location_Type)
-      return Natural
+      return API.Manifest.Quantity_Type
    is
 
-      Count : Natural := 0;
+      Count : API.Manifest.Quantity_Type := 0;
 
    begin
       case Location is
          when Consumable =>
-            return Natural (Inventory.Inventory (Consumable).Length);
+            return
+              API.Manifest.Quantity_Type
+                (Inventory.Inventory (Consumable).Length);
 
          when Modification =>
-            return Natural (Inventory.Inventory (Modification).Length);
+            return
+              API.Manifest.Quantity_Type
+                (Inventory.Inventory (Modification).Length);
 
          when others =>
             --  Can't just check (General).Length because the items are

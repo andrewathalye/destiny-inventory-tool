@@ -14,6 +14,7 @@ with Gtk.Separator;    use Gtk.Separator;
 --  Local Packages
 with API.Manifest;
 use all type API.Manifest.Destiny_Tier_Type;
+use type API.Manifest.Quantity_Type;
 
 with GUI.Base.Get_Overlay;
 with GUI.Handlers; use GUI;
@@ -97,7 +98,7 @@ is
                   --  String variable formatting
                declare
                   Text : constant String :=
-                    Integer_32'Image
+                    API.Manifest.Quantity_Type'Image
                       (GUI.Profile.Profile_String_Variables
                          (Unsigned_32'Value
                             (Input (First_Pos .. Second_Pos))));

@@ -14,6 +14,7 @@ with Shared.Strings; use Shared.Strings;
 
 with API.Manifest;
 use all type API.Manifest.Destiny_Item_Type;
+use type API.Manifest.Quantity_Type;
 use API;
 
 function GUI.Base.Get_Overlay
