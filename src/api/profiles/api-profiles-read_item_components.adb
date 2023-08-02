@@ -159,7 +159,7 @@ begin
                   Read_Next (Reader);
                   Stats.Insert
                     (Stat_Hash,
-                     Quantity_Type (As_Integer (Number_Value (Reader))));
+                     Stat_Type (As_Integer (Number_Value (Reader))));
 
                   Read_Next (Reader); -- END_OBJECT
                   Read_Next (Reader); -- statHash as key or END_OBJECT

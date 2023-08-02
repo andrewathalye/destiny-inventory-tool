@@ -98,7 +98,7 @@ is
                   --  String variable formatting
                declare
                   Text : constant String :=
-                    API.Manifest.Quantity_Type'Image
+                    API.Profiles.String_Variable_Type'Image
                       (GUI.Profile.Profile_String_Variables
                          (Unsigned_32'Value
                             (Input (First_Pos .. Second_Pos))));

@@ -1,6 +1,6 @@
 name = "destiny_inventory_tool"
 description = "A Destiny inventory management tool for the desktop"
-version = "0.21.0-dev"
+version = "0.22.0-dev"
 licenses = "GPL-3.0-or-later"
 
 authors = ["Andrew Athalye"]

@@ -207,7 +207,7 @@ package API.Manifest is
    -----------------------------
    type Vendor_Item_Index_Type is new Natural;
    type Failure_Index_Type is new Natural;
-   type Display_Category_Index_Type is new Natural;
+   type Display_Category_Index_Type is new Integer range -1 .. Integer'Last;
 
    package Failure_Index_Lists is new Ada.Containers.Vectors
      (Natural, Failure_Index_Type);
@@ -249,7 +249,6 @@ package API.Manifest is
       --  Points to a Destiny_Display_Category_Definition within Display_Categories
       --  Category_Index?
       Socket_Overrides : Destiny_Vendor_Item_Socket_Override_List;
-      Unpurchaseable   : Boolean;
    end record;
 
    package DVIDM is new Ada.Containers.Ordered_Maps
@@ -257,7 +256,9 @@ package API.Manifest is
    subtype Destiny_Vendor_Item_Map is DVIDM.Map;
 
    type Destiny_Vendor_Definition is record
-      Subtitle          : Unbounded_String;
+      Large_Icon_Path : Unbounded_String; --  Nullable
+      Subtitle        : Unbounded_String;
+      --  largeTransparentIcon?
       Description       : Unbounded_String;
       Name              : Unbounded_String;
       Icon_Path         : Unbounded_String; --  Nullable
@@ -276,8 +277,10 @@ package API.Manifest is
       --  Indexed by Hash
       Items : Destiny_Vendor_Item_Map;
       --  Indexed by Vendor Item Index (may be ignored if not needed)
-      Groups : Manifest_Hash_List;
+      Group : Manifest_Hash := 0; --  Nullable
       --  Linked to DestinyVendorGroupDefinition TODO unimplemented parsing
+      --  Note: Theoretically there can be multiple, but according to the API spec
+      --  only one group may be attached to a vendor at a time.
       Ignore_Sale_Hashes : Manifest_Hash_List;
    end record;
 
@@ -323,5 +326,5 @@ package API.Manifest is
    function Get_Manifest return Manifest_Type;
 
 private
-   Current_Manifest_Format_Version : constant := 3;
+   Current_Manifest_Format_Version : constant := 4;
 end API.Manifest;

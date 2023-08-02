@@ -5,7 +5,9 @@ use VSS.JSON;
 
 with Shared.JSON;    use Shared.JSON;
 with Shared.Strings; use Shared.Strings;
-with Shared.Debug;   use Shared.Debug;
+--  with Shared.Debug;   use Shared.Debug;
+
+pragma Extensions_Allowed (On);
 
 procedure API.Manifest.Vendor_Callback
   (Hash         :        Manifest_Hash;
@@ -20,7 +22,16 @@ begin
    --  displayProperties {} --
    ---------------------------
    --  Begin DestinyVendorDisplayPropertiesDefinition << displayProperties
-   Wait_Until_Key (Reader, "subtitle");
+   Wait_Until_Key (Reader, "displayProperties");
+   Read_Next (Reader); --  START_OBJECT
+
+   Read_Next (Reader); --  "largeIcon" or "subtitle"
+   if VS2S (Key_Name (Reader)) = "largeIcon" then
+      Read_Next (Reader);
+      Vendor.Large_Icon_Path := VS2UB (String_Value (Reader));
+      Read_Next (Reader); --  "subtitle"
+   end if;
+
    Read_Next (Reader);
    Vendor.Subtitle := VS2UB (String_Value (Reader));
 
@@ -102,20 +113,20 @@ begin
    while Event_Kind (Reader) /= End_Array loop
       Read_Next (Reader); --  "index"
       Read_Next (Reader);
-      DDCD_Index := Display_Category_Index_Type (As_Integer (Number_Value (Reader)));
+      DDCD_Index :=
+        Display_Category_Index_Type (As_Integer (Number_Value (Reader)));
 
       --  Start DestinyDisplayPropertiesDefinition
       Wait_Until_Key (Reader, "name");
-      Read_Next (Reader);
-
-      Wait_Until_Event (Reader, End_Object);
-      --  End DestinyDisplayPropertiesDefinition
       Read_Next (Reader);
 
       Vendor.Display_Categories.Insert
         (DDCD_Index, (Name => VS2UB (String_Value (Reader))));
 
       --  No more info needed
+      Wait_Until_Event (Reader, End_Object);
+      --  End DestinyDisplayPropertiesDefinition
+
       Wait_Until_Event (Reader, End_Object);
       Read_Next (Reader); --  START_OBJECT or END_ARRAY
    end loop;
@@ -195,22 +206,70 @@ begin
                   end Add_Socket_Override;
             end loop;
 
-            Read_Next (Reader); --  "unpurchaseable"
-            Read_Next (Reader);
-            DVID.Unpurchaseable := Boolean_Value (Reader);
-
             Vendor.Items.Insert (DVID_Index, DVID);
 
-            --  No more info needed
+            --  No more info needed (unpurchaseable is better to get from live data)
+            Wait_Until_Event (Reader, End_Object);
             Read_Next (Reader); --  START_OBJECT or END_ARRAY
          end Read_Destiny_Vendor_Item;
+   end loop;
+
+   ---------------
+   -- groups [] --
+   -- OPTIONAL  --
+   ---------------
+   Wait_Until_Key (Reader, "returnWithVendorRequest");
+   Read_Next (Reader); --  BOOLEAN_VALUE, TODO currently ignored
+
+   Read_Next (Reader); --  "locations" or "groups" or "ignoreSaleItemHashes"
+
+   --  Handle alternatives
+   if VS2S (Key_Name (Reader)) = "groups" then
+      goto groups;
+   elsif VS2S (Key_Name (Reader)) = "ignoreSaleItemHashes" then
+      goto ignoreSaleItemHashes;
+   end if;
+
+   Read_Next (Reader); --  START_ARRAY
+   Skip_Current_Array (Reader); --  "groups" or "ignoreSaleItemHashes"
+
+   --  Handle alternative
+   if VS2S (Key_Name (Reader)) = "ignoreSaleItemHashes" then
+      goto ignoreSaleItemHashes;
+   end if;
+
+   <<groups>>
+   Read_Next (Reader); --  START_ARRAY
+   Read_Next (Reader); --  START_OBJECT or END_ARRAY
+
+   --  Probably an unnecessary check, but the API does not specify
+   --  whether an empty array can be returned
+   if Event_Kind (Reader) /= End_Array then
+      Read_Next (Reader); --  "vendorGroupHash"
+      Read_Next (Reader);
+      Vendor.Group := Manifest_Hash (As_Integer (Number_Value (Reader)));
+
+      Read_Next (Reader); --  END_OBJECT
+      Read_Next (Reader); --  END_ARRAY
+   end if;
+
+   ------------------------------
+   --  ignoreSaleItemHashes [] --
+   ------------------------------
+   Read_Next (Reader); --  "ignoreSaleItemHashes"
+   <<ignoreSaleItemHashes>>
+   Read_Next (Reader); --  START_ARRAY
+   Read_Next (Reader); --  NUMBER_VALUE or END_ARRAY
+   while Event_Kind (Reader) /= End_Array loop
+      Vendor.Ignore_Sale_Hashes.Append
+        (Manifest_Hash (As_Integer (Number_Value (Reader))));
+      Read_Next (Reader); --  NUMBER_VALUE or END_ARRAY
    end loop;
 
    --------------
    -- COMPLETE --
    --------------
    --  Add finished Vendor to Manifest
-   Put_Line (Vendor'Image);
+--   Put_Line ("Vendor Complete: " & (+Vendor.Name));
    The_Manifest.Destiny_Vendors.Insert (Hash, Vendor);
-   raise Program_Error with "Intended behaviour for debugging.";
 end API.Manifest.Vendor_Callback;

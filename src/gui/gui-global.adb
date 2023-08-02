@@ -29,7 +29,6 @@ with Secrets; use Secrets;
 
 package body GUI.Global is
    --  Instantiations
-
    package User_Callback_Natural is new User_Callback
      (Gtk_Widget_Record, Natural);
    package User_Callback_Character is new User_Callback
@@ -110,6 +109,9 @@ package body GUI.Global is
         Gtk_Grid (GUI.Builder.Get_Object ("transfer_grid"));
       Count : Gint := 0;
 
+      Vault_Vendor_Hash : constant                  := 1_037_843_411;
+      Vault_Icon_Path   : constant Unbounded_String :=
+        The_Manifest.Destiny_Vendors (Vault_Vendor_Hash).Icon_Path;
       Vault_Image  : Gtk_Image;
       Vault_Button : Gtk_Button;
 
@@ -152,13 +154,15 @@ package body GUI.Global is
 
       --  Vault Icon and Button
       Gtk_New (Vault_Image);
---      if Global_Pixbuf_Cache.Contains (Vault_Icon_Path) then
---         Vault_Image.Set (Global_Pixbuf_Cache (Vault_Icon_Path));
---      else
-      Vault_Image.Set (Placeholder_Icon);
---         Tasks.Download.Global_Task.Download
---           (Vault_Icon_Path, Gtk_Widget (Vault_Image));
---      end if;
+      if Global_Pixbuf_Cache.Contains (+(Bungie_Root & (+Vault_Icon_Path)))
+      then
+         Vault_Image.Set
+           (Global_Pixbuf_Cache ((+(Bungie_Root & (+Vault_Icon_Path)))));
+      else
+         Vault_Image.Set (Placeholder_Icon);
+         Tasks.Download.Global_Task.Download
+           (+(Bungie_Root & (+Vault_Icon_Path)), Gtk_Widget (Vault_Image));
+      end if;
       Vault_Image.Show;
 
       Gtk_New (Vault_Button, "Vault");

@@ -18,8 +18,9 @@ package API.Profiles is
    subtype Item_Instance_ID_Type is Integer_64;
 
    --  Characters
+   type Stat_Type is new Integer_32;
    package Stats_Maps is new Ada.Containers.Ordered_Maps
-     (Manifest_Hash, Quantity_Type);
+     (Manifest_Hash, Stat_Type);
    subtype Stats_Map is Stats_Maps.Map;
 
    type Character_Type is record
@@ -220,8 +221,9 @@ package API.Profiles is
       Perks : Perks_Map; --  TODO: May not be necessary? Consider removing.
    end record;
 
+   type String_Variable_Type is new Integer_32;
    package String_Variable_Maps is new Ada.Containers.Ordered_Maps
-     (Key_Type => Unsigned_32, Element_Type => Quantity_Type);
+     (Key_Type => Unsigned_32, Element_Type => String_Variable_Type);
 
    subtype String_Variable_Map is String_Variable_Maps.Map;
 

@@ -6,9 +6,6 @@ For Search:
 	Vault
 	[items]
 
-Vendor List (requires DestinyVendorDefinition)?
-Vault icon
-
 Loadout Support
 
 Glimmer icon size
@@ -18,3 +15,11 @@ Farming mode?
 Automatically load new emblem image after changing emblems
 
 TODO make transfers asynchronous too
+
+DestinyFactionDefinition
+DestinyVendorGroupDefinition
+
+Vendor browser in separate window
+Fix tracebacks
+
+SMOOTH IMAGE LOADING
