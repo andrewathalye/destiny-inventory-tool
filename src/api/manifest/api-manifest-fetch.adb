@@ -191,8 +191,6 @@ begin
          Connection  := GNATCOLL.SQL.Exec.Build_Connection (Description);
 
          --  Add data from tables using callbacks
-         pragma Warnings (Off, "unreachable");
---         goto TODO_Vendor;
          Add_Data
            ("DestinyClassDefinition", API.Manifest.Class_Callback'Access);
          Add_Data
@@ -213,7 +211,6 @@ begin
             API.Manifest.Objective_Callback'Access);
          Add_Data
            ("DestinyRecordDefinition", API.Manifest.Record_Callback'Access);
---         <<TODO_Vendor>>
          Add_Data
            ("DestinyVendorDefinition", API.Manifest.Vendor_Callback'Access);
 

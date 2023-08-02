@@ -121,20 +121,26 @@ package API.Manifest is
       Pattern             => 30);
 
    type Destiny_Inventory_Item_Definition is record
-      Description                      : Unbounded_String;
-      Name                             : Unbounded_String;
-      Icon_Path                        : Unbounded_String;
-      Watermark_Path                   : Unbounded_String;
-      Shelved_Watermark_Path           : Unbounded_String;
-      Item_Type_And_Tier_Display_Name  : Unbounded_String;
-      Max_Stack_Size                   : Quantity_Type;
-      Bucket_Type_Hash                 : Manifest_Hash;
-      Tier_Type                        : Destiny_Tier_Type;
-      Display_Version_Watermark_Icons  : Unbounded_String_List;
+      Description                     : Unbounded_String;
+      Name                            : Unbounded_String;
+      Icon_Path                       : Unbounded_String; --  Nullable
+      Watermark_Path                  : Unbounded_String; --  Nullable
+      Shelved_Watermark_Path          : Unbounded_String; --  Nullable
+      Secondary_Icon_Path             : Unbounded_String; --  Nullable
+      Secondary_Overlay_Path          : Unbounded_String; --  Nullable
+      Secondary_Special_Path          : Unbounded_String; --  Nullable
+      Item_Type_And_Tier_Display_Name : Unbounded_String;
+      --  stats, emblemObjectiveHash?
+      Max_Stack_Size                  : Quantity_Type;
+      Bucket_Type_Hash                : Manifest_Hash;
+      Tier_Type                       : Destiny_Tier_Type;
+      Display_Version_Watermark_Icons : Unbounded_String_List;
+      --  plugs, sockets, perks?
       Allow_Actions                    : Boolean;
       Postmaster_Pull_Has_Side_Effects : Boolean;
       Item_Type                        : Destiny_Item_Type;
-      Default_Damage_Type_Hash         : Manifest_Hash := 0; -- Nullable
+      --  breakerTypeHash?
+      Default_Damage_Type_Hash : Manifest_Hash := 0; -- Nullable
       --  DestinyDamageTypeDefinition
    end record;
 
@@ -149,7 +155,7 @@ package API.Manifest is
    type Destiny_Damage_Type_Definition is record
       Description : Unbounded_String;
       Name        : Unbounded_String;
-      Icon_Path   : Unbounded_String;
+      Icon_Path   : Unbounded_String; --  Nullable
       Show_Icon   : Boolean;
    end record;
 
@@ -320,6 +326,7 @@ package API.Manifest is
       --  TODO:
       --  DestinyFactionDefinition
       --  DestinyVendorGroupDefinition
+      --  DestinySocketTypeDefinition
    end record;
 
    --  Subprograms
