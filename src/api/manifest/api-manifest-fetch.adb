@@ -1,3 +1,5 @@
+pragma Ada_2022;
+
 with Ada.Directories; use Ada.Directories;
 with Ada.Streams.Stream_IO;
 with Ada.Unchecked_Deallocation;
@@ -40,6 +42,10 @@ with API.Manifest.Inventory_Item_Callback;
 with API.Manifest.Objective_Callback;
 with API.Manifest.Record_Callback;
 with API.Manifest.Vendor_Callback;
+with API.Manifest.Faction_Callback;
+with API.Manifest.Destination_Callback;
+with API.Manifest.Place_Callback;
+with API.Manifest.Activity_Callback;
 
 function API.Manifest.Fetch
   (Localised_Manifest_Path : Unbounded_String) return Manifest_Type
@@ -191,6 +197,8 @@ begin
          Connection  := GNATCOLL.SQL.Exec.Build_Connection (Description);
 
          --  Add data from tables using callbacks
+         pragma Warnings (Off, "unreachable");
+         goto Test_New_TODO;
          Add_Data
            ("DestinyClassDefinition", API.Manifest.Class_Callback'Access);
          Add_Data
@@ -211,8 +219,19 @@ begin
             API.Manifest.Objective_Callback'Access);
          Add_Data
            ("DestinyRecordDefinition", API.Manifest.Record_Callback'Access);
+         <<Test_New_TODO>>
          Add_Data
            ("DestinyVendorDefinition", API.Manifest.Vendor_Callback'Access);
+         Add_Data
+           ("DestinyFactionDefinition", API.Manifest.Faction_Callback'Access);
+         Add_Data
+           ("DestinyDestinationDefinition",
+            API.Manifest.Destination_Callback'Access);
+         Add_Data
+           ("DestinyPlaceDefinition", API.Manifest.Place_Callback'Access);
+         Add_Data
+           ("DestinyActivityDefinition",
+            API.Manifest.Activity_Callback'Access);
 
          --  Done reading, free connection and description
          GNATCOLL.SQL.Exec.Free (Connection);

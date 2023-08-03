@@ -7,8 +7,6 @@ with Shared.JSON;    use Shared.JSON;
 with Shared.Strings; use Shared.Strings;
 --  with Shared.Debug;   use Shared.Debug;
 
-pragma Extensions_Allowed (On);
-
 procedure API.Manifest.Vendor_Callback
   (Hash         :        Manifest_Hash;
    Reader       : in out JSON_Simple_Pull_Reader;
@@ -214,10 +212,6 @@ begin
          end Read_Destiny_Vendor_Item;
    end loop;
 
-   ---------------
-   -- groups [] --
-   -- OPTIONAL  --
-   ---------------
    Wait_Until_Key (Reader, "returnWithVendorRequest");
    Read_Next (Reader); --  BOOLEAN_VALUE, TODO currently ignored
 
@@ -230,13 +224,50 @@ begin
       goto ignoreSaleItemHashes;
    end if;
 
+   ------------------
+   -- locations [] --
+   --   OPTIONAL   --
+   ------------------
    Read_Next (Reader); --  START_ARRAY
-   Skip_Current_Array (Reader); --  "groups" or "ignoreSaleItemHashes"
+   Read_Next (Reader); --  START_OBJECT / END_ARRAY
+   declare
+      Vendor_Location : Destiny_Vendor_Location_Definition;
+   begin
+      while Event_Kind (Reader) /= End_Array loop
+         Read_Next (Reader); --  "destinationHash"
+         Read_Next (Reader);
+         Vendor_Location.Destination_Hash :=
+           Manifest_Hash (As_Integer (Number_Value (Reader)));
+
+         Read_Next (Reader); --  "backgroundImagePath" or END_OBJECT
+
+         if Event_Kind (Reader) = Key_Name and then VS2S (Key_Name (Reader)) = "backgroundImagePath" then
+                 Read_Next (Reader);
+                 Vendor_Location.Background_Image_Path :=
+                  VS2UB (String_Value (Reader));
+
+                  Read_Next (Reader); -- END_OBJECT
+         else --  END_OBJECT
+                 Vendor_Location.Background_Image_Path := Null_Unbounded_String;
+         end if;
+
+         Vendor.Locations.Append (Vendor_Location);
+
+         Read_Next (Reader); --  START_OBJECT / END_ARRAY
+      end loop;
+   end;
+
+   Read_Next (Reader);
 
    --  Handle alternative
    if VS2S (Key_Name (Reader)) = "ignoreSaleItemHashes" then
       goto ignoreSaleItemHashes;
    end if;
+
+   ---------------
+   -- groups [] --
+   -- OPTIONAL  --
+   ---------------
 
    <<groups>>
    Read_Next (Reader); --  START_ARRAY

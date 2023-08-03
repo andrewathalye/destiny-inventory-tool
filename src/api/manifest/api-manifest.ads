@@ -261,6 +261,16 @@ package API.Manifest is
      (Vendor_Item_Index_Type, Destiny_Vendor_Item_Definition);
    subtype Destiny_Vendor_Item_Map is DVIDM.Map;
 
+   type Destiny_Vendor_Location_Definition is record
+      Destination_Hash : Manifest_Hash;
+      --  Destiny_Destination_Definition
+      Background_Image_Path : Unbounded_String;
+   end record;
+
+   package DVLL is new Ada.Containers.Vectors
+     (Natural, Destiny_Vendor_Location_Definition);
+   subtype Destiny_Vendor_Location_List is DVLL.Vector;
+
    type Destiny_Vendor_Definition is record
       Large_Icon_Path : Unbounded_String; --  Nullable
       Subtitle        : Unbounded_String;
@@ -273,7 +283,7 @@ package API.Manifest is
       Inhibit_Buying  : Boolean;
       Inhibit_Selling : Boolean;
       Faction_Hash    : Manifest_Hash := 0; --  Nullable
-      --  Linked to DestinyFactionDefinition TODO unimplemented parsing
+      --  Linked to DestinyFactionDefinition
       Failure_Strings : Failure_String_List;
       --  Vendor_Portrait? Vendor_Banner?
       Enabled : Boolean;
@@ -283,7 +293,8 @@ package API.Manifest is
       --  Indexed by Hash
       Items : Destiny_Vendor_Item_Map;
       --  Indexed by Vendor Item Index (may be ignored if not needed)
-      Group : Manifest_Hash := 0; --  Nullable
+      Locations : Destiny_Vendor_Location_List; --  Nullable
+      Group     : Manifest_Hash := 0; --  Nullable
       --  Linked to DestinyVendorGroupDefinition TODO unimplemented parsing
       --  Note: Theoretically there can be multiple, but according to the API spec
       --  only one group may be attached to a vendor at a time.
@@ -293,6 +304,80 @@ package API.Manifest is
    package DVDM is new Ada.Containers.Ordered_Maps
      (Manifest_Hash, Destiny_Vendor_Definition);
    subtype Destiny_Vendor_Map is DVDM.Map;
+
+   ------------------------------
+   -- DestinyFactionDefinition --
+   ------------------------------
+   type Destiny_Faction_Definition is record
+      Description      : Unbounded_String;
+      Name             : Unbounded_String;
+      Icon_Path        : Unbounded_String; --  Nullable
+      Progression_Hash : Manifest_Hash;
+      --  Include? DestinyProgressionDefinition TODO
+   end record;
+
+   package DFDM is new Ada.Containers.Ordered_Maps
+     (Manifest_Hash, Destiny_Faction_Definition);
+   subtype Destiny_Faction_Map is DFDM.Map;
+
+   ----------------------------------
+   -- DestinyDestinationDefinition --
+   ----------------------------------
+   type Destiny_Bubble_Hash_Type is new Unsigned_32;
+
+   type Destiny_Bubble_Definition is record
+      Hash        : Destiny_Bubble_Hash_Type;
+      Description : Unbounded_String;
+      Name        : Unbounded_String;
+   end record;
+
+   package DBDL is new Ada.Containers.Vectors
+     (Natural, Destiny_Bubble_Definition);
+   subtype Destiny_Bubble_List is DBDL.Vector;
+
+   type Destiny_Destination_Definition is record
+      Description : Unbounded_String;
+      Name        : Unbounded_String;
+      Place_Hash  : Manifest_Hash;
+      --  DestinyPlaceDefinition
+      Default_Freeroam_Activity_Hash : Manifest_Hash;
+      --  DestinyActivityDefinition
+      --  activityGraphEntries?
+      Bubbles : Destiny_Bubble_List;
+   end record;
+
+   package DDDM is new Ada.Containers.Ordered_Maps
+     (Manifest_Hash, Destiny_Destination_Definition);
+   subtype Destiny_Destination_Map is DDDM.Map;
+
+   ----------------------------
+   -- DestinyPlaceDefinition --
+   ----------------------------
+   type Destiny_Place_Definition is record
+      Description : Unbounded_String;
+      Name        : Unbounded_String;
+   end record;
+
+   package DPDM is new Ada.Containers.Ordered_Maps
+     (Manifest_Hash, Destiny_Place_Definition);
+   subtype Destiny_Place_Map is DPDM.Map;
+
+   -------------------------------
+   -- DestinyActivityDefinition --
+   -------------------------------
+   type Destiny_Activity_Definition is record
+      Description : Unbounded_String;
+      Name        : Unbounded_String;
+      --  Many Fields Omitted
+      Destination_Hash : Manifest_Hash;
+      --  DestinyDestinationDefinition
+      Place_Hash : Manifest_Hash;
+      --  DestinyPlaceDefinition
+   end record;
+
+   package DADM is new Ada.Containers.Ordered_Maps
+     (Manifest_Hash, Destiny_Activity_Definition);
+   subtype Destiny_Activity_Map is DADM.Map;
 
    -------------
    -- CENTRAL --
@@ -322,9 +407,16 @@ package API.Manifest is
       --  DestinyRecordDefinition
       Destiny_Vendors : Destiny_Vendor_Map;
       --  DestinyVendorDefinition
+      Destiny_Factions : Destiny_Faction_Map;
+      --  DestinyFactionDefinition
+      Destiny_Destinations : Destiny_Destination_Map;
+      --  DestinyDestinationDefinition
+      Destiny_Places : Destiny_Place_Map;
+      --  DestinyPlaceDefinition
+      Destiny_Activities : Destiny_Activity_Map;
+      --  DestinyActivityDefinition
 
       --  TODO:
-      --  DestinyFactionDefinition
       --  DestinyVendorGroupDefinition
       --  DestinySocketTypeDefinition
    end record;
