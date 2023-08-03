@@ -105,12 +105,8 @@ package body API.Manifest is
       end if;
 
       Result := API.Manifest.Fetch (Localised_Manifest_Path);
-      return Result;
-
-      pragma Warnings (Off, "unreachable");
 
       --  Cache manifest for later use
-      --  TODO TODO TODO TODO use Sqlite directly and don’t cache?
       declare
 
          use Ada.Streams.Stream_IO;

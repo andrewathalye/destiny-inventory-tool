@@ -57,18 +57,6 @@ package body GUI.Character is
          Tasks.Download.Contents_Task);
    end Render_Contents;
 
-   procedure Locked_Render_Contents
-     (Location : Manifest.Tools.Bucket_Location_Type)
-   is
-   begin
-      GUI.Lock_Object.Unlock;
-
-      begin
-         Render_Contents (Location);
-      end;
-      GUI.Lock_Object.Lock;
-   end Locked_Render_Contents;
-
    --  Popup full bucket contents if equipped item is clicked
    procedure Equipped_Clicked_Handler
      (Widget    : access Gtk_Widget_Record'Class;
@@ -79,24 +67,17 @@ package body GUI.Character is
         Gtk_Popover (Builder.Get_Object ("full_contents"));
 
    begin
-      --  The lock must be unlocked in order for the download task to be
-      --  interrupted
+      Tasks.Download.Contents_Task.Interrupt;
 
-      GUI.Lock_Object.Unlock;
-
-      begin
-         Tasks.Download.Contents_Task.Interrupt;
-      end;
-      GUI.Lock_Object.Lock;
       --  Emotes are a special case here
-
       if User_Data.Bucket_Location = Emote_Collection then
          Render_Contents (Emote);
-
       else
          Render_Contents (User_Data.Bucket_Location);
       end if;
-      Tasks.Download.Contents_Task.Execute (GUI.Image_Callback'Access);
+
+      Tasks.Download.Contents_Task.Execute (GUI.Base.Image_Callback'Access);
+
       Contents.Set_Relative_To (Widget);
       Contents.Popup;
    end Equipped_Clicked_Handler;
@@ -181,54 +162,54 @@ package body GUI.Character is
 
    begin
       Tasks.Download.Character_Task.Interrupt;
-      GUI.Lock_Object.Lock;
-      Critical_Section :
-         begin
-            --  Update Buckets
-            Base.Clear_Bucket (Postmaster_Grid);
-            Render_Items
-              (Character_Items (Postmaster),
-               Postmaster_Grid,
-               Tasks.Download.Character_Task,
-               6);
-            Base.Clear_Bucket (Subclass_Box);
-            Render_Item (Equipped_Items (Subclass), Subclass_Box, Right);
-            Base.Clear_Bucket (Kinetic_Box);
-            Base.Clear_Bucket (Energy_Box);
-            Base.Clear_Bucket (Power_Box);
-            Base.Clear_Bucket (Shell_Box);
-            Base.Clear_Bucket (Artefact_Box);
-            Render_Item (Equipped_Items (Kinetic), Kinetic_Box, Right);
-            Render_Item (Equipped_Items (Energy), Energy_Box, Right);
-            Render_Item (Equipped_Items (Power), Power_Box, Right);
-            Render_Item (Equipped_Items (Shell), Shell_Box, Right);
-            Render_Item (Equipped_Items (Artefact), Artefact_Box, Right);
-            Base.Clear_Bucket (Helmet_Box);
-            Base.Clear_Bucket (Gauntlets_Box);
-            Base.Clear_Bucket (Chest_Box);
-            Base.Clear_Bucket (Leg_Box);
-            Base.Clear_Bucket (Class_Box);
-            Render_Item (Equipped_Items (Helmet), Helmet_Box, Left);
-            Render_Item (Equipped_Items (Gauntlets), Gauntlets_Box, Left);
-            Render_Item (Equipped_Items (Chest), Chest_Box, Left);
-            Render_Item (Equipped_Items (Leg), Leg_Box, Left);
-            Render_Item (Equipped_Items (Class), Class_Box, Left);
-            Base.Clear_Bucket (Emblem_Box);
-            Base.Clear_Bucket (Sparrow_Box);
-            Base.Clear_Bucket (Ship_Box);
-            Render_Item (Equipped_Items (Emblem), Emblem_Box, Right);
-            Render_Item (Equipped_Items (Sparrow), Sparrow_Box, Right);
-            Render_Item (Equipped_Items (Ship), Ship_Box, Right);
-            Base.Clear_Bucket (Finisher_Box);
-            Base.Clear_Bucket (Emote_Box);
-            Render_Item (Equipped_Items (Finisher), Finisher_Box, Left);
-            Render_Item (Equipped_Items (Emote_Collection), Emote_Box, Left);
-         end Critical_Section;
-      GUI.Lock_Object.Unlock;
+      --  Update Buckets
+      Base.Clear_Bucket (Postmaster_Grid);
+      Render_Items
+        (Character_Items (Postmaster),
+         Postmaster_Grid,
+         Tasks.Download.Character_Task,
+         6);
+
+      Base.Clear_Bucket (Subclass_Box);
+      Render_Item (Equipped_Items (Subclass), Subclass_Box, Right);
+
+      Base.Clear_Bucket (Kinetic_Box);
+      Base.Clear_Bucket (Energy_Box);
+      Base.Clear_Bucket (Power_Box);
+      Base.Clear_Bucket (Shell_Box);
+      Base.Clear_Bucket (Artefact_Box);
+      Render_Item (Equipped_Items (Kinetic), Kinetic_Box, Right);
+      Render_Item (Equipped_Items (Energy), Energy_Box, Right);
+      Render_Item (Equipped_Items (Power), Power_Box, Right);
+      Render_Item (Equipped_Items (Shell), Shell_Box, Right);
+      Render_Item (Equipped_Items (Artefact), Artefact_Box, Right);
+
+      Base.Clear_Bucket (Helmet_Box);
+      Base.Clear_Bucket (Gauntlets_Box);
+      Base.Clear_Bucket (Chest_Box);
+      Base.Clear_Bucket (Leg_Box);
+      Base.Clear_Bucket (Class_Box);
+      Render_Item (Equipped_Items (Helmet), Helmet_Box, Left);
+      Render_Item (Equipped_Items (Gauntlets), Gauntlets_Box, Left);
+      Render_Item (Equipped_Items (Chest), Chest_Box, Left);
+      Render_Item (Equipped_Items (Leg), Leg_Box, Left);
+      Render_Item (Equipped_Items (Class), Class_Box, Left);
+
+      Base.Clear_Bucket (Emblem_Box);
+      Base.Clear_Bucket (Sparrow_Box);
+      Base.Clear_Bucket (Ship_Box);
+      Render_Item (Equipped_Items (Emblem), Emblem_Box, Right);
+      Render_Item (Equipped_Items (Sparrow), Sparrow_Box, Right);
+      Render_Item (Equipped_Items (Ship), Ship_Box, Right);
+
+      Base.Clear_Bucket (Finisher_Box);
+      Base.Clear_Bucket (Emote_Box);
+      Render_Item (Equipped_Items (Finisher), Finisher_Box, Left);
+      Render_Item (Equipped_Items (Emote_Collection), Emote_Box, Left);
       --  TODO: Render engrams?
 
       --  Complete downloads queued by Render calls
-      Tasks.Download.Character_Task.Execute (GUI.Image_Callback'Access);
+      Tasks.Download.Character_Task.Execute (GUI.Base.Image_Callback'Access);
    end Render;
    --  Update UI elements for new character
 

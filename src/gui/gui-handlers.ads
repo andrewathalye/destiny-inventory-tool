@@ -1,5 +1,7 @@
 --  Gtk
 with Gtk.Handlers; use Gtk.Handlers;
+with Gtk.Widget;   use Gtk.Widget;
+
 --  Local Packages
 with API.Profiles;
 with API.Manifest.Tools; use API;

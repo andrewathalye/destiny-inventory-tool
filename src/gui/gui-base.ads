@@ -2,6 +2,7 @@ private with Ada.Calendar.Formatting;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
 --  Gtk
+with Gtk.Widget;   use Gtk.Widget;
 with Gtk.Grid;     use Gtk.Grid;
 with Gtk.Box;      use Gtk.Box;
 with Gtk.Handlers; use Gtk.Handlers;
@@ -24,6 +25,7 @@ package GUI.Base is
    --  State
    Search_Query : Unbounded_String;
 
+   --  Subprograms
    --  Bucket Management
    procedure Clear_Bucket (G : Gtk_Grid);
    procedure Clear_Bucket (B : Gtk_Box);
@@ -40,16 +42,17 @@ package GUI.Base is
    --  Displays an error message on screen
    procedure Error_Message (Name : String; Message : String);
 
-   --  Note: These subprograms require the GUI to be unlocked, so they should
-   --  be wrapped if called from a GTK event handler
-
    --  Reloads all data used by the GUI _excluding_ the Manifest and auth data
    --  If these need to be reloaded too, use Reload_Data instead
    procedure Reload_Profile_Data;
-   procedure Locked_Reload_Profile_Data; -- Exactly the same, but assumes the GUI is locked
 
    --  Reloads all data used by the GUI
    procedure Reload_Data;
+
+   --  Note: To be used with Tasks.Download.Download_Task
+   --  This sends data back to the GUI thread so we can apply it to images etc.
+   procedure Image_Callback
+     (Cache : in out Tasks.Download.Download_Cache_Type);
 private
    use Gdk.Pixbuf;
    use Shared;

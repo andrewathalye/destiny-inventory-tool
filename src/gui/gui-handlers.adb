@@ -71,8 +71,8 @@ package body GUI.Handlers is
 
    begin
       Base.Search_Query := +Search.Get_Chars (0);
-      GUI.Locked_Wrapper (GUI.Global.Render'Access);
-      GUI.Locked_Wrapper (GUI.Character.Render'Access);
+      GUI.Global.Render;
+      GUI.Character.Render;
    end Search_Changed_Handler;
 
    --  Dismiss an error dialogue
@@ -92,7 +92,7 @@ package body GUI.Handlers is
      (Builder : access Gtkada_Builder_Record'Class)
    is
    begin
-      GUI.Base.Locked_Reload_Profile_Data;
+      GUI.Base.Reload_Profile_Data;
    end Reload_Button_Clicked_Handler;
 
    --  A button exclusively for equipping items which
@@ -119,7 +119,7 @@ package body GUI.Handlers is
          GUI.Character.Current_Character,
          GUI.Current_Item);
 
-      GUI.Locked_Wrapper (GUI.Character.Render'Access);
+      GUI.Character.Render; --  Global Side (Vault) not changed by this
    end Equip_Button_Clicked_Handler;
 
    --  Install Handlers
@@ -167,7 +167,7 @@ package body GUI.Handlers is
    begin
       Character_Menu.Popdown;
       Character.Update_For_Character (Profile.Characters (User_Data));
-      GUI.Locked_Wrapper (Character.Render'Access);
+      GUI.Character.Render;
    end Character_Menu_Button_Clicked_Handler;
 
    --  The two handlers below are additionally responsible for simulating the
@@ -213,7 +213,7 @@ package body GUI.Handlers is
            (GUI.Global.Inventory, GUI.Current_Item);
          Inventories.Character.Add_Item
            (GUI.Character.Inventory, Target, GUI.Current_Item);
-         GUI.Locked_Wrapper (GUI.Global.Render'Access);
+         GUI.Global.Render;
          return;
       end if;
 
@@ -252,7 +252,7 @@ package body GUI.Handlers is
                when Transfers.No_Room_In_Destination =>
                   Debug.Put_Line
                     ("Failed to finish transfer, but postmaster pull can't be rolled back! Reloading for consistency.");
-                  GUI.Base.Locked_Reload_Profile_Data;
+                  GUI.Base.Reload_Profile_Data;
                   GUI.Base.Error_Message
                     ("Item Transfer Failed: Profile Reloaded",
                      "No Room in Destination");
@@ -265,9 +265,11 @@ package body GUI.Handlers is
            (GUI.Character.Inventory,
             GUI.Character.Current_Character,
             GUI.Current_Item);
+
          Inventories.Character.Add_Item
            (GUI.Character.Inventory, Target, GUI.Current_Item);
-         GUI.Locked_Wrapper (GUI.Character.Render'Access);
+
+         GUI.Character.Render;
          return;
       end if;
 
@@ -291,9 +293,11 @@ package body GUI.Handlers is
          --  Update UI State
          Inventories.Character.Remove_Item
            (GUI.Character.Inventory, Target, GUI.Current_Item);
+
          Inventories.Character.Equip_Item
            (GUI.Character.Inventory, Target, GUI.Current_Item);
-         GUI.Locked_Wrapper (GUI.Character.Render'Access);
+
+         GUI.Character.Render;
          return;
       end if;
 
@@ -319,13 +323,15 @@ package body GUI.Handlers is
         (GUI.Character.Inventory,
          GUI.Character.Current_Character,
          GUI.Current_Item);
+
       Inventories.Character.Add_Item
         (GUI.Character.Inventory, Target, GUI.Current_Item);
-      GUI.Character.Locked_Render_Contents (GUI.Current_Item.Bucket_Location);
+
+      GUI.Character.Render_Contents (GUI.Current_Item.Bucket_Location);
    exception
       when C : others =>
          Debug.Put_Line (Exception_Information (C));
-         GUI.Base.Locked_Reload_Profile_Data;
+         GUI.Base.Reload_Profile_Data;
          GUI.Base.Error_Message
            ("Item Transfer Failed: Profile Reloaded",
             Exception_Name (C) & ": " & Exception_Message (C));
@@ -377,20 +383,19 @@ package body GUI.Handlers is
          GUI.Current_Item);
 
       Inventories.Global.Add_Item (GUI.Global.Inventory, GUI.Current_Item);
-      GUI.Locked_Wrapper (GUI.Global.Render'Access);
+      GUI.Global.Render;
 
       --  Redraw as little as possible for performance :)
       if GUI.Current_Item.Bucket_Location = Postmaster then
-         GUI.Locked_Wrapper (GUI.Character.Render'Access);
+         GUI.Character.Render;
       else
-         GUI.Character.Locked_Render_Contents
-           (GUI.Current_Item.Bucket_Location);
+         GUI.Character.Render_Contents (GUI.Current_Item.Bucket_Location);
          --  A smaller render that will be faster (hopefully)
       end if;
    exception
       when E : others =>
          Debug.Put_Line (Exception_Information (E));
-         GUI.Base.Locked_Reload_Profile_Data;
+         GUI.Base.Reload_Profile_Data;
          GUI.Base.Error_Message
            ("Item Transfer Failed: Profile Reloaded",
             Exception_Name (E) & ": " & Exception_Message (E));

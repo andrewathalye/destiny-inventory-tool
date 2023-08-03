@@ -183,11 +183,7 @@ begin
       end loop Populate_Stats;
 
       --  Interrupt the download task so more items can be queued
-   GUI.Lock_Object.Unlock;
-   begin
-      Tasks.Download.Contents_Task.Interrupt;
-   end;
-   GUI.Lock_Object.Lock;
+   Tasks.Download.Contents_Task.Interrupt;
 
    --  Sockets
    if D.Sockets.Is_Empty then
@@ -279,5 +275,5 @@ begin
       end loop Populate_Sockets;
 
       --  Resume the download task
-   Tasks.Download.Contents_Task.Execute (GUI.Image_Callback'Access);
+   Tasks.Download.Contents_Task.Execute (GUI.Base.Image_Callback'Access);
 end GUI.Base.Populate_Item_Details;

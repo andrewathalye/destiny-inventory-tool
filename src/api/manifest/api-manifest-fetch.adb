@@ -2,7 +2,6 @@ pragma Ada_2022;
 
 with Ada.Directories; use Ada.Directories;
 with Ada.Streams.Stream_IO;
-with Ada.Unchecked_Deallocation;
 with Ada.Unchecked_Conversion;
 with Ada.Text_IO;
 with Ada.Exceptions;  use Ada.Exceptions;
@@ -30,6 +29,7 @@ with Tasks.Download;
 with Shared.Debug;
 with Shared.JSON;    use Shared.JSON;
 with Shared.Strings; use Shared.Strings;
+with Shared.Streams; use Shared.Streams;
 
 --  Standalone Procedures: Processing callbacks
 with API.Manifest.Class_Callback;
@@ -50,12 +50,6 @@ with API.Manifest.Activity_Callback;
 function API.Manifest.Fetch
   (Localised_Manifest_Path : Unbounded_String) return Manifest_Type
 is
-   --  Types
-   type Stream_Element_Array_Access is access Ada.Streams.Stream_Element_Array;
-   procedure Free is new Ada.Unchecked_Deallocation
-     (Object => Ada.Streams.Stream_Element_Array,
-      Name   => Stream_Element_Array_Access);
-
    --  Constants
    Database_Path : constant String := "dat/manifest.sqlite";
 
@@ -197,8 +191,6 @@ begin
          Connection  := GNATCOLL.SQL.Exec.Build_Connection (Description);
 
          --  Add data from tables using callbacks
-         pragma Warnings (Off, "unreachable");
-         goto Test_New_TODO;
          Add_Data
            ("DestinyClassDefinition", API.Manifest.Class_Callback'Access);
          Add_Data
@@ -219,7 +211,6 @@ begin
             API.Manifest.Objective_Callback'Access);
          Add_Data
            ("DestinyRecordDefinition", API.Manifest.Record_Callback'Access);
-         <<Test_New_TODO>>
          Add_Data
            ("DestinyVendorDefinition", API.Manifest.Vendor_Callback'Access);
          Add_Data

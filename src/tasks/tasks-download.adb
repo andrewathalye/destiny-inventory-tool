@@ -1,7 +1,8 @@
 pragma Ada_2022;
-with Ada.Containers.Vectors; use Ada.Containers;
-with Ada.Exceptions;         use Ada.Exceptions;
-with Ada.Text_IO;            use Ada.Text_IO;
+with Ada.Exceptions; use Ada.Exceptions;
+with Ada.Text_IO;    use Ada.Text_IO;
+with Ada.Containers;
+use type Ada.Containers.Count_Type;
 
 --  AWS
 with AWS.Client;
@@ -90,7 +91,7 @@ package body Tasks.Download is
       Data       : Response.Data;
    begin
       if Simulate_Slow then
-         delay 0.1;
+         delay 0.05;
       end if;
 
       --  Note: We avoid using Client.Get because it results in a stack
@@ -121,7 +122,7 @@ package body Tasks.Download is
          Path       : Unbounded_String;
          Widget     : Gtk_Widget;
          Needs_Auth : Boolean;
-         Complete   : Boolean;
+         Complete   : Boolean := False;
       end record;
 
       --  Instantiation
@@ -131,6 +132,7 @@ package body Tasks.Download is
 
       --  Download cache
       Download_Queue : Download_Queue_Type;
+      Download_Cache : Download_Cache_Type;
 
       --  Local Data
       Callback_L : Download_Callback;
@@ -139,7 +141,6 @@ package body Tasks.Download is
          select
             --  Does nothing since there was no process ongoing
             accept Interrupt;
-
          or
             --  Enqueue download
             accept Download
@@ -151,7 +152,8 @@ package body Tasks.Download is
                --  Note this is not automatic because we're in a separate
                --  thread
                Download_Queue.Append
-                 (Download_Queue_Entry'(Path, Widget, Needs_Auth, False));
+                 (Download_Queue_Entry'
+                    (Path, Widget, Needs_Auth, others => <>));
             end Download;
 
          or
@@ -160,6 +162,8 @@ package body Tasks.Download is
                Callback_L := Callback;
             end Execute;
 
+            --  This loop batches the callbacks to reduce the impact on GUI task performance.
+            --  Each callback pauses the GUI task to update thread-unsafe data structures.
             Execute_Loop :
                for DQE of Download_Queue loop
                   select
@@ -167,19 +171,31 @@ package body Tasks.Download is
                      accept Interrupt;
                      exit Execute_Loop;
                   else
+                     --  Prevents attempting to download the same file multiple times if interrupted
                      if not DQE.Complete then
                         declare
-                           SEA : constant Stream_Element_Array :=
-                             Download (DQE.Path, DQE.Needs_Auth);
+                           SEA_A : constant Stream_Element_Array_Access :=
+                             new Stream_Element_Array'
+                               (Download (DQE.Path, DQE.Needs_Auth));
                         begin
-                           Callback_L (DQE.Path, DQE.Widget, SEA);
-                           DQE.Widget.Unref; -- let it be freed when needed
+                           Download_Cache.Append
+                             (Download_Cache_Entry'
+                                (DQE.Path, DQE.Widget, SEA_A));
                         end;
+
+                        DQE.Complete := True;
                      end if;
-                     DQE.Complete := True;
                   end select;
+
+                  --  Batch clear 5 elements from the queue
+                  if Download_Cache.Length = 5 then
+                     Callback_L (Download_Cache);
+                  end if;
                end loop Execute_Loop;
             Download_Queue.Clear;
+
+            Callback_L
+              (Download_Cache); --  Handle any remaining items in the download cache
          or
             terminate;
          end select;

@@ -34,6 +34,9 @@ package body GUI.Global is
    package User_Callback_Character is new User_Callback
      (Gtk_Widget_Record, Profiles.Character_Type);
 
+   --  Constants
+   Vault_Vendor_Hash : constant := 1_037_843_411;
+
    --  Cache
    Placeholder_Icon : constant Gdk_Pixbuf :=
      Load_Image ("png", Files.Get_Data ("res/placeholder_icon.png"));
@@ -109,8 +112,7 @@ package body GUI.Global is
         Gtk_Grid (GUI.Builder.Get_Object ("transfer_grid"));
       Count : Gint := 0;
 
-      Vault_Vendor_Hash : constant                  := 1_037_843_411;
-      Vault_Icon_Path   : constant Unbounded_String :=
+      Vault_Icon_Path : constant Unbounded_String :=
         The_Manifest.Destiny_Vendors (Vault_Vendor_Hash).Icon_Path;
       Vault_Image  : Gtk_Image;
       Vault_Button : Gtk_Button;
@@ -229,48 +231,42 @@ package body GUI.Global is
    begin
       Tasks.Download.Global_Task.Interrupt;
 
-      GUI.Lock_Object.Lock;
-      Critical_Section :
-         begin
-            Base.Clear_Bucket (Vault_Kinetic);
-            Base.Clear_Bucket (Vault_Energy);
-            Base.Clear_Bucket (Vault_Power);
-            Base.Clear_Bucket (Vault_Shell);
-            Render_Items (Vault_Inventory (Kinetic), Vault_Kinetic, 10);
-            Render_Items (Vault_Inventory (Energy), Vault_Energy, 10);
-            Render_Items (Vault_Inventory (Power), Vault_Power, 10);
-            Render_Items (Vault_Inventory (Shell), Vault_Shell, 10);
+      Base.Clear_Bucket (Vault_Kinetic);
+      Base.Clear_Bucket (Vault_Energy);
+      Base.Clear_Bucket (Vault_Power);
+      Base.Clear_Bucket (Vault_Shell);
+      Render_Items (Vault_Inventory (Kinetic), Vault_Kinetic, 10);
+      Render_Items (Vault_Inventory (Energy), Vault_Energy, 10);
+      Render_Items (Vault_Inventory (Power), Vault_Power, 10);
+      Render_Items (Vault_Inventory (Shell), Vault_Shell, 10);
 
-            Base.Clear_Bucket (Vault_Helmet);
-            Base.Clear_Bucket (Vault_Gauntlets);
-            Base.Clear_Bucket (Vault_Chest);
-            Base.Clear_Bucket (Vault_Leg);
-            Base.Clear_Bucket (Vault_Class);
-            Render_Items (Vault_Inventory (Helmet), Vault_Helmet, 10);
-            Render_Items (Vault_Inventory (Gauntlets), Vault_Gauntlets, 10);
-            Render_Items (Vault_Inventory (Chest), Vault_Chest, 10);
-            Render_Items (Vault_Inventory (Leg), Vault_Leg, 10);
-            Render_Items (Vault_Inventory (Class), Vault_Class, 10);
+      Base.Clear_Bucket (Vault_Helmet);
+      Base.Clear_Bucket (Vault_Gauntlets);
+      Base.Clear_Bucket (Vault_Chest);
+      Base.Clear_Bucket (Vault_Leg);
+      Base.Clear_Bucket (Vault_Class);
+      Render_Items (Vault_Inventory (Helmet), Vault_Helmet, 10);
+      Render_Items (Vault_Inventory (Gauntlets), Vault_Gauntlets, 10);
+      Render_Items (Vault_Inventory (Chest), Vault_Chest, 10);
+      Render_Items (Vault_Inventory (Leg), Vault_Leg, 10);
+      Render_Items (Vault_Inventory (Class), Vault_Class, 10);
 
-            Base.Clear_Bucket (Vault_Sparrow);
-            Base.Clear_Bucket (Vault_Ship);
-            Render_Items (Vault_Inventory (Sparrow), Vault_Sparrow, 10);
-            Render_Items (Vault_Inventory (Ship), Vault_Ship, 10);
+      Base.Clear_Bucket (Vault_Sparrow);
+      Base.Clear_Bucket (Vault_Ship);
+      Render_Items (Vault_Inventory (Sparrow), Vault_Sparrow, 10);
+      Render_Items (Vault_Inventory (Ship), Vault_Ship, 10);
 
-            Base.Clear_Bucket (Vault_Consumable);
-            Base.Clear_Bucket (Vault_Modification);
-            Render_Items (Vault_Inventory (Consumable), Vault_Consumable, 10);
-            Render_Items
-              (Vault_Inventory (Modification), Vault_Modification, 10);
+      Base.Clear_Bucket (Vault_Consumable);
+      Base.Clear_Bucket (Vault_Modification);
+      Render_Items (Vault_Inventory (Consumable), Vault_Consumable, 10);
+      Render_Items (Vault_Inventory (Modification), Vault_Modification, 10);
 
-            --  Theoretically, no items should appear here.
-            Base.Clear_Bucket (Vault_Other);
-            Render_Items (Vault_Inventory (Unknown), Vault_Other, 10);
-         end Critical_Section;
-      GUI.Lock_Object.Unlock;
+      --  Theoretically, no items should appear here.
+      Base.Clear_Bucket (Vault_Other);
+      Render_Items (Vault_Inventory (Unknown), Vault_Other, 10);
 
       --  Complete downloads queued by Render calls
-      Tasks.Download.Global_Task.Execute (GUI.Image_Callback'Access);
+      Tasks.Download.Global_Task.Execute (GUI.Base.Image_Callback'Access);
    end Render;
 
    --  Global Update_Inventory
@@ -316,6 +312,10 @@ package body GUI.Global is
         Gtk_Box (GUI.Builder.Get_Object ("finisher_emote_descriptions"));
 
       Blank_Label : constant Gtk_Label := Gtk_Label_New;
+
+      --  Vault Label
+      Vault_Label : constant Gtk_Label :=
+        Gtk_Label (GUI.Builder.Get_Object ("vault_label"));
 
       --  Expander Labels
       Vault_Currency_Label : constant Gtk_Label :=
@@ -378,6 +378,9 @@ package body GUI.Global is
       Finisher_Emote_Descriptions.Add (Blank_Label);
 
       --  Vault Category Labels
+      Vault_Label.Set_Text
+        (+The_Manifest.Destiny_Vendors (Vault_Vendor_Hash).Name);
+
       Vault_Currency_Label.Set_Text
         ((+The_Manifest.Destiny_Inventory_Buckets (Glimmer'Enum_Rep).Name) &
          ", " &

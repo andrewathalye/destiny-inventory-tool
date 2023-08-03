@@ -16,13 +16,10 @@ Automatically load new emblem image after changing emblems
 
 TODO make transfers asynchronous too
 
-DestinyFactionDefinition
 DestinyVendorGroupDefinition
 
-Vendor browser in separate window
+Vendor, Activity, Destination browser in separate window
 Fix tracebacks
-
-SMOOTH IMAGE LOADING
 
 Show flavortexts
 

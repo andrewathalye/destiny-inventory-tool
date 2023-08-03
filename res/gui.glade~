@@ -110,9 +110,11 @@
         <property name="visible">True</property>
         <property name="can-focus">True</property>
         <property name="receives-default">True</property>
+        <signal name="clicked" handler="equip_button_clicked_handler" swapped="no"/>
       </object>
       <packing>
         <property name="submenu">main</property>
+        <property name="position">1</property>
       </packing>
     </child>
   </object>
@@ -525,7 +527,17 @@
                     <property name="orientation">vertical</property>
                     <property name="homogeneous">True</property>
                     <child>
-                      <placeholder/>
+                      <object class="GtkButton" id="browser_button">
+                        <property name="label" translatable="yes">Browse Datasets</property>
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="receives-default">True</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">0</property>
+                      </packing>
                     </child>
                     <child>
                       <object class="GtkLabel" id="inventory_label">
@@ -2083,6 +2095,87 @@
       </object>
     </child>
   </object>
+  <object class="GtkWindow" id="dataset_window">
+    <property name="can-focus">False</property>
+    <property name="title" translatable="yes">Destiny Inventory Tool: Browse Datasets</property>
+    <property name="destroy-with-parent">True</property>
+    <property name="attached-to">root</property>
+    <child>
+      <object class="GtkBox" id="dataset_content_menu_divider">
+        <property name="visible">True</property>
+        <property name="can-focus">False</property>
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkBox" id="dataset_type_chooser">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="margin-bottom">8</property>
+            <property name="homogeneous">True</property>
+            <child>
+              <object class="GtkButton">
+                <property name="label" translatable="yes">Vendors</property>
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton">
+                <property name="label" translatable="yes">Activities</property>
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton">
+                <property name="label" translatable="yes">Destinations</property>
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">2</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton">
+                <property name="label" translatable="yes">Fetch Live Data (N/I)</property>
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="receives-default">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">3</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <placeholder/>
+        </child>
+      </object>
+    </child>
+  </object>
   <object class="GtkPopover" id="socket_popover">
     <property name="can-focus">False</property>
     <child>
@@ -2261,6 +2354,7 @@
       </object>
       <packing>
         <property name="submenu">main</property>
+        <property name="position">1</property>
       </packing>
     </child>
   </object>

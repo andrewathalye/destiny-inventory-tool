@@ -1,12 +1,20 @@
 pragma Ada_2022;
 
+with Ada.Calendar; use Ada.Calendar;
+
+--  GtkAda
+with Gtkada.Builder; use Gtkada.Builder;
+
 --  Gtk
+with Gtk.Main;
 with Gtk.Container;      use Gtk.Container;
 with Gtk.Window;         use Gtk.Window;
-with Gtk.Main;
 with Gtk.Message_Dialog; use Gtk.Message_Dialog;
 with Gtk.Label;          use Gtk.Label;
 with Gtk.Overlay;        use Gtk.Overlay;
+with Gtk.Image;          use Gtk.Image;
+
+with Gdk.Pixbuf; use Gdk.Pixbuf;
 
 --  Local Packages
 with GUI.Handlers;
@@ -14,6 +22,7 @@ with GUI.Character;
 with GUI.Global;
 with GUI.Authorise;
 with GUI.Base.Get_Overlay;
+with GUI.GUI_Tasks; use GUI.GUI_Tasks;
 
 with API.Inventories.Global;
 with API.Memberships;
@@ -25,6 +34,7 @@ use API;
 
 with Shared.Debug;
 with Shared.Strings; use Shared.Strings;
+with Shared.Streams; use Shared.Streams;
 use Shared;
 
 with Secrets; use Secrets;
@@ -34,6 +44,7 @@ package body GUI.Base is
    package FUD_Container is new Gtk.Container.Foreach_User_Data
      (Gtk_Container);
 
+   --  Subprograms
    --  Bucket Management
    --  Internal
    procedure Remove_Callback
@@ -129,7 +140,7 @@ package body GUI.Base is
    begin
       Status_Window.Show;
 
-      Debug.Put_Line ("Reloading profile data");
+      Shared.Debug.Put_Line ("Reloading profile data");
       Status_Name.Set_Label ("Loading profile...");
       Do_Events;
 
@@ -153,15 +164,6 @@ package body GUI.Base is
       Window.Show;
    end Reload_Profile_Data;
 
-   procedure Locked_Reload_Profile_Data is
-   begin
-      GUI.Lock_Object.Unlock;
-      begin
-         Reload_Profile_Data;
-      end;
-      GUI.Lock_Object.Lock;
-   end Locked_Reload_Profile_Data;
-
    procedure Reload_Data is
 
       Window : constant Gtk_Window := Gtk_Window (Builder.Get_Object ("root"));
@@ -171,7 +173,7 @@ package body GUI.Base is
         Gtk_Label (Builder.Get_Object ("status_name"));
 
    begin
-      Debug.Put_Line ("Reloading all data");
+      Shared.Debug.Put_Line ("Reloading all data");
 
       Window.Hide;
       GUI.Authorise;
@@ -202,4 +204,29 @@ package body GUI.Base is
       Error_Dialog.Show;
    end Error_Message;
 
+   --  Semi-Public. Pauses GUI Thread and updates Widget image data.
+   --  TODO is this safe??????
+   procedure Image_Callback (Cache : in out Tasks.Download.Download_Cache_Type)
+   is
+      Temp : Gdk_Pixbuf;
+   begin
+      GUI_Task.Pause;
+      for Cache_Entry of Cache loop
+         Temp := GUI.Load_Image (+Cache_Entry.Path, Cache_Entry.Data.all);
+         Free (Cache_Entry.Data);
+
+         if not Global_Pixbuf_Cache.Contains (Cache_Entry.Path) then
+            Global_Pixbuf_Cache.Insert (Cache_Entry.Path, Temp);
+         end if;
+
+         Gtk_Image (Cache_Entry.Widget).Set (Temp);
+
+         Cache_Entry.Widget
+           .Unref; --  Allow it to be disposed of if no longer needed
+      end loop;
+
+      Cache.Clear; --  Ensure that old Accesses are not reused (clear the queue for the download task)
+
+      GUI_Task.Resume;
+   end Image_Callback;
 end GUI.Base;

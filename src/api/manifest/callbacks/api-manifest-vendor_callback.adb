@@ -241,14 +241,16 @@ begin
 
          Read_Next (Reader); --  "backgroundImagePath" or END_OBJECT
 
-         if Event_Kind (Reader) = Key_Name and then VS2S (Key_Name (Reader)) = "backgroundImagePath" then
-                 Read_Next (Reader);
-                 Vendor_Location.Background_Image_Path :=
-                  VS2UB (String_Value (Reader));
+         if Event_Kind (Reader) = Key_Name
+           and then VS2S (Key_Name (Reader)) = "backgroundImagePath"
+         then
+            Read_Next (Reader);
+            Vendor_Location.Background_Image_Path :=
+              VS2UB (String_Value (Reader));
 
-                  Read_Next (Reader); -- END_OBJECT
+            Read_Next (Reader); -- END_OBJECT
          else --  END_OBJECT
-                 Vendor_Location.Background_Image_Path := Null_Unbounded_String;
+            Vendor_Location.Background_Image_Path := Null_Unbounded_String;
          end if;
 
          Vendor.Locations.Append (Vendor_Location);
