@@ -33,8 +33,7 @@ package API.Profiles is
       Race_Hash              : Destiny_Race_Definition_Manifest_Hash;
       Gender_Hash            : Destiny_Gender_Definition_Manifest_Hash;
       Class_Hash             : Destiny_Class_Definition_Manifest_Hash;
-      Emblem_Path            : Unbounded_String;
-      Emblem_Background_Path : Unbounded_String;
+      Emblem_Hash            : Destiny_Inventory_Item_Definition_Manifest_Hash;
       Title_Record_Hash      : Destiny_Record_Definition_Manifest_Hash :=
         0; -- Nullable
    end record;
@@ -66,6 +65,7 @@ package API.Profiles is
       Highlighted_Objective : Boolean;
    end record;
 
+   --  <DestinyItemComponent>
    type Item_Type is record
       Item_Hash        : Destiny_Inventory_Item_Definition_Manifest_Hash;
       Item_Instance_ID : Item_Instance_ID_Type := -1; -- Nullable
@@ -223,6 +223,7 @@ package API.Profiles is
    subtype String_Variable_Map is String_Variable_Maps.Map;
 
    --  Profile
+   --  <DestinyProfileResponse>
    type Profile_Type is record
       Response_Minted_Timestamp : Time;
       Profile_Inventory         : Item_List;

@@ -10,4 +10,3 @@ begin
    Inventory.Equipped_Items (Item.Bucket_Location) := (Item with delta
       Transfer_Status => Profiles.Item_Is_Equipped);
 end Equip;
-

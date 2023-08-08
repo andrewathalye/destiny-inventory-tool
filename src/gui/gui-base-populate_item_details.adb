@@ -10,6 +10,7 @@ with Gtk.Level_Bar;    use Gtk.Level_Bar;
 with Gtk.Label;        use Gtk.Label;
 with Gtk.Overlay;      use Gtk.Overlay;
 with Gtk.Separator;    use Gtk.Separator;
+with Gtk.Image;        use Gtk.Image;
 
 --  Local Packages
 with API.Manifest;
@@ -44,13 +45,16 @@ is
    Energy : constant Gtk_Level_Bar :=
      Gtk_Level_Bar (Builder.Get_Object ("item_details_energy"));
 
-   Separator_2 : constant Gtk_Separator :=
-     Gtk_Separator (Builder.Get_Object ("item_details_separator_2"));
-   Stats : constant Gtk_Grid :=
-     Gtk_Grid (Builder.Get_Object ("item_details_stats"));
+   Separator_2 : constant Gtk_Separator := Gtk_Separator (Builder.Get_Object ("item_details_separator_2"));
+   Secondary_Icon : constant Gtk_Image := Gtk_Image (Builder.Get_Object ("item_details_secondary_icon"));
 
    Separator_3 : constant Gtk_Separator :=
      Gtk_Separator (Builder.Get_Object ("item_details_separator_3"));
+   Stats : constant Gtk_Grid :=
+     Gtk_Grid (Builder.Get_Object ("item_details_stats"));
+
+   Separator_4 : constant Gtk_Separator :=
+     Gtk_Separator (Builder.Get_Object ("item_details_separator_4"));
    Sockets : constant Gtk_Grid :=
      Gtk_Grid (Builder.Get_Object ("item_details_sockets"));
    Objectives : constant Gtk_Grid :=
@@ -116,6 +120,9 @@ is
       return +Output;
    end Format_Description;
 begin
+   --  Interrupt the download task so more items can be queued
+   Tasks.Download.Contents_Task.Interrupt;
+
    --  Set background colour by rarity (using CSS)
    Name_Type_Box.Set_Name
      ((case D.Tier_Type is
@@ -142,21 +149,43 @@ begin
          end if;
    end case;
 
+   --  Show secondary icon if present
+   if D.Secondary_Icon_Path /= Null_Unbounded_String then
+         Separator_1.Show;
+         Secondary_Icon.Show;
+         Secondary_Icon.Set (Placeholder_Icon);
+
+         --  Download the icon or use the cached version
+         if Global_Pixbuf_Cache.Contains (+(Bungie_Root & (+D.Secondary_Icon_Path)))
+         then
+            Secondary_Icon.Set
+              (Global_Pixbuf_Cache.Element
+                 (+(Bungie_Root & (+D.Secondary_Icon_Path))));
+
+         else -- Asynchronous download
+            Tasks.Download.Contents_Task.Download
+              (+(Bungie_Root & (+D.Secondary_Icon_Path)), Gtk_Widget (Secondary_Icon));
+         end if;
+   else
+         Separator_1.Hide;
+         Secondary_Icon.Hide;
+   end if;
+
    --  Show armour energy capacity
    if D.Energy_Capacity >= 0 then
       Energy.Set_Value (Gdouble (D.Energy_Capacity));
-      Separator_1.Show;
+      Separator_2.Show;
       Energy.Show;
    else
-      Separator_1.Hide;
+      Separator_2.Hide;
       Energy.Hide;
    end if;
 
    --  Stats
    if D.Stats.Is_Empty then
-      Separator_2.Hide;
+      Separator_3.Hide;
    else
-      Separator_2.Show;
+      Separator_3.Show;
    end if;
 
    Clear_Bucket (Stats);
@@ -182,14 +211,11 @@ begin
          end;
       end loop Populate_Stats;
 
-      --  Interrupt the download task so more items can be queued
-   Tasks.Download.Contents_Task.Interrupt;
-
    --  Sockets
    if D.Sockets.Is_Empty then
-      Separator_3.Hide;
+      Separator_4.Hide;
    else
-      Separator_3.Show;
+      Separator_4.Show;
    end if;
 
    Clear_Bucket (Sockets);

@@ -12,6 +12,9 @@ begin
        Item with delta Location => Manifest.Inventory,
        Bucket_Location => Item.Default_Bucket_Location,
        Bucket_Hash => Item.Default_Bucket_Hash,
-       Transfer_Status => Profiles.Can_Transfer));
+       Transfer_Status =>
+        (case Item.Item_Type is
+            when Manifest.Emblem => Profiles.Not_Transferable,
+            when others => Profiles.Can_Transfer)));
 end Add;
 

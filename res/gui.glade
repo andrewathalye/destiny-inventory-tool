@@ -278,11 +278,10 @@
           </packing>
         </child>
         <child>
-          <object class="GtkLevelBar" id="item_details_energy">
+          <object class="GtkImage" id="item_details_secondary_icon">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
-            <property name="max-value">10</property>
-            <property name="mode">discrete</property>
+            <property name="stock">gtk-missing-image</property>
           </object>
           <packing>
             <property name="expand">False</property>
@@ -299,6 +298,30 @@
             <property name="expand">False</property>
             <property name="fill">True</property>
             <property name="position">4</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLevelBar" id="item_details_energy">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="max-value">10</property>
+            <property name="mode">discrete</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">5</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkSeparator" id="item_details_separator_3">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">6</property>
           </packing>
         </child>
         <child>
@@ -319,18 +342,18 @@
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="position">5</property>
+            <property name="position">7</property>
           </packing>
         </child>
         <child>
-          <object class="GtkSeparator" id="item_details_separator_3">
+          <object class="GtkSeparator" id="item_details_separator_4">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
           </object>
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="position">6</property>
+            <property name="position">8</property>
           </packing>
         </child>
         <child>
@@ -361,7 +384,7 @@
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="position">7</property>
+            <property name="position">9</property>
           </packing>
         </child>
         <child>
@@ -381,7 +404,7 @@
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="position">8</property>
+            <property name="position">10</property>
           </packing>
         </child>
       </object>

@@ -36,6 +36,8 @@ with API.Inventories.Global; use API;
 with Shared.Strings; use Shared.Strings;
 with Shared.Debug;   use Shared;
 
+with Tasks.Download;
+
 package body GUI.Handlers is
    --  Global Handlers (Private)
 
@@ -114,6 +116,21 @@ package body GUI.Handlers is
         (GUI.Current_Item);
       GUI.Character.Inventory (GUI.Character.Current_Character_Index).Equip
         (GUI.Current_Item);
+
+      --  Simulate Emblem Change if Necessary
+      --  Later on this may be used to generically update stats on equipment change
+      --  TODO
+      if GUI.Current_Item.Item_Type = Emblem then
+         GUI.Profile.Characters (GUI.Character.Current_Character_Index).Emblem_Hash := GUI.Current_Item.Item_Hash;
+
+         GUI.Global.Update_GUI;
+         GUI.Character.Update_For_Character (GUI.Character.Current_Character_Index);
+
+         Tasks.Download.Global_Task.Execute (Base.Event_Image_Callback'Access);
+         --  This is an event handler, so it isn’t possible to pause the GUI task
+         --  from here (it would hang indefinitely). Instead use the thread-unsafe
+         --  variant because we are in the thread that would be impacted anyway :)
+      end if;
 
       GUI.Character.Render; --  Global Side (Vault) not changed by this
    end Equip_Button_Clicked_Handler;
@@ -437,10 +454,11 @@ package body GUI.Handlers is
          end if;
 
          --  For other items, we can’t perform any actions
-      else
-         Transfer_Menu.Set_Relative_To (Item_Details);
-         Transfer_Menu.Popup;
+         return;
       end if;
+
+      Transfer_Menu.Set_Relative_To (Item_Details);
+      Transfer_Menu.Popup;
    end Item_Button_Handler;
 
    procedure Socket_Item_Button_Handler

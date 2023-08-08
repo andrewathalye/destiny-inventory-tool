@@ -61,13 +61,9 @@ begin
            Destiny_Class_Definition_Manifest_Hash
              (As_Integer (Number_Value (Reader)));
 
-         Wait_Until_Key (Reader, "emblemPath");
+         Wait_Until_Key (Reader, "emblemHash");
          Read_Next (Reader);
-         Character.Emblem_Path := VS2UB (String_Value (Reader));
-
-         Wait_Until_Key (Reader, "emblemBackgroundPath");
-         Read_Next (Reader);
-         Character.Emblem_Background_Path := VS2UB (String_Value (Reader));
+         Character.Emblem_Hash := Destiny_Inventory_Item_Definition_Manifest_Hash (As_Integer (Number_Value (Reader)));
 
          --  Attempt to Read "titleRecordHash". It is not always present however
          Wait_Until_Key (Reader, "percentToNextLevel");

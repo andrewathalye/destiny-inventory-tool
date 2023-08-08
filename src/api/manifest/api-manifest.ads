@@ -173,8 +173,7 @@ package API.Manifest is
       Description                     : Unbounded_String;
       Name                            : Unbounded_String;
       Icon_Path                       : Unbounded_String; --  Nullable
-      Watermark_Path                  : Unbounded_String; --  Nullable
-      Shelved_Watermark_Path          : Unbounded_String; --  Nullable
+      Watermark_Path, Shelved_Watermark_Path                  : Unbounded_String; --  Nullable
       Secondary_Icon_Path             : Unbounded_String; --  Nullable
       Secondary_Overlay_Path          : Unbounded_String; --  Nullable
       Secondary_Special_Path          : Unbounded_String; --  Nullable

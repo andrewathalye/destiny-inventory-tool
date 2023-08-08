@@ -92,7 +92,10 @@ package body GUI.Character is
    end Equipped_Clicked_Handler;
    --  Render an individual item onto a Gtk_Box
 
-   type Item_Alignment_Type is (Left, Centre, Right);
+   type Item_Alignment_Type is
+     (Left,
+      Centre,
+      Right);
 
    procedure Render_Item
      (D              : Manifest.Tools.Item_Description;
@@ -241,6 +244,7 @@ package body GUI.Character is
         Profiles.Character_Type renames
         GUI.Profile.Characters (Character_Index);
 
+      Emblem_Secondary_Icon_Path : Unbounded_String renames GUI.The_Manifest.Destiny_Inventory_Items (Character.Emblem_Hash).Secondary_Icon_Path;
    begin
       Debug.Put_Line
         ("Updating UI for " &
@@ -256,16 +260,15 @@ package body GUI.Character is
       Gtk_New (Emblem);
 
       if Global_Pixbuf_Cache.Contains
-          (+(Bungie_Root & (+Character.Emblem_Background_Path)))
+          (+(Bungie_Root & (+Emblem_Secondary_Icon_Path)))
       then
          Emblem.Set
            (Global_Pixbuf_Cache.Element
-              (+(Bungie_Root & (+Character.Emblem_Background_Path))));
-
+              (+(Bungie_Root & (+Emblem_Secondary_Icon_Path))));
       else
          Emblem.Set (Placeholder_Emblem);
          Tasks.Download.Character_Task.Download
-           (+(Bungie_Root & (+Character.Emblem_Background_Path)),
+           (+(Bungie_Root & (+Emblem_Secondary_Icon_Path)),
             Gtk_Widget (Emblem));
       end if;
       Emblem_Button.Set_Image (Emblem);

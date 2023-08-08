@@ -155,7 +155,6 @@ package body Tasks.Download is
                  (Download_Queue_Entry'
                     (Path, Widget, Needs_Auth, others => <>));
             end Download;
-
          or
             --  Execute download and perform callback
             accept Execute (Callback : Download_Callback) do

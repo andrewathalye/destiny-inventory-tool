@@ -206,13 +206,12 @@ package body GUI.Base is
       Error_Dialog.Show;
    end Error_Message;
 
-   --  Semi-Public. Pauses GUI Thread and updates Widget image data.
-   --  TODO is this safe??????
-   procedure Image_Callback (Cache : in out Tasks.Download.Download_Cache_Type)
+   --  Semi-Public. Does NOT pause GUI Thread. Updates Widget image data
+   --  Note: NOT thread-safe!!!
+   procedure Event_Image_Callback (Cache : in out Tasks.Download.Download_Cache_Type)
    is
       Temp : Gdk_Pixbuf;
    begin
-      GUI_Task.Pause;
       for Cache_Entry of Cache loop
          Temp := GUI.Load_Image (+Cache_Entry.Path, Cache_Entry.Data.all);
          Free (Cache_Entry.Data);
@@ -229,7 +228,16 @@ package body GUI.Base is
 
       Cache
         .Clear; --  Ensure that old Accesses are not reused (clear the queue for the download task)
+   end Event_Image_Callback;
 
-      GUI_Task.Resume;
+   --  Semi-Public. Pauses GUI Thread and updates Widget image data.
+   --  TODO is this safe??????
+   procedure Image_Callback (Cache : in out Tasks.Download.Download_Cache_Type)
+   is
+   begin
+           GUI_Task.Pause;
+           Event_Image_Callback (Cache);
+           GUI_Task.Resume;
    end Image_Callback;
+
 end GUI.Base;

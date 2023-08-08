@@ -8,11 +8,7 @@ For Search:
 
 Loadout Support
 
-Glimmer icon size
-
 Farming mode?
-
-Automatically load new emblem image after changing emblems
 
 TODO make transfers asynchronous too
 
@@ -22,5 +18,3 @@ Vendor, Activity, Destination browser in separate window
 Fix tracebacks
 
 Show flavortexts
-
-Allow previewing emblems without equipping (custom item preview)

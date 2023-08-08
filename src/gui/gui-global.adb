@@ -21,7 +21,7 @@ use all type API.Manifest.Tools.Bucket_Location_Type;
 
 with Shared.Files;
 with Shared.Strings; use Shared.Strings;
-use Shared;
+with Shared.Debug; use Shared.Debug;
 
 with Tasks.Download;
 
@@ -39,7 +39,7 @@ package body GUI.Global is
 
    --  Cache
    Placeholder_Icon : constant Gdk_Pixbuf :=
-     Load_Image ("png", Files.Get_Data ("res/placeholder_icon.png"));
+     Load_Image ("png", Shared.Files.Get_Data ("res/placeholder_icon.png"));
 
    --  Redirections
    procedure Render_Items
@@ -54,8 +54,6 @@ package body GUI.Global is
 
    --  Private Subprograms
 
-   --  One-time init for "character_grid"
-
    procedure Setup_Character_Menu is
 
       Character_Grid : constant Gtk_Grid :=
@@ -67,7 +65,8 @@ package body GUI.Global is
 
       Count : Gint := 0;
    begin
-      Character_Menu.Set_Relative_To (Emblem_Button);
+      --  It is possible for characters to change on profile reload, so be prepared
+      Base.Clear_Bucket (Character_Grid);
 
       for C of Profile.Characters loop
          declare
@@ -75,20 +74,22 @@ package body GUI.Global is
             Image  : Gtk_Image;
             Button : Gtk_Button;
 
+            --  Renames
+            Emblem_Secondary_Overlay : Unbounded_String renames The_Manifest.Destiny_Inventory_Items (C.Emblem_Hash).Secondary_Overlay_Path;
          begin
             Gtk_New (Image);
             Gtk_New (Button, Manifest.Tools.Get_Description (The_Manifest, C));
 
             --  Load emblem
-            if Global_Pixbuf_Cache.Contains (C.Emblem_Path) then
+            if Global_Pixbuf_Cache.Contains (Emblem_Secondary_Overlay) then
                Image.Set
                  (Global_Pixbuf_Cache.Element
-                    (+(Bungie_Root & (+C.Emblem_Path))));
+                    (+(Bungie_Root & (+Emblem_Secondary_Overlay))));
 
             else
                Image.Set (Placeholder_Icon);
                Tasks.Download.Global_Task.Download
-                 (+(Bungie_Root & (+C.Emblem_Path)), Gtk_Widget (Image));
+                 (+(Bungie_Root & (+Emblem_Secondary_Overlay)), Gtk_Widget (Image));
             end if;
 
             User_Callback_Character_Range.Connect
@@ -107,6 +108,8 @@ package body GUI.Global is
             Count := @ + 1;
          end;
       end loop;
+
+      Character_Menu.Set_Relative_To (Emblem_Button);
    end Setup_Character_Menu;
 
    --  One-time init for "transfer_grid"
@@ -124,27 +127,32 @@ package body GUI.Global is
       Vault_Button : Gtk_Button;
 
    begin
+      --  A lot of things can change on reload, so best to be prepared
+      Base.Clear_Bucket (Transfer_Grid);
+
       for C of Profile.Characters loop
          declare
 
             Image  : Gtk_Image;
             Button : Gtk_Button;
 
+            --  Renames
+            Emblem_Secondary_Overlay : Unbounded_String renames The_Manifest.Destiny_Inventory_Items (C.Emblem_Hash).Secondary_Overlay_Path;
          begin
             Gtk_New (Image);
             Gtk_New (Button, Manifest.Tools.Get_Description (The_Manifest, C));
 
             --  Load emblem
-            if Global_Pixbuf_Cache.Contains (+(Bungie_Root & (+C.Emblem_Path)))
+            if Global_Pixbuf_Cache.Contains (+(Bungie_Root & (+Emblem_Secondary_Overlay)))
             then
                Image.Set
                  (Global_Pixbuf_Cache.Element
-                    (+(Bungie_Root & (+C.Emblem_Path))));
+                    (+(Bungie_Root & (+Emblem_Secondary_Overlay))));
 
             else
                Image.Set (Placeholder_Icon);
                Tasks.Download.Global_Task.Download
-                 (+(Bungie_Root & (+C.Emblem_Path)), Gtk_Widget (Image));
+                 (+(Bungie_Root & (+Emblem_Secondary_Overlay)), Gtk_Widget (Image));
             end if;
 
             Image.Show;
