@@ -121,10 +121,13 @@ package body GUI.Handlers is
       --  Later on this may be used to generically update stats on equipment change
       --  TODO
       if GUI.Current_Item.Item_Type = Emblem then
-         GUI.Profile.Characters (GUI.Character.Current_Character_Index).Emblem_Hash := GUI.Current_Item.Item_Hash;
+         GUI.Profile.Characters (GUI.Character.Current_Character_Index)
+           .Emblem_Hash :=
+           GUI.Current_Item.Item_Hash;
 
          GUI.Global.Update_GUI;
-         GUI.Character.Update_For_Character (GUI.Character.Current_Character_Index);
+         GUI.Character.Update_For_Character
+           (GUI.Character.Current_Character_Index);
 
          Tasks.Download.Global_Task.Execute (Base.Event_Image_Callback'Access);
          --  This is an event handler, so it isn’t possible to pause the GUI task

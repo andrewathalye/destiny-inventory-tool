@@ -63,7 +63,9 @@ begin
 
          Wait_Until_Key (Reader, "emblemHash");
          Read_Next (Reader);
-         Character.Emblem_Hash := Destiny_Inventory_Item_Definition_Manifest_Hash (As_Integer (Number_Value (Reader)));
+         Character.Emblem_Hash :=
+           Destiny_Inventory_Item_Definition_Manifest_Hash
+             (As_Integer (Number_Value (Reader)));
 
          --  Attempt to Read "titleRecordHash". It is not always present however
          Wait_Until_Key (Reader, "percentToNextLevel");

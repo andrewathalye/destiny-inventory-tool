@@ -170,14 +170,14 @@ package API.Manifest is
       Pattern             => 30);
 
    type Destiny_Inventory_Item_Definition is record
-      Description                     : Unbounded_String;
-      Name                            : Unbounded_String;
-      Icon_Path                       : Unbounded_String; --  Nullable
-      Watermark_Path, Shelved_Watermark_Path                  : Unbounded_String; --  Nullable
-      Secondary_Icon_Path             : Unbounded_String; --  Nullable
-      Secondary_Overlay_Path          : Unbounded_String; --  Nullable
-      Secondary_Special_Path          : Unbounded_String; --  Nullable
-      Item_Type_And_Tier_Display_Name : Unbounded_String;
+      Description                            : Unbounded_String;
+      Name                                   : Unbounded_String;
+      Icon_Path                              : Unbounded_String; --  Nullable
+      Watermark_Path, Shelved_Watermark_Path : Unbounded_String; --  Nullable
+      Secondary_Icon_Path                    : Unbounded_String; --  Nullable
+      Secondary_Overlay_Path                 : Unbounded_String; --  Nullable
+      Secondary_Special_Path                 : Unbounded_String; --  Nullable
+      Item_Type_And_Tier_Display_Name        : Unbounded_String;
       --  stats, emblemObjectiveHash?
       Max_Stack_Size                  : Quantity_Type;
       Bucket_Type_Hash : Destiny_Inventory_Bucket_Definition_Manifest_Hash;

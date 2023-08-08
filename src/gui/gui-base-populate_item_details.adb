@@ -45,8 +45,10 @@ is
    Energy : constant Gtk_Level_Bar :=
      Gtk_Level_Bar (Builder.Get_Object ("item_details_energy"));
 
-   Separator_2 : constant Gtk_Separator := Gtk_Separator (Builder.Get_Object ("item_details_separator_2"));
-   Secondary_Icon : constant Gtk_Image := Gtk_Image (Builder.Get_Object ("item_details_secondary_icon"));
+   Separator_2 : constant Gtk_Separator :=
+     Gtk_Separator (Builder.Get_Object ("item_details_separator_2"));
+   Secondary_Icon : constant Gtk_Image :=
+     Gtk_Image (Builder.Get_Object ("item_details_secondary_icon"));
 
    Separator_3 : constant Gtk_Separator :=
      Gtk_Separator (Builder.Get_Object ("item_details_separator_3"));
@@ -151,24 +153,26 @@ begin
 
    --  Show secondary icon if present
    if D.Secondary_Icon_Path /= Null_Unbounded_String then
-         Separator_1.Show;
-         Secondary_Icon.Show;
-         Secondary_Icon.Set (Placeholder_Icon);
+      Separator_1.Show;
+      Secondary_Icon.Show;
+      Secondary_Icon.Set (Placeholder_Icon);
 
-         --  Download the icon or use the cached version
-         if Global_Pixbuf_Cache.Contains (+(Bungie_Root & (+D.Secondary_Icon_Path)))
-         then
-            Secondary_Icon.Set
-              (Global_Pixbuf_Cache.Element
-                 (+(Bungie_Root & (+D.Secondary_Icon_Path))));
+      --  Download the icon or use the cached version
+      if Global_Pixbuf_Cache.Contains
+          (+(Bungie_Root & (+D.Secondary_Icon_Path)))
+      then
+         Secondary_Icon.Set
+           (Global_Pixbuf_Cache.Element
+              (+(Bungie_Root & (+D.Secondary_Icon_Path))));
 
-         else -- Asynchronous download
-            Tasks.Download.Contents_Task.Download
-              (+(Bungie_Root & (+D.Secondary_Icon_Path)), Gtk_Widget (Secondary_Icon));
-         end if;
+      else -- Asynchronous download
+         Tasks.Download.Contents_Task.Download
+           (+(Bungie_Root & (+D.Secondary_Icon_Path)),
+            Gtk_Widget (Secondary_Icon));
+      end if;
    else
-         Separator_1.Hide;
-         Secondary_Icon.Hide;
+      Separator_1.Hide;
+      Secondary_Icon.Hide;
    end if;
 
    --  Show armour energy capacity
@@ -211,7 +215,7 @@ begin
          end;
       end loop Populate_Stats;
 
-   --  Sockets
+      --  Sockets
    if D.Sockets.Is_Empty then
       Separator_4.Hide;
    else

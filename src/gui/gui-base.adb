@@ -208,7 +208,8 @@ package body GUI.Base is
 
    --  Semi-Public. Does NOT pause GUI Thread. Updates Widget image data
    --  Note: NOT thread-safe!!!
-   procedure Event_Image_Callback (Cache : in out Tasks.Download.Download_Cache_Type)
+   procedure Event_Image_Callback
+     (Cache : in out Tasks.Download.Download_Cache_Type)
    is
       Temp : Gdk_Pixbuf;
    begin
@@ -235,9 +236,9 @@ package body GUI.Base is
    procedure Image_Callback (Cache : in out Tasks.Download.Download_Cache_Type)
    is
    begin
-           GUI_Task.Pause;
-           Event_Image_Callback (Cache);
-           GUI_Task.Resume;
+      GUI_Task.Pause;
+      Event_Image_Callback (Cache);
+      GUI_Task.Resume;
    end Image_Callback;
 
 end GUI.Base;

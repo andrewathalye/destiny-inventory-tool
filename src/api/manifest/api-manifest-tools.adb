@@ -120,11 +120,11 @@ package body API.Manifest.Tools is
          Allow_Actions => Manifest_Item.Allow_Actions,
 
           --  Item style
-          Icon_Path     => Override_Item.Icon_Path,
-          Secondary_Icon_Path => Override_Item.Secondary_Icon_Path,
-          Secondary_Overlay_Path => Override_Item.Secondary_Overlay_Path,
-          Secondary_Special_Path => Override_Item.Secondary_Special_Path,
-         Watermark_Path =>
+          Icon_Path             => Override_Item.Icon_Path,
+         Secondary_Icon_Path    => Override_Item.Secondary_Icon_Path,
+         Secondary_Overlay_Path => Override_Item.Secondary_Overlay_Path,
+         Secondary_Special_Path => Override_Item.Secondary_Special_Path,
+         Watermark_Path         =>
            (if
               I.Version_Number /= -1
             then
@@ -229,11 +229,11 @@ package body API.Manifest.Tools is
          Default_Bucket_Location =>
            Bucket_Location_Type'Enum_Val (MDID.Bucket_Type_Hash),
 
-         Icon_Path      => MDID.Icon_Path,
-         Secondary_Icon_Path => MDID.Secondary_Icon_Path,
+         Icon_Path              => MDID.Icon_Path,
+         Secondary_Icon_Path    => MDID.Secondary_Icon_Path,
          Secondary_Overlay_Path => MDID.Secondary_Overlay_Path,
          Secondary_Special_Path => MDID.Secondary_Special_Path,
-         Watermark_Path => MDID.Watermark_Path,
+         Watermark_Path         => MDID.Watermark_Path,
 
          Item_Type                       => MDID.Item_Type,
          Tier_Type                       => MDID.Tier_Type,

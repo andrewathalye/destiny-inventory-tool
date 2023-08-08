@@ -142,9 +142,9 @@ package API.Manifest.Tools is
 
       --  Display info
       Icon_Path                : Unbounded_String;
-      Secondary_Icon_Path             : Unbounded_String;
-      Secondary_Overlay_Path          : Unbounded_String;
-      Secondary_Special_Path          : Unbounded_String;
+      Secondary_Icon_Path      : Unbounded_String;
+      Secondary_Overlay_Path   : Unbounded_String;
+      Secondary_Special_Path   : Unbounded_String;
       Watermark_Path           : Unbounded_String;
       Default_Damage_Type_Hash : Destiny_Damage_Type_Definition_Manifest_Hash :=
         0;

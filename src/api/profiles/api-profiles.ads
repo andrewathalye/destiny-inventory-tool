@@ -26,15 +26,15 @@ package API.Profiles is
    subtype Stats_Map is Stats_Maps.Map;
 
    type Character_Type is record
-      Character_ID           : Unbounded_String;
-      Date_Last_Played       : Unbounded_String;
-      Light                  : Quantity_Type;
-      Stats                  : Stats_Map;
-      Race_Hash              : Destiny_Race_Definition_Manifest_Hash;
-      Gender_Hash            : Destiny_Gender_Definition_Manifest_Hash;
-      Class_Hash             : Destiny_Class_Definition_Manifest_Hash;
-      Emblem_Hash            : Destiny_Inventory_Item_Definition_Manifest_Hash;
-      Title_Record_Hash      : Destiny_Record_Definition_Manifest_Hash :=
+      Character_ID      : Unbounded_String;
+      Date_Last_Played  : Unbounded_String;
+      Light             : Quantity_Type;
+      Stats             : Stats_Map;
+      Race_Hash         : Destiny_Race_Definition_Manifest_Hash;
+      Gender_Hash       : Destiny_Gender_Definition_Manifest_Hash;
+      Class_Hash        : Destiny_Class_Definition_Manifest_Hash;
+      Emblem_Hash       : Destiny_Inventory_Item_Definition_Manifest_Hash;
+      Title_Record_Hash : Destiny_Record_Definition_Manifest_Hash :=
         0; -- Nullable
    end record;
 

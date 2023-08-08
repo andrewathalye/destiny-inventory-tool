@@ -21,7 +21,6 @@ use all type API.Manifest.Tools.Bucket_Location_Type;
 
 with Shared.Files;
 with Shared.Strings; use Shared.Strings;
-with Shared.Debug; use Shared.Debug;
 
 with Tasks.Download;
 
@@ -75,7 +74,10 @@ package body GUI.Global is
             Button : Gtk_Button;
 
             --  Renames
-            Emblem_Secondary_Overlay : Unbounded_String renames The_Manifest.Destiny_Inventory_Items (C.Emblem_Hash).Secondary_Overlay_Path;
+            Emblem_Secondary_Overlay :
+              Unbounded_String renames
+              The_Manifest.Destiny_Inventory_Items (C.Emblem_Hash)
+                .Secondary_Overlay_Path;
          begin
             Gtk_New (Image);
             Gtk_New (Button, Manifest.Tools.Get_Description (The_Manifest, C));
@@ -89,7 +91,8 @@ package body GUI.Global is
             else
                Image.Set (Placeholder_Icon);
                Tasks.Download.Global_Task.Download
-                 (+(Bungie_Root & (+Emblem_Secondary_Overlay)), Gtk_Widget (Image));
+                 (+(Bungie_Root & (+Emblem_Secondary_Overlay)),
+                  Gtk_Widget (Image));
             end if;
 
             User_Callback_Character_Range.Connect
@@ -137,13 +140,17 @@ package body GUI.Global is
             Button : Gtk_Button;
 
             --  Renames
-            Emblem_Secondary_Overlay : Unbounded_String renames The_Manifest.Destiny_Inventory_Items (C.Emblem_Hash).Secondary_Overlay_Path;
+            Emblem_Secondary_Overlay :
+              Unbounded_String renames
+              The_Manifest.Destiny_Inventory_Items (C.Emblem_Hash)
+                .Secondary_Overlay_Path;
          begin
             Gtk_New (Image);
             Gtk_New (Button, Manifest.Tools.Get_Description (The_Manifest, C));
 
             --  Load emblem
-            if Global_Pixbuf_Cache.Contains (+(Bungie_Root & (+Emblem_Secondary_Overlay)))
+            if Global_Pixbuf_Cache.Contains
+                (+(Bungie_Root & (+Emblem_Secondary_Overlay)))
             then
                Image.Set
                  (Global_Pixbuf_Cache.Element
@@ -152,7 +159,8 @@ package body GUI.Global is
             else
                Image.Set (Placeholder_Icon);
                Tasks.Download.Global_Task.Download
-                 (+(Bungie_Root & (+Emblem_Secondary_Overlay)), Gtk_Widget (Image));
+                 (+(Bungie_Root & (+Emblem_Secondary_Overlay)),
+                  Gtk_Widget (Image));
             end if;
 
             Image.Show;

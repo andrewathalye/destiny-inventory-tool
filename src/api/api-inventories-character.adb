@@ -9,11 +9,25 @@ package body API.Inventories.Character is
    -- Add --
    ---------
 
-   --  Note: Linter currently crashes on delta aggregates, so they are separated out for now
+   --  TODO: use `with delta` here once gnatpp stops crashing
    overriding procedure Add
      (Inventory : in out Character_Inventory_Type;
       Item      :        Manifest.Tools.Item_Description)
-   is separate;
+   is
+      Temp : Manifest.Tools.Item_Description := Item;
+   begin
+      --  Item is not vaulted (any longer), so ensure Bucket_Location is
+      --  updated. The item is also no longer equipped, so it can be transferred
+      --  once again.
+      Temp.Location        := Manifest.Inventory;
+      Temp.Bucket_Location := Item.Default_Bucket_Location;
+      Temp.Bucket_Hash     := Item.Default_Bucket_Hash;
+      Temp.Transfer_Status :=
+        (case Item.Item_Type is
+           when Manifest.Emblem => Profiles.Not_Transferable,
+           when others          => Profiles.Can_Transfer);
+      Inventory.Character_Items (Item.Default_Bucket_Location).Append (Temp);
+   end Add;
 
    ------------
    -- Remove --
@@ -68,7 +82,14 @@ package body API.Inventories.Character is
    procedure Equip
      (Inventory : out Character_Inventory_Type;
       Item      :     Manifest.Tools.Item_Description)
-   is separate;
+   is
+      Temp : Manifest.Tools.Item_Description := Item;
+   begin
+      Add (Inventory, Inventory.Equipped_Items (Item.Bucket_Location));
+
+      Temp.Transfer_Status := Profiles.Item_Is_Equipped;
+      Inventory.Equipped_Items (Item.Bucket_Location) := Temp;
+   end Equip;
 
    ------------
    -- Update --
@@ -150,15 +171,15 @@ package body API.Inventories.Character is
       return Manifest.Tools.Item_Description
    is
    begin
-           for List of Inventory.Character_Items loop
-              for Item of List loop
-                      if Item.Item_Hash = Hash then
-                              return Item;
-                      end if;
-              end loop;
-           end loop;
+      for List of Inventory.Character_Items loop
+         for Item of List loop
+            if Item.Item_Hash = Hash then
+               return Item;
+            end if;
+         end loop;
+      end loop;
 
-           raise Item_Not_Found;
+      raise Item_Not_Found;
    end Get;
 
    ----------------
@@ -182,11 +203,11 @@ package body API.Inventories.Character is
    is
       List : Item_Description_List;
    begin
-           for Orig_List of Inventory.Character_Items loop
-                   List.Append (Orig_List);
-           end loop;
+      for Orig_List of Inventory.Character_Items loop
+         List.Append (Orig_List);
+      end loop;
 
-           return List;
+      return List;
    end Get_Unsorted;
 
    ------------------
