@@ -1,81 +1,92 @@
-with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
-with Ada.Containers.Hashed_Maps;
+pragma Ada_2022;
 
 --  Local Packages
 with API.Profiles;
 with API.Manifest.Tools;
-
-with Shared.Strings;
+use type API.Manifest.Quantity_Type;
 
 package API.Inventories.Character is
    --  Types
-   type Character_Inventory_Type is private;
+   type Character_Inventory_Type is new Destiny_Inventory_Type with private;
+   type Character_Inventory_Array is
+     array (Profiles.Character_Range) of Character_Inventory_Type;
+
    --  Subprograms
-   --  Inventory Management
-   procedure Add_Item
+   --  Note: Descriptions are given only for non-overriding subprograms. See API.Inventories for more info.
+
+   --------------------------
+   -- Inventory Management --
+   --------------------------
+   overriding procedure Add
      (Inventory : in out Character_Inventory_Type;
-      Character :        Profiles.Character_Type;
       Item      :        Manifest.Tools.Item_Description) with
      Inline;
 
-   procedure Remove_Item
+   overriding procedure Remove
      (Inventory : in out Character_Inventory_Type;
-      Character :        Profiles.Character_Type;
       Item      :        Manifest.Tools.Item_Description);
 
-   procedure Equip_Item
-     (Inventory : in out Character_Inventory_Type;
-      Character :        Profiles.Character_Type;
-      Item      :        Manifest.Tools.Item_Description);
+   overriding procedure Update
+     (Inventory : out Character_Inventory_Type; Items : Item_Description_List);
 
-   function Item_Count
+   procedure Clear (Inventory : out Character_Inventory_Type);
+
+   --  Add to local equipped inventory
+   procedure Equip
+     (Inventory : out Character_Inventory_Type;
+      Item      :     Manifest.Tools.Item_Description);
+
+   --  The "proper" way to update a character inventory, including both equipped items and inventory items
+   procedure Update
+     (Inventory    : out Character_Inventory_Type;
+      Profile      :     Profiles.Profile_Type;
+      The_Manifest :     Manifest.Manifest_Type;
+      Character    :     Profiles.Character_Type);
+
+   -------------
+   -- Queries --
+   -------------
+
+   overriding function Item_Count
      (Inventory : Character_Inventory_Type;
-      Character : Profiles.Character_Type;
       Location  : Manifest.Tools.Bucket_Location_Type)
-      return API.Manifest.Quantity_Type;
+      return API.Manifest.Quantity_Type with
+     Inline;
 
-   --  Initialisation and Access
-   function Character_Items
+   overriding function Get
      (Inventory : Character_Inventory_Type;
-      Character : Profiles.Character_Type)
+      Location  : Manifest.Tools.Bucket_Location_Type)
+      return Item_Description_List with
+     Inline;
+
+   overriding function Get_Default
+     (Inventory : Character_Inventory_Type;
+      Location  : Manifest.Tools.Bucket_Location_Type)
+      return Item_Description_List renames
+     Get;
+
+   overriding function Get
+     (Inventory : Character_Inventory_Type;
+      Hash      : Manifest.Destiny_Inventory_Item_Definition_Manifest_Hash)
+      return Manifest.Tools.Item_Description;
+
+   overriding function Get_Sorted
+     (Inventory : Character_Inventory_Type)
       return Item_Description_List_Bucket_Location_Type_Array with
      Inline;
 
-   function Equipped_Items
-     (Inventory : Character_Inventory_Type;
-      Character : Profiles.Character_Type)
+   overriding function Get_Unsorted
+     (Inventory : Character_Inventory_Type) return Item_Description_List;
+
+   --  Returns a list of equipped items by slot
+   function Get_Equipped
+     (Inventory : Character_Inventory_Type)
       return Item_Description_Bucket_Location_Type_Array with
      Inline;
 
-   procedure Update_Inventory
-     (Inventory : out Character_Inventory_Type;
-      Profile   :     Profiles.Profile_Type;
-      M         :     Manifest.Manifest_Type);
 private
-   package Item_Description_List_Bucket_Location_Type_Array_Maps is new Ada
-     .Containers
-     .Hashed_Maps
-     (Key_Type        => Unbounded_String,
-      Element_Type    => Item_Description_List_Bucket_Location_Type_Array,
-      Hash            => Shared.Strings.Hash,
-      Equivalent_Keys => Shared.Strings.Equivalent_Keys);
-
-   package Item_Description_Bucket_Location_Type_Array_Maps is new Ada
-     .Containers
-     .Hashed_Maps
-     (Key_Type        => Unbounded_String,
-      Element_Type    => Item_Description_Bucket_Location_Type_Array,
-      Hash            => Shared.Strings.Hash,
-      Equivalent_Keys => Shared.Strings.Equivalent_Keys);
-
-   subtype Item_Description_List_Bucket_Location_Type_Array_Map is
-     Item_Description_List_Bucket_Location_Type_Array_Maps.Map;
-
-   subtype Item_Description_Bucket_Location_Type_Array_Map is
-     Item_Description_Bucket_Location_Type_Array_Maps.Map;
-
-   type Character_Inventory_Type is record
-      All_Character_Items : Item_Description_List_Bucket_Location_Type_Array_Map;
-      All_Equipped_Items  : Item_Description_Bucket_Location_Type_Array_Map;
+   type Character_Inventory_Type is new Destiny_Inventory_Type with record
+      Character_Items : Item_Description_List_Bucket_Location_Type_Array;
+      Equipped_Items  : Item_Description_Bucket_Location_Type_Array;
    end record;
 end API.Inventories.Character;

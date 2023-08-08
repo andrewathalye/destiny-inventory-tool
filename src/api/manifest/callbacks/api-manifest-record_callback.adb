@@ -5,7 +5,7 @@ with Shared.JSON;    use Shared.JSON;
 with Shared.Strings; use Shared.Strings;
 
 procedure API.Manifest.Record_Callback
-  (Hash         :        Manifest_Hash;
+  (Hash         :        Base_Manifest_Hash;
    Reader       : in out JSON_Simple_Pull_Reader;
    The_Manifest :    out Manifest_Type)
 is
@@ -28,6 +28,7 @@ begin
       Read_Next (Reader);
       Title (Female) := VS2UB (String_Value (Reader));
 
-      The_Manifest.Destiny_Titles.Insert (Hash, Title);
+      The_Manifest.Destiny_Titles.Insert
+        (Destiny_Record_Definition_Manifest_Hash (Hash), Title);
    end if;
 end API.Manifest.Record_Callback;

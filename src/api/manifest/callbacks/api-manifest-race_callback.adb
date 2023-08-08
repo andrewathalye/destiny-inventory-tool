@@ -5,7 +5,7 @@ with Shared.JSON;    use Shared.JSON;
 with Shared.Strings; use Shared.Strings;
 
 procedure API.Manifest.Race_Callback
-  (Hash         :        Manifest_Hash;
+  (Hash         :        Base_Manifest_Hash;
    Reader       : in out JSON_Simple_Pull_Reader;
    The_Manifest :    out Manifest_Type)
 is
@@ -22,5 +22,6 @@ begin
    Read_Next (Reader);
    Race (Female) := VS2UB (String_Value (Reader));
 
-   The_Manifest.Destiny_Races.Insert (Hash, Race);
+   The_Manifest.Destiny_Races.Insert
+     (Destiny_Race_Definition_Manifest_Hash (Hash), Race);
 end API.Manifest.Race_Callback;

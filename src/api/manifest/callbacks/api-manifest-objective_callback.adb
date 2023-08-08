@@ -5,7 +5,7 @@ with Shared.JSON;    use Shared.JSON;
 with Shared.Strings; use Shared.Strings;
 
 procedure API.Manifest.Objective_Callback
-  (Hash         :        Manifest_Hash;
+  (Hash         :        Base_Manifest_Hash;
    Reader       : in out JSON_Simple_Pull_Reader;
    The_Manifest :    out Manifest_Type)
 is
@@ -31,5 +31,6 @@ begin
    Read_Next (Reader);
    Objective.Progress_Description := VS2UB (String_Value (Reader));
 
-   The_Manifest.Destiny_Objectives.Insert (Hash, Objective);
+   The_Manifest.Destiny_Objectives.Insert
+     (Destiny_Objective_Definition_Manifest_Hash (Hash), Objective);
 end API.Manifest.Objective_Callback;

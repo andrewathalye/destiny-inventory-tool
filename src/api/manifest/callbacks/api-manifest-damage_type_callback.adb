@@ -5,7 +5,7 @@ with Shared.JSON;    use Shared.JSON;
 with Shared.Strings; use Shared.Strings;
 
 procedure API.Manifest.Damage_Type_Callback
-  (Hash         :        Manifest_Hash;
+  (Hash         :        Base_Manifest_Hash;
    Reader       : in out JSON_Simple_Pull_Reader;
    The_Manifest :    out Manifest_Type)
 is
@@ -32,5 +32,6 @@ begin
    Read_Next (Reader);
    Damage_Type.Show_Icon := Boolean_Value (Reader);
 
-   The_Manifest.Destiny_Damage_Types.Insert (Hash, Damage_Type);
+   The_Manifest.Destiny_Damage_Types.Insert
+     (Destiny_Damage_Type_Definition_Manifest_Hash (Hash), Damage_Type);
 end API.Manifest.Damage_Type_Callback;

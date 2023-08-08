@@ -15,7 +15,7 @@ begin
       declare
 
          Character : Character_Type;
-         Stat_Temp : Manifest_Hash;
+         Stat_Temp : Destiny_Stat_Definition_Manifest_Hash;
 
       begin
          Wait_Until_Key (Reader, "characterId");
@@ -35,7 +35,8 @@ begin
          Read_Next (Reader); -- Key_Name
          while Event_Kind (Reader) /= End_Object loop
             Stat_Temp :=
-              Manifest_Hash'Value (VS2S (Key_Name (Reader))); -- Stat Name Hash
+              Destiny_Stat_Definition_Manifest_Hash'Value
+                (VS2S (Key_Name (Reader))); -- Stat Name Hash
             Read_Next (Reader); -- NUMBER_VALUE
             Character.Stats.Insert
               (Stat_Temp, Stat_Type (As_Integer (Number_Value (Reader))));
@@ -45,17 +46,20 @@ begin
          Wait_Until_Key (Reader, "raceHash");
          Read_Next (Reader);
          Character.Race_Hash :=
-           Manifest_Hash (As_Integer (Number_Value (Reader)));
+           Destiny_Race_Definition_Manifest_Hash
+             (As_Integer (Number_Value (Reader)));
 
          Wait_Until_Key (Reader, "genderHash");
          Read_Next (Reader);
          Character.Gender_Hash :=
-           Manifest_Hash (As_Integer (Number_Value (Reader)));
+           Destiny_Gender_Definition_Manifest_Hash
+             (As_Integer (Number_Value (Reader)));
 
          Wait_Until_Key (Reader, "classHash");
          Read_Next (Reader);
          Character.Class_Hash :=
-           Manifest_Hash (As_Integer (Number_Value (Reader)));
+           Destiny_Class_Definition_Manifest_Hash
+             (As_Integer (Number_Value (Reader)));
 
          Wait_Until_Key (Reader, "emblemPath");
          Read_Next (Reader);
@@ -73,7 +77,8 @@ begin
          if Event_Kind (Reader) = Key_Name then
             Read_Next (Reader); -- "titleRecordHash"
             Character.Title_Record_Hash :=
-              Manifest_Hash (As_Integer (Number_Value (Reader)));
+              Destiny_Record_Definition_Manifest_Hash
+                (As_Integer (Number_Value (Reader)));
 
             Read_Next (Reader); -- End_Object for this Character
          end if;

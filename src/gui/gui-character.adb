@@ -1,4 +1,5 @@
 pragma Ada_2022;
+
 --  Gtk
 with Gtk.Label;     use Gtk.Label;
 with Gtk.Image;     use Gtk.Image;
@@ -27,8 +28,16 @@ with Shared.Debug;   use Shared;
 with Tasks.Download;
 
 package body GUI.Character is
-   --  Redirections
+   --  Global-ish state
+   Global_Character_Index : Profiles.Character_Range;
 
+   --  Accessors
+   function Current_Character return Profiles.Character_Type is
+     (GUI.Profile.Characters (Global_Character_Index));
+   function Current_Character_Index return Profiles.Character_Range is
+     (Global_Character_Index);
+
+   --  Redirections
    procedure Render_Items
      (List     : Inventories.Item_Description_List;
       Bucket   : Gtk_Grid;
@@ -38,6 +47,7 @@ package body GUI.Character is
    begin
       Base.Render_Items (List, Bucket, T, Max_Left);
    end Render_Items;
+
    --  Cache
    Placeholder_Emblem : constant Gdk_Pixbuf :=
      Load_Image (".png", Files.Get_Data ("res/placeholder_emblem.png"));
@@ -51,8 +61,7 @@ package body GUI.Character is
    begin
       Base.Clear_Bucket (Contents_Grid);
       Render_Items
-        (Inventories.Character.Character_Items (Inventory, Current_Character)
-           (Location),
+        (Inventory (Global_Character_Index).Get (Location),
          Contents_Grid,
          Tasks.Download.Contents_Task);
    end Render_Contents;
@@ -127,18 +136,19 @@ package body GUI.Character is
 
    procedure Render is
       --  Renames
-
       Character_Items :
         Inventories.Item_Description_List_Bucket_Location_Type_Array renames
-        Inventories.Character.Character_Items (Inventory, Current_Character);
+        Inventory (Global_Character_Index).Get_Sorted;
       Equipped_Items :
         Inventories.Item_Description_Bucket_Location_Type_Array renames
-        Inventories.Character.Equipped_Items (Inventory, Current_Character);
+        Inventory (Global_Character_Index).Get_Equipped;
+
       --  Buckets
       Postmaster_Grid : constant Gtk_Grid :=
         Gtk_Grid (Builder.Get_Object ("postmaster"));
       Subclass_Box : constant Gtk_Box :=
         Gtk_Box (Builder.Get_Object ("subclass"));
+
       Kinetic_Box : constant Gtk_Box :=
         Gtk_Box (Builder.Get_Object ("kinetic"));
       Energy_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("energy"));
@@ -146,16 +156,19 @@ package body GUI.Character is
       Shell_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("shell"));
       Artefact_Box : constant Gtk_Box :=
         Gtk_Box (Builder.Get_Object ("artefact"));
+
       Helmet_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("helmet"));
       Gauntlets_Box : constant Gtk_Box :=
         Gtk_Box (Builder.Get_Object ("gauntlets"));
-      Chest_Box   : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("chest"));
-      Leg_Box     : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("leg"));
-      Class_Box   : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("class"));
+      Chest_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("chest"));
+      Leg_Box   : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("leg"));
+      Class_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("class"));
+
       Emblem_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("emblem"));
       Sparrow_Box : constant Gtk_Box :=
         Gtk_Box (Builder.Get_Object ("sparrow"));
-      Ship_Box     : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("ship"));
+      Ship_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("ship"));
+
       Finisher_Box : constant Gtk_Box :=
         Gtk_Box (Builder.Get_Object ("finisher"));
       Emote_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("emote"));
@@ -213,25 +226,31 @@ package body GUI.Character is
    end Render;
    --  Update UI elements for new character
 
-   procedure Update_For_Character (Character : Profiles.Character_Type) is
+   procedure Update_For_Character
+     (Character_Index : API.Profiles.Character_Range)
+   is
       --  Labels and Images to be updated for each character
-
       Title : constant Gtk_Label  := Gtk_Label (Builder.Get_Object ("title"));
       Light : constant Gtk_Label  := Gtk_Label (Builder.Get_Object ("light"));
       Emblem_Button : constant Gtk_Button :=
         Gtk_Button (Builder.Get_Object ("emblem_button"));
       Emblem : Gtk_Image;
 
+      --  Renames
+      Character :
+        Profiles.Character_Type renames
+        GUI.Profile.Characters (Character_Index);
+
    begin
       Debug.Put_Line
         ("Updating UI for " &
          Manifest.Tools.Get_Description (The_Manifest, Character));
-      Current_Character := Character;
+
+      Global_Character_Index := Character_Index;
 
       --  Update Labels
-      Set_Label
-        (Title, +Manifest.Tools.Get_Title (The_Manifest, Current_Character));
-      Set_Label (Light, Current_Character.Light'Image);
+      Set_Label (Title, +Manifest.Tools.Get_Title (The_Manifest, Character));
+      Set_Label (Light, Character.Light'Image);
 
       --  Update Emblem
       Gtk_New (Emblem);

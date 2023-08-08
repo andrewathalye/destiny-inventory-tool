@@ -17,33 +17,38 @@ package API.Profiles is
    --  Basic Types
    subtype Item_Instance_ID_Type is Integer_64;
 
-   --  Characters
+   ----------------
+   -- Characters --
+   ----------------
    type Stat_Type is new Integer_32;
    package Stats_Maps is new Ada.Containers.Ordered_Maps
-     (Manifest_Hash, Stat_Type);
+     (Destiny_Stat_Definition_Manifest_Hash, Stat_Type);
    subtype Stats_Map is Stats_Maps.Map;
 
    type Character_Type is record
-      Character_ID     : Unbounded_String;
-      Date_Last_Played : Unbounded_String;
-      Light            : Quantity_Type;
-      Stats            : Stats_Map;
-      Race_Hash        : Manifest_Hash;
-      --  DestinyRaceDefinition
-      Gender_Hash : Manifest_Hash;
-      --  DestinyGenderDefinition
-      Class_Hash : Manifest_Hash;
-      --  DestinyClassDefinition
+      Character_ID           : Unbounded_String;
+      Date_Last_Played       : Unbounded_String;
+      Light                  : Quantity_Type;
+      Stats                  : Stats_Map;
+      Race_Hash              : Destiny_Race_Definition_Manifest_Hash;
+      Gender_Hash            : Destiny_Gender_Definition_Manifest_Hash;
+      Class_Hash             : Destiny_Class_Definition_Manifest_Hash;
       Emblem_Path            : Unbounded_String;
       Emblem_Background_Path : Unbounded_String;
-      Title_Record_Hash      : Manifest_Hash := 0; -- Nullable
-      --  Records.DestinyRecordDefinition Items Omitted
+      Title_Record_Hash      : Destiny_Record_Definition_Manifest_Hash :=
+        0; -- Nullable
    end record;
-   package Character_Vectors is new Ada.Containers.Vectors
-     (Index_Type => Natural, Element_Type => Character_Type);
-   subtype Character_List is Character_Vectors.Vector;
-   --  Inventories
 
+   --  Maximum of 3 characters
+   type Character_Range is range 1 .. 3;
+
+   package Character_Vectors is new Ada.Containers.Vectors
+     (Index_Type => Character_Range, Element_Type => Character_Type);
+   subtype Character_List is Character_Vectors.Vector;
+
+   -----------------
+   -- Inventories --
+   -----------------
    type Bind_Status_Type is
      (Not_Bound, Bound_To_Character, Bound_To_Account, Bound_To_Guild);
 
@@ -62,21 +67,19 @@ package API.Profiles is
    end record;
 
    type Item_Type is record
-      Item_Hash : Manifest_Hash;
-      --  DestinyInventoryItemDefinition
+      Item_Hash        : Destiny_Inventory_Item_Definition_Manifest_Hash;
       Item_Instance_ID : Item_Instance_ID_Type := -1; -- Nullable
       --  Note: For compatibility reasons, the API returns
       --  item instance IDs as strings rather than Integer_64 values.
-      Quantity    : Quantity_Type;
-      Bind_Status : Bind_Status_Type;
-      Location    : Item_Location_Type;
-      Bucket_Hash : Manifest_Hash;
-      --  DestinyInventoryBucketDefinition
+      Quantity                 : Quantity_Type;
+      Bind_Status              : Bind_Status_Type;
+      Location                 : Item_Location_Type;
+      Bucket_Hash : Destiny_Inventory_Bucket_Definition_Manifest_Hash;
       Transfer_Status          : Transfer_Status_Type;
       Lockable                 : Boolean;
       State                    : Item_State_Type;
-      Override_Style_Item_Hash : Manifest_Hash := 0; -- Nullable
-      --  DestinyInventoryItemDefinition
+      Override_Style_Item_Hash : Destiny_Inventory_Item_Definition_Manifest_Hash :=
+        0; -- Nullable
       Expiration_Date : Unbounded_String; -- Nullable
       Version_Number  : Integer_32 := -1; -- Nullable
       --  Items Omitted
@@ -95,27 +98,19 @@ package API.Profiles is
    subtype Inventory_Map is Inventory_Maps.Map;
 
    --  Loadouts
-   package Manifest_Hash_Vectors is new Ada.Containers.Vectors
-     (Index_Type => Natural, Element_Type => Manifest_Hash);
-   subtype Manifest_Hash_List is Manifest_Hash_Vectors.Vector;
-
    type Loadout_Item_Type is record
       Item_Instance_ID : Unbounded_String;
-      Plug_Item_Hashes : Manifest_Hash_List;
-      --  DestinyInventoryItemDefinition
+      Plug_Item_Hashes : Destiny_Inventory_Item_Definition_Manifest_Hash_List;
    end record;
    package Loadout_Item_Vectors is new Ada.Containers.Vectors
      (Index_Type => Natural, Element_Type => Loadout_Item_Type);
    subtype Loadout_Item_List is Loadout_Item_Vectors.Vector;
 
    type Loadout_Type is record
-      Colour_Hash : Manifest_Hash;
-      --  Loadouts.DestinyLoadoutColorDefinition
-      Icon_Hash : Manifest_Hash;
-      --  Loadouts.DestinyLoadoutIconDefinition
-      Name_Hash : Manifest_Hash;
-      --  Loadouts.DestinyLoadoutNameDefinition
-      Items : Loadout_Item_List;
+      Colour_Hash : Destiny_Loadout_Color_Definition_Manifest_Hash;
+      Icon_Hash   : Destiny_Loadout_Icon_Definition_Manifest_Hash;
+      Name_Hash   : Destiny_Loadout_Name_Definition_Manifest_Hash;
+      Items       : Loadout_Item_List;
    end record;
    package Loadout_Vectors is new Ada.Containers.Vectors
      (Index_Type => Natural, Element_Type => Loadout_Type);
@@ -138,8 +133,7 @@ package API.Profiles is
 
    --  Instanced Data
    type Perk_Type is record
-      Perk_Hash : Manifest_Hash;
-      --  DestinySandboxPerkDefinition
+      Perk_Hash : Destiny_Sandbox_Perk_Definition_Manifest_Hash;
       Icon_Path : Unbounded_String;
       Is_Active : Boolean;
       Visible   : Boolean;
@@ -155,8 +149,7 @@ package API.Profiles is
    subtype Perks_Map is Perks_Maps.Map;
 
    type Socket_Type is record
-      Plug_Hash : Manifest_Hash := 0;
-      --  DestinyInventoryItemDefinition
+      Plug_Hash  : Destiny_Inventory_Item_Definition_Manifest_Hash := 0;
       Is_Enabled : Boolean;
       Is_Visible : Boolean;
    end record;
@@ -186,10 +179,11 @@ package API.Profiles is
    subtype Stats_Map_By_IID is Stats_Maps_By_IID.Map;
 
    type Plug_Objective_Type is record
-      Objective_Hash : Manifest_Hash;
-      --  DestinyObjectiveDefinition
-      Destination_Hash : Manifest_Hash := 0; --  Nullable
-      Activity_Hash    : Manifest_Hash := 0; --  Nullable
+      Objective_Hash   : Destiny_Objective_Definition_Manifest_Hash;
+      Destination_Hash : Destiny_Destination_Definition_Manifest_Hash :=
+        0; --  Nullable
+      Activity_Hash : Destiny_Activity_Definition_Manifest_Hash :=
+        0; --  Nullable
       Progress         : Quantity_Type := -1; --  Nullable
       Completion_Value : Quantity_Type;
       Complete         : Boolean;
@@ -202,7 +196,8 @@ package API.Profiles is
    subtype Plug_Objective_List is Plug_Objective_Lists.Vector;
 
    package Plug_Objective_Maps is new Ada.Containers.Ordered_Maps
-     (Key_Type => Manifest_Hash, Element_Type => Plug_Objective_List);
+     (Key_Type     => Destiny_Inventory_Item_Definition_Manifest_Hash,
+      Element_Type => Plug_Objective_List);
    use type Plug_Objective_Maps.Map;
    subtype Plug_Objective_Map is Plug_Objective_Maps.Map;
 
@@ -213,11 +208,11 @@ package API.Profiles is
    type Item_Components_Type is record
       Instances : Instance_Map;
       Stats     : Stats_Map_By_IID;
-      --  Note: Map (Instance_ID) of Map (Stat Manifest_Hash) of Stat
+      --  Note: Map (Instance_ID) of Map (Destiny_Stat_Definition_Manifest_Hash) of Stat
       Sockets : Sockets_Map;
       --  Note: Map (Instance_ID) of List of Sockets
       Plug_Objectives : Plug_Objectives_Map;
-      --  Note: Map (Instance_ID) of Map (Socket Manifest_Hash) of List of Objectives
+      --  Note: Map (Instance_ID) of Map (Destiny_Inventory_Item_Definition_Manifest_Hash) of List of Objectives
       Perks : Perks_Map; --  TODO: May not be necessary? Consider removing.
    end record;
 

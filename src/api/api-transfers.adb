@@ -72,14 +72,12 @@ package body API.Transfers is
    --  These return no value and raise an exception if the check fails
    procedure Check_Character_Has_Room
      (Inventory : Inventories.Character.Character_Inventory_Type;
-      Character : Profiles.Character_Type;
       M         : Manifest.Manifest_Type;
       D         : Manifest.Tools.Item_Description)
    is
 
       Bucket_Item_Count : constant API.Manifest.Quantity_Type :=
-        Inventories.Character.Item_Count
-          (Inventory, Character, D.Default_Bucket_Location);
+        Inventory.Item_Count (D.Default_Bucket_Location);
       Max_Item_Count : constant API.Manifest.Quantity_Type :=
         M.Destiny_Inventory_Buckets (D.Default_Bucket_Hash).Item_Count;
 
@@ -106,9 +104,7 @@ package body API.Transfers is
       --  Attempt to find the item stack quantity. There is not necessarily an item in the vault
       --  with the same hash, so this could fail.
       begin
-         Item_Stack_Quantity :=
-           Inventories.Global.Get_Vault_Item_Stack (Inventory, D.Item_Hash)
-             .Quantity;
+         Item_Stack_Quantity := Inventory.Get (D.Item_Hash).Quantity;
       exception
          when Inventories.Item_Not_Found =>
             null;
@@ -137,7 +133,6 @@ package body API.Transfers is
 
    procedure Check_One_Exotic
      (Inventory : Inventories.Character.Character_Inventory_Type;
-      Character : Profiles.Character_Type;
       D         : Manifest.Tools.Item_Description)
    is
       procedure Raise_Exception (Predicate : Boolean) is
@@ -150,7 +145,7 @@ package body API.Transfers is
 
       Equipped :
         Inventories.Item_Description_Bucket_Location_Type_Array renames
-        Inventories.Character.Equipped_Items (Inventory, Character);
+        Inventory.Get_Equipped;
    begin
       case D.Tier_Type is
          when Exotic =>
@@ -283,7 +278,7 @@ package body API.Transfers is
             null;
       end case;
 
-      Check_Character_Has_Room (Character_Inventory, Target, M, D);
+      Check_Character_Has_Room (Character_Inventory, M, D);
 
       Data :=
         Client.Post
@@ -301,11 +296,11 @@ package body API.Transfers is
    end Unvault;
 
    procedure Transfer
-     (Vault_Inventory     : Inventories.Global.Global_Inventory_Type;
-      Character_Inventory : Inventories.Character.Character_Inventory_Type;
-      M                   : Manifest.Manifest_Type;
-      D                   : Manifest.Tools.Item_Description;
-      Source, Target      : Profiles.Character_Type)
+     (Vault_Inventory  : Inventories.Global.Global_Inventory_Type;
+      Target_Inventory : Inventories.Character.Character_Inventory_Type;
+      M                : Manifest.Manifest_Type;
+      D                : Manifest.Tools.Item_Description;
+      Source, Target   : Profiles.Character_Type)
    is
    begin
       --  Local Check
@@ -313,7 +308,7 @@ package body API.Transfers is
 
       Vault (Vault_Inventory, M, D, Source);
       delay 0.1; -- Throttle timer
-      Unvault (Character_Inventory, M, D, Target);
+      Unvault (Target_Inventory, M, D, Target);
    end Transfer;
 
    procedure Postmaster_Pull
@@ -336,9 +331,8 @@ package body API.Transfers is
 
       if D.Transfer_Status /= Can_Transfer then
          Check_Vault_Has_Room (Vault_Inventory, M, D);
-
       else
-         Check_Character_Has_Room (Character_Inventory, Source, M, D);
+         Check_Character_Has_Room (Character_Inventory, M, D);
       end if;
 
       Data :=
@@ -370,7 +364,7 @@ package body API.Transfers is
       --  An exception will be raised if any of these fail
       Check_Actions_Permitted (D);
 
-      Check_One_Exotic (Inventory, Source, D);
+      Check_One_Exotic (Inventory, D);
 
       Data :=
         Client.Post

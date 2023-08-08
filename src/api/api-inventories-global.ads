@@ -1,65 +1,91 @@
+pragma Ada_2022;
+
 --  Local Packages
 with API.Manifest.Tools;
 with API.Profiles;
 
 package API.Inventories.Global is
-   --  The Vault ("Global") stores three kinds of items General Consumables
-   --  Modifications
+   --  The Vault ("Global") stores three kinds of items: General Consumables Modifications
    --
    --  General items are stored in the inventory by their default bucket
    --  locations rather than by their actual location (Manifest.Tools.General)
 
    --  Types
-   type Global_Inventory_Type is private;
+   type Global_Inventory_Type is new Destiny_Inventory_Type with private;
 
    --  Subprograms
-   --  Inventory Management
-   procedure Add_Item
+   --  Note: For overriding subprograms, see API.Inventories for exception information.
+
+   --------------------------
+   -- Inventory Management --
+   --------------------------
+   overriding procedure Add
      (Inventory : in out Global_Inventory_Type;
       Item      :        Manifest.Tools.Item_Description) with
      Inline;
-   procedure Remove_Item
+
+   overriding procedure Remove
      (Inventory : in out Global_Inventory_Type;
       Item      :        Manifest.Tools.Item_Description);
 
-   --  This accepts either General / Consumables / Modifications or any other
-   --  valid Location, which will be intrinsically converted to General to
-   --  return an item count
-   function Item_Count
+   overriding procedure Update
+     (Inventory : out Global_Inventory_Type; Items : Item_Description_List);
+
+   overriding procedure Clear (Inventory : out Global_Inventory_Type);
+
+   --  Local Additions
+   --  Updates the Currency sub-inventory using a premade list
+   procedure Update_Currency
+     (Inventory : out Global_Inventory_Type; Items : Item_Description_List);
+
+   --  Updates all inventories using raw data (preferred method for external interface)
+   procedure Update
+     (Inventory    : out Global_Inventory_Type;
+      Profile      :     Profiles.Profile_Type;
+      The_Manifest :     Manifest.Manifest_Type);
+
+   -------------
+   -- Queries --
+   -------------
+   --  General, Consumables, and Modifications are valid locations for Global Inventories
+
+   overriding function Item_Count
      (Inventory : Global_Inventory_Type;
       Location  : Manifest.Tools.Bucket_Location_Type)
-      return API.Manifest.Quantity_Type;
-
-   --  This accepts a Manifest Hash and searches the Vault for a matching item
-   --  stack. The Hash should be of an item that is stackable, but this is not
-   --  checked. Raises Item_Not_Found on failure.
-   function Get_Vault_Item_Stack
-     (Inventory : Global_Inventory_Type;
-      Hash      : Manifest.Manifest_Hash)
-      return Manifest.Tools.Item_Description;
-
-   --  Same as above, but specifically searches for currency items instead of vault items.
-   function Get_Currency_Item_Stack
-     (Inventory : Global_Inventory_Type;
-      Hash      : Manifest.Manifest_Hash)
-      return Manifest.Tools.Item_Description;
-
-   --  Access and Initialisation
-   function Currency_Inventory
-     (Inventory : Global_Inventory_Type) return Item_Description_List with
+      return API.Manifest.Quantity_Type with
      Inline;
 
-   function Vault_Inventory
+   overriding function Get
+     (Inventory : Global_Inventory_Type;
+      Location  : API.Manifest.Tools.Bucket_Location_Type)
+      return Item_Description_List;
+
+   overriding function Get_Default
+     (Inventory : Global_Inventory_Type;
+      Location  : API.Manifest.Tools.Bucket_Location_Type)
+      return Item_Description_List with
+     Inline;
+
+   overriding function Get
+     (Inventory : Global_Inventory_Type;
+      Hash      : Manifest.Destiny_Inventory_Item_Definition_Manifest_Hash)
+      return Manifest.Tools.Item_Description;
+
+   overriding function Get_Sorted
      (Inventory : Global_Inventory_Type)
       return Item_Description_List_Bucket_Location_Type_Array with
      Inline;
 
-   procedure Update_Inventory
-     (Inventory : out Global_Inventory_Type;
-      Profile   :     Profiles.Profile_Type;
-      M         :     Manifest.Manifest_Type);
+   overriding function Get_Unsorted
+     (Inventory : Global_Inventory_Type) return Item_Description_List;
+
+   --  Returns the contents of the global currency inventory
+   function Get_Currency
+     (Inventory : Global_Inventory_Type) return Item_Description_List with
+     Inline;
+
 private
-   type Global_Inventory_Type is record
+   type Global_Inventory_Type is new Destiny_Inventory_Type with record
       Currencies : Item_Description_List;
       Inventory  : Item_Description_List_Bucket_Location_Type_Array;
    end record;

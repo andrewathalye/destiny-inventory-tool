@@ -8,15 +8,60 @@ package API.Manifest is
    -----------
    -- BASIC --
    -----------
-   subtype Manifest_Hash is Unsigned_32;
-   package Manifest_Hash_Lists is new Ada.Containers.Vectors
-     (Natural, Manifest_Hash);
-   subtype Manifest_Hash_List is Manifest_Hash_Lists.Vector;
-
    type Quantity_Type is range -1 .. Integer_32'Last;
 
    package USL is new Ada.Containers.Vectors (Natural, Unbounded_String);
    subtype Unbounded_String_List is USL.Vector;
+
+   ------------
+   -- Hashes --
+   ------------
+   --  Note: Use this base type only when a uniform type must be used for multiple
+   --  Manifest Hash varieties. Bungie.Net does not guarantee that Manifest Hashes
+   --  are unique across different definition categories, and as such this is unsafe
+   --  to assume.
+
+   subtype Base_Manifest_Hash is Unsigned_32;
+
+   type Destiny_Activity_Definition_Manifest_Hash is new Base_Manifest_Hash;
+   type Destiny_Class_Definition_Manifest_Hash is new Base_Manifest_Hash;
+
+   type Destiny_Damage_Type_Definition_Manifest_Hash is new Base_Manifest_Hash;
+   type Destiny_Destination_Definition_Manifest_Hash is new Base_Manifest_Hash;
+
+   type Destiny_Faction_Definition_Manifest_Hash is new Base_Manifest_Hash;
+   type Destiny_Gender_Definition_Manifest_Hash is new Base_Manifest_Hash;
+
+   type Destiny_Inventory_Bucket_Definition_Manifest_Hash is
+     new Base_Manifest_Hash;
+   type Destiny_Inventory_Item_Definition_Manifest_Hash is
+     new Base_Manifest_Hash;
+
+   type Destiny_Loadout_Color_Definition_Manifest_Hash is
+     new Base_Manifest_Hash; --  TODO unimplemented
+   type Destiny_Loadout_Icon_Definition_Manifest_Hash is
+     new Base_Manifest_Hash; --  TODO unimplemented
+   type Destiny_Loadout_Name_Definition_Manifest_Hash is
+     new Base_Manifest_Hash; --  TODO unimplemented
+
+   type Destiny_Objective_Definition_Manifest_Hash is new Base_Manifest_Hash;
+   type Destiny_Stat_Definition_Manifest_Hash is new Base_Manifest_Hash;
+
+   type Destiny_Place_Definition_Manifest_Hash is new Base_Manifest_Hash;
+   type Destiny_Progression_Definition_Manifest_Hash is
+     new Base_Manifest_Hash; --  TODO unimplemented
+
+   type Destiny_Race_Definition_Manifest_Hash is new Base_Manifest_Hash;
+   type Destiny_Record_Definition_Manifest_Hash is new Base_Manifest_Hash;
+
+   type Destiny_Sandbox_Perk_Definition_Manifest_Hash is
+     new Base_Manifest_Hash; -- TODO unimplemented
+   type Destiny_Socket_Type_Definition_Manifest_Hash is
+     new Base_Manifest_Hash; --  TODO unimplemented
+   type Destiny_Vendor_Definition_Manifest_Hash is new Base_Manifest_Hash;
+
+   type Destiny_Vendor_Group_Definition_Manifest_Hash is
+     new Base_Manifest_Hash; -- TODO unimplemented
 
    -----------------------------
    -- DestinyGenderDefinition --
@@ -28,7 +73,8 @@ package API.Manifest is
       Gender_Name : Unbounded_String;
    end record;
    package DGDM is new Ada.Containers.Ordered_Maps
-     (Key_Type => Manifest_Hash, Element_Type => Destiny_Gender_Definition);
+     (Key_Type     => Destiny_Gender_Definition_Manifest_Hash,
+      Element_Type => Destiny_Gender_Definition);
    subtype Destiny_Gender_Map is DGDM.Map;
 
    ---------------------------
@@ -36,7 +82,8 @@ package API.Manifest is
    ---------------------------
    type Destiny_Race_Name is array (Destiny_Gender_Type) of Unbounded_String;
    package DRNM is new Ada.Containers.Ordered_Maps
-     (Key_Type => Manifest_Hash, Element_Type => Destiny_Race_Name);
+     (Key_Type     => Destiny_Race_Definition_Manifest_Hash,
+      Element_Type => Destiny_Race_Name);
    subtype Destiny_Race_Map is DRNM.Map;
 
    ----------------------------
@@ -44,7 +91,8 @@ package API.Manifest is
    ----------------------------
    type Destiny_Class_Name is array (Destiny_Gender_Type) of Unbounded_String;
    package DCNM is new Ada.Containers.Ordered_Maps
-     (Key_Type => Manifest_Hash, Element_Type => Destiny_Class_Name);
+     (Key_Type     => Destiny_Class_Definition_Manifest_Hash,
+      Element_Type => Destiny_Class_Name);
    subtype Destiny_Class_Map is DCNM.Map;
 
    -----------------------------
@@ -52,7 +100,8 @@ package API.Manifest is
    -----------------------------
    type Destiny_Title_Name is array (Destiny_Gender_Type) of Unbounded_String;
    package DTNM is new Ada.Containers.Ordered_Maps
-     (Key_Type => Manifest_Hash, Element_Type => Destiny_Title_Name);
+     (Key_Type     => Destiny_Record_Definition_Manifest_Hash,
+      Element_Type => Destiny_Title_Name);
    subtype Destiny_Title_Map is DTNM.Map;
 
    ------------------------------------
@@ -132,7 +181,7 @@ package API.Manifest is
       Item_Type_And_Tier_Display_Name : Unbounded_String;
       --  stats, emblemObjectiveHash?
       Max_Stack_Size                  : Quantity_Type;
-      Bucket_Type_Hash                : Manifest_Hash;
+      Bucket_Type_Hash : Destiny_Inventory_Bucket_Definition_Manifest_Hash;
       Tier_Type                       : Destiny_Tier_Type;
       Display_Version_Watermark_Icons : Unbounded_String_List;
       --  plugs, sockets, perks?
@@ -140,12 +189,12 @@ package API.Manifest is
       Postmaster_Pull_Has_Side_Effects : Boolean;
       Item_Type                        : Destiny_Item_Type;
       --  breakerTypeHash?
-      Default_Damage_Type_Hash : Manifest_Hash := 0; -- Nullable
-      --  DestinyDamageTypeDefinition
+      Default_Damage_Type_Hash : Destiny_Damage_Type_Definition_Manifest_Hash :=
+        0; -- Nullable
    end record;
 
    package DIIDM is new Ada.Containers.Ordered_Maps
-     (Key_Type     => Manifest_Hash,
+     (Key_Type     => Destiny_Inventory_Item_Definition_Manifest_Hash,
       Element_Type => Destiny_Inventory_Item_Definition);
    subtype Destiny_Inventory_Item_Map is DIIDM.Map;
 
@@ -160,7 +209,7 @@ package API.Manifest is
    end record;
 
    package DDTDM is new Ada.Containers.Ordered_Maps
-     (Key_Type     => Manifest_Hash,
+     (Key_Type     => Destiny_Damage_Type_Definition_Manifest_Hash,
       Element_Type => Destiny_Damage_Type_Definition);
    subtype Destiny_Damage_Type_Map is DDTDM.Map;
 
@@ -184,7 +233,7 @@ package API.Manifest is
       FIFO         : Boolean;
    end record;
    package DIBDM is new Ada.Containers.Ordered_Maps
-     (Key_Type     => Manifest_Hash,
+     (Key_Type     => Destiny_Inventory_Bucket_Definition_Manifest_Hash,
       Element_Type => Destiny_Inventory_Bucket_Definition);
    subtype Destiny_Inventory_Bucket_Map is DIBDM.Map;
 
@@ -197,7 +246,8 @@ package API.Manifest is
    end record;
 
    package DODM is new Ada.Containers.Ordered_Maps
-     (Key_Type => Manifest_Hash, Element_Type => Destiny_Objective_Definition);
+     (Key_Type     => Destiny_Objective_Definition_Manifest_Hash,
+      Element_Type => Destiny_Objective_Definition);
    subtype Destiny_Objective_Map is DODM.Map;
 
    ---------------------------
@@ -205,7 +255,8 @@ package API.Manifest is
    ---------------------------
    --  At the moment, only the name of the stat is computed / stored
    package Destiny_Stat_Maps is new Ada.Containers.Ordered_Maps
-     (Key_Type => Manifest_Hash, Element_Type => Unbounded_String);
+     (Key_Type     => Destiny_Stat_Definition_Manifest_Hash,
+      Element_Type => Unbounded_String);
    subtype Destiny_Stat_Map is Destiny_Stat_Maps.Map;
 
    -----------------------------
@@ -234,11 +285,10 @@ package API.Manifest is
    subtype Destiny_Display_Category_Map is DDCDM.Map;
 
    type Destiny_Vendor_Item_Socket_Override_Type is record
-      Single_Item_Hash : Manifest_Hash := 0; --  Nullable
-      --  Mapped to DestinyItemDefinition
+      Single_Item_Hash : Destiny_Inventory_Item_Definition_Manifest_Hash :=
+        0; --  Nullable
       Randomized_Options_Count : Quantity_Type;
-      Socket_Type_Hash         : Manifest_Hash;
-      --  Mapped to TODO unimplemented DestinySocketTypeDefinition
+      Socket_Type_Hash         : Destiny_Socket_Type_Definition_Manifest_Hash;
    end record;
 
    package DVISOL is new Ada.Containers.Vectors
@@ -246,8 +296,7 @@ package API.Manifest is
    subtype Destiny_Vendor_Item_Socket_Override_List is DVISOL.Vector;
 
    type Destiny_Vendor_Item_Definition is record
-      Item_Hash : Manifest_Hash;
-      --  DestinyInventoryItemDefinition
+      Item_Hash       : Destiny_Inventory_Item_Definition_Manifest_Hash;
       Quantity        : Quantity_Type;
       Failure_Indexes : Failure_Index_List;
       --  Currencies? IMO best to avoid because live data is better here
@@ -262,14 +311,18 @@ package API.Manifest is
    subtype Destiny_Vendor_Item_Map is DVIDM.Map;
 
    type Destiny_Vendor_Location_Definition is record
-      Destination_Hash : Manifest_Hash;
-      --  Destiny_Destination_Definition
+      Destination_Hash      : Destiny_Destination_Definition_Manifest_Hash;
       Background_Image_Path : Unbounded_String;
    end record;
 
    package DVLL is new Ada.Containers.Vectors
      (Natural, Destiny_Vendor_Location_Definition);
    subtype Destiny_Vendor_Location_List is DVLL.Vector;
+
+   package DIIDMHL is new Ada.Containers.Vectors
+     (Natural, Destiny_Inventory_Item_Definition_Manifest_Hash);
+   subtype Destiny_Inventory_Item_Definition_Manifest_Hash_List is
+     DIIDMHL.Vector;
 
    type Destiny_Vendor_Definition is record
       Large_Icon_Path : Unbounded_String; --  Nullable
@@ -278,12 +331,11 @@ package API.Manifest is
       Description       : Unbounded_String;
       Name              : Unbounded_String;
       Icon_Path         : Unbounded_String; --  Nullable
-      Display_Item_Hash : Manifest_Hash; --  Nullable
-      --  Linked to DestinyInventoryItemDefinition
-      Inhibit_Buying  : Boolean;
-      Inhibit_Selling : Boolean;
-      Faction_Hash    : Manifest_Hash := 0; --  Nullable
-      --  Linked to DestinyFactionDefinition
+      Display_Item_Hash : Destiny_Inventory_Item_Definition_Manifest_Hash; --  Nullable
+      Inhibit_Buying    : Boolean;
+      Inhibit_Selling   : Boolean;
+      Faction_Hash      : Destiny_Faction_Definition_Manifest_Hash :=
+        0; --  Nullable
       Failure_Strings : Failure_String_List;
       --  Vendor_Portrait? Vendor_Banner?
       Enabled : Boolean;
@@ -294,15 +346,14 @@ package API.Manifest is
       Items : Destiny_Vendor_Item_Map;
       --  Indexed by Vendor Item Index (may be ignored if not needed)
       Locations : Destiny_Vendor_Location_List; --  Nullable
-      Group     : Manifest_Hash := 0; --  Nullable
-      --  Linked to DestinyVendorGroupDefinition TODO unimplemented parsing
+      Group : Destiny_Vendor_Group_Definition_Manifest_Hash := 0; --  Nullable
       --  Note: Theoretically there can be multiple, but according to the API spec
       --  only one group may be attached to a vendor at a time.
-      Ignore_Sale_Hashes : Manifest_Hash_List;
+      Ignore_Sale_Hashes : Destiny_Inventory_Item_Definition_Manifest_Hash_List;
    end record;
 
    package DVDM is new Ada.Containers.Ordered_Maps
-     (Manifest_Hash, Destiny_Vendor_Definition);
+     (Destiny_Vendor_Definition_Manifest_Hash, Destiny_Vendor_Definition);
    subtype Destiny_Vendor_Map is DVDM.Map;
 
    ------------------------------
@@ -312,12 +363,11 @@ package API.Manifest is
       Description      : Unbounded_String;
       Name             : Unbounded_String;
       Icon_Path        : Unbounded_String; --  Nullable
-      Progression_Hash : Manifest_Hash;
-      --  Include? DestinyProgressionDefinition TODO
+      Progression_Hash : Destiny_Progression_Definition_Manifest_Hash;
    end record;
 
    package DFDM is new Ada.Containers.Ordered_Maps
-     (Manifest_Hash, Destiny_Faction_Definition);
+     (Destiny_Faction_Definition_Manifest_Hash, Destiny_Faction_Definition);
    subtype Destiny_Faction_Map is DFDM.Map;
 
    ----------------------------------
@@ -336,18 +386,17 @@ package API.Manifest is
    subtype Destiny_Bubble_List is DBDL.Vector;
 
    type Destiny_Destination_Definition is record
-      Description : Unbounded_String;
-      Name        : Unbounded_String;
-      Place_Hash  : Manifest_Hash;
-      --  DestinyPlaceDefinition
-      Default_Freeroam_Activity_Hash : Manifest_Hash;
-      --  DestinyActivityDefinition
+      Description                    : Unbounded_String;
+      Name                           : Unbounded_String;
+      Place_Hash                     : Destiny_Place_Definition_Manifest_Hash;
+      Default_Freeroam_Activity_Hash : Destiny_Activity_Definition_Manifest_Hash;
       --  activityGraphEntries?
       Bubbles : Destiny_Bubble_List;
    end record;
 
    package DDDM is new Ada.Containers.Ordered_Maps
-     (Manifest_Hash, Destiny_Destination_Definition);
+     (Destiny_Destination_Definition_Manifest_Hash,
+      Destiny_Destination_Definition);
    subtype Destiny_Destination_Map is DDDM.Map;
 
    ----------------------------
@@ -359,7 +408,7 @@ package API.Manifest is
    end record;
 
    package DPDM is new Ada.Containers.Ordered_Maps
-     (Manifest_Hash, Destiny_Place_Definition);
+     (Destiny_Place_Definition_Manifest_Hash, Destiny_Place_Definition);
    subtype Destiny_Place_Map is DPDM.Map;
 
    -------------------------------
@@ -369,61 +418,46 @@ package API.Manifest is
       Description : Unbounded_String;
       Name        : Unbounded_String;
       --  Many Fields Omitted
-      Destination_Hash : Manifest_Hash;
-      --  DestinyDestinationDefinition
-      Place_Hash : Manifest_Hash;
-      --  DestinyPlaceDefinition
+      Destination_Hash : Destiny_Destination_Definition_Manifest_Hash;
+      Place_Hash       : Destiny_Place_Definition_Manifest_Hash;
    end record;
 
    package DADM is new Ada.Containers.Ordered_Maps
-     (Manifest_Hash, Destiny_Activity_Definition);
+     (Destiny_Activity_Definition_Manifest_Hash, Destiny_Activity_Definition);
    subtype Destiny_Activity_Map is DADM.Map;
 
    -------------
    -- CENTRAL --
    -------------
-   --  Available Manifest fields (no longer sorted)
+   --  Available Manifest fields (now sorted alphabetically)
    --  Most data types do not include all available information
-   --  See individual defintions for more information
+   --  See individual definitions for more information
 
    type Manifest_Type is record
-      Destiny_Classes : Destiny_Class_Map;
-      --  DestinyClassDefinition
-      Destiny_Genders : Destiny_Gender_Map;
-      --  DestinyGenderDefinition
+      Destiny_Activities        : Destiny_Activity_Map;
+      Destiny_Classes           : Destiny_Class_Map;
+      Destiny_Damage_Types      : Destiny_Damage_Type_Map;
+      Destiny_Destinations      : Destiny_Destination_Map;
+      Destiny_Factions          : Destiny_Faction_Map;
+      Destiny_Genders           : Destiny_Gender_Map;
       Destiny_Inventory_Buckets : Destiny_Inventory_Bucket_Map;
-      --  DestinyInventoryBucketDefinition
-      Destiny_Races : Destiny_Race_Map;
-      --  DestinyRaceDefinition
-      Destiny_Stats : Destiny_Stat_Map;
-      --  DestinyStatDefinition
-      Destiny_Damage_Types : Destiny_Damage_Type_Map;
-      --  DestinyDamageTypeDefinition
-      Destiny_Inventory_Items : Destiny_Inventory_Item_Map;
-      --  DestinyInventoryItemDefinition
-      Destiny_Objectives : Destiny_Objective_Map;
-      --  DestinyObjectiveDefinition
-      Destiny_Titles : Destiny_Title_Map;
-      --  DestinyRecordDefinition
-      Destiny_Vendors : Destiny_Vendor_Map;
-      --  DestinyVendorDefinition
-      Destiny_Factions : Destiny_Faction_Map;
-      --  DestinyFactionDefinition
-      Destiny_Destinations : Destiny_Destination_Map;
-      --  DestinyDestinationDefinition
-      Destiny_Places : Destiny_Place_Map;
-      --  DestinyPlaceDefinition
-      Destiny_Activities : Destiny_Activity_Map;
-      --  DestinyActivityDefinition
+      Destiny_Inventory_Items   : Destiny_Inventory_Item_Map;
+      Destiny_Objectives        : Destiny_Objective_Map;
+      Destiny_Places            : Destiny_Place_Map;
+      Destiny_Races             : Destiny_Race_Map;
+      Destiny_Stats             : Destiny_Stat_Map;
+      Destiny_Titles            : Destiny_Title_Map;
+      Destiny_Vendors           : Destiny_Vendor_Map;
 
       --  TODO:
       --  DestinyVendorGroupDefinition
       --  DestinySocketTypeDefinition
+      --  DestinyProgressionDefinition
    end record;
 
    --  Subprograms
    function Get_Manifest return Manifest_Type;
 
 private
-   Current_Manifest_Format_Version : constant := 4;
+   Current_Manifest_Format_Version : constant := 5;
 end API.Manifest;

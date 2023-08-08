@@ -8,7 +8,7 @@ with Shared.Strings; use Shared.Strings;
 --  with Shared.Debug; use Shared.Debug;
 
 procedure API.Manifest.Faction_Callback
-  (Hash         :        Manifest_Hash;
+  (Hash         :        Base_Manifest_Hash;
    Reader       : in out JSON_Simple_Pull_Reader;
    The_Manifest :    out Manifest_Type)
 is
@@ -47,7 +47,9 @@ begin
    Read_Next (Reader);
 
    Faction.Progression_Hash :=
-     Manifest_Hash (As_Integer (Number_Value (Reader)));
+     Destiny_Progression_Definition_Manifest_Hash
+       (As_Integer (Number_Value (Reader)));
 
-   The_Manifest.Destiny_Factions.Insert (Hash, Faction);
+   The_Manifest.Destiny_Factions.Insert
+     (Destiny_Faction_Definition_Manifest_Hash (Hash), Faction);
 end API.Manifest.Faction_Callback;

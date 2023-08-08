@@ -93,8 +93,7 @@ package API.Manifest.Tools is
    --  appropriate Objectives. Easier to parse as
    --  a result.
    type Consolidated_Socket_Type is record
-      Plug_Hash : Manifest_Hash := 0;
-      --  DestinyInventoryItemDefinition
+      Plug_Hash  : Destiny_Inventory_Item_Definition_Manifest_Hash := 0;
       Is_Enabled : Boolean;
       Is_Visible : Boolean;
       Objectives : Plug_Objective_List;
@@ -117,20 +116,20 @@ package API.Manifest.Tools is
    --  modified if the item is to be virtually moved
 
    type Item_Description is record
-      Name        : Unbounded_String;
-      Description : Unbounded_String;
-      Item_Hash   : Manifest_Hash := 0;
-      --  DestinyInventoryItemDefinition
-      Item_Instance_ID : Item_Instance_ID_Type := -1;
+      Name             : Unbounded_String;
+      Description      : Unbounded_String;
+      Item_Hash        : Destiny_Inventory_Item_Definition_Manifest_Hash := 0;
+      Item_Instance_ID : Item_Instance_ID_Type                           := -1;
 
       --  Item stack
       Quantity       : Quantity_Type := -1;
       Max_Stack_Size : Quantity_Type := -1;
 
       --  Buckets and Location-Related Data
-      Location                         : Item_Location_Type := Unknown;
-      Bucket_Hash, Default_Bucket_Hash : Manifest_Hash      := 0;
-      --  DestinyInventoryBucketDefinition
+      Location : Item_Location_Type := Unknown;
+      Bucket_Hash,
+      Default_Bucket_Hash : Destiny_Inventory_Bucket_Definition_Manifest_Hash :=
+        0;
       Bucket_Location,
       Default_Bucket_Location : Bucket_Location_Type :=
         Unknown;
@@ -144,8 +143,8 @@ package API.Manifest.Tools is
       --  Display info
       Icon_Path                : Unbounded_String;
       Watermark_Path           : Unbounded_String;
-      Default_Damage_Type_Hash : Manifest_Hash := 0;
-      --  DestinyDamageTypeDefinition
+      Default_Damage_Type_Hash : Destiny_Damage_Type_Definition_Manifest_Hash :=
+        0;
       Style_Overridden : Boolean := False;
 
       --  Item qualities
@@ -174,7 +173,7 @@ package API.Manifest.Tools is
 
    function Get_Description
      (M    : Manifest.Manifest_Type;
-      Hash : Manifest.Manifest_Hash)
+      Hash : Manifest.Destiny_Inventory_Item_Definition_Manifest_Hash)
       return Item_Description;
 
    function Get_Title

@@ -19,7 +19,8 @@ is
 
       while Event_Kind (Reader) /= End_Array loop
          Result.Plug_Item_Hashes.Append
-           (Manifest_Hash (As_Integer (Number_Value (Reader))));
+           (Destiny_Inventory_Item_Definition_Manifest_Hash
+              (As_Integer (Number_Value (Reader))));
          Read_Next (Reader); -- End_Array / Number_Value
       end loop;
       Read_Next (Reader); -- End_Object
@@ -35,17 +36,20 @@ begin
             if VS2S (Key_Name (Reader)) = "colorHash" then
                Read_Next (Reader);
                Loadout.Colour_Hash :=
-                 Manifest_Hash (As_Integer (Number_Value (Reader)));
+                 Destiny_Loadout_Color_Definition_Manifest_Hash
+                   (As_Integer (Number_Value (Reader)));
 
             elsif VS2S (Key_Name (Reader)) = "iconHash" then
                Read_Next (Reader);
                Loadout.Icon_Hash :=
-                 Manifest_Hash (As_Integer (Number_Value (Reader)));
+                 Destiny_Loadout_Icon_Definition_Manifest_Hash
+                   (As_Integer (Number_Value (Reader)));
 
             elsif VS2S (Key_Name (Reader)) = "nameHash" then
                Read_Next (Reader);
                Loadout.Name_Hash :=
-                 Manifest_Hash (As_Integer (Number_Value (Reader)));
+                 Destiny_Loadout_Name_Definition_Manifest_Hash
+                   (As_Integer (Number_Value (Reader)));
 
             elsif VS2S (Key_Name (Reader)) = "items" then
                Read_Next (Reader); -- START_ARRAY

@@ -5,7 +5,7 @@ with Shared.JSON;    use Shared.JSON;
 with Shared.Strings; use Shared.Strings;
 
 procedure API.Manifest.Gender_Callback
-  (Hash         :        Manifest_Hash;
+  (Hash         :        Base_Manifest_Hash;
    Reader       : in out JSON_Simple_Pull_Reader;
    The_Manifest :    out Manifest_Type)
 is
@@ -20,5 +20,6 @@ begin
    Read_Next (Reader);
    Gender.Gender_Name := VS2UB (String_Value (Reader));
 
-   The_Manifest.Destiny_Genders.Insert (Hash, Gender);
+   The_Manifest.Destiny_Genders.Insert
+     (Destiny_Gender_Definition_Manifest_Hash (Hash), Gender);
 end API.Manifest.Gender_Callback;

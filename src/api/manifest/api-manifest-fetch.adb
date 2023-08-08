@@ -134,14 +134,18 @@ begin
          procedure Add_Data
            (Table    : String;
             Callback : access procedure
-              (Hash         :        Manifest_Hash;
+              (Hash         :        Base_Manifest_Hash;
                Reader       : in out JSON_Simple_Pull_Reader;
                The_Manifest :    out Manifest_Type))
          is
             use GNATCOLL.SQL.Exec;
+
             --  Instantiations
-            function Integer_To_Manifest_Hash is new Ada.Unchecked_Conversion
-              (Integer, Manifest_Hash);
+            --  Note: The Manifest Hashes are stored as signed 32-bit integers in the SQLite table,
+            --  so an unchecked conversion is necessary to interpret them correctly.
+            function Integer_To_Base_Manifest_Hash is new Ada
+              .Unchecked_Conversion
+              (Integer, Base_Manifest_Hash);
 
             --  Variables
             Cursor : GNATCOLL.SQL.Exec.Direct_Cursor;
@@ -166,7 +170,8 @@ begin
 
                   Callback
                     (Hash =>
-                       Integer_To_Manifest_Hash (Cursor.Integer_Value (0)),
+                       Integer_To_Base_Manifest_Hash
+                         (Cursor.Integer_Value (0)),
                      Reader       => Reader,
                      The_Manifest => Result);
                exception

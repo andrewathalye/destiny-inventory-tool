@@ -10,7 +10,7 @@ package body API.Manifest.Tools is
    --  Private Subprograms
    function Find_Objective_By_Hash
      (Objectives : Plug_Objective_List;
-      Hash       : Manifest_Hash)
+      Hash       : Destiny_Objective_Definition_Manifest_Hash)
       return Plug_Objective_Type
    is
    begin
@@ -25,7 +25,7 @@ package body API.Manifest.Tools is
 
    function Find_Socket_By_Plug_Hash
      (Sockets : Consolidated_Socket_List;
-      Hash    : Manifest_Hash)
+      Hash    : Destiny_Inventory_Item_Definition_Manifest_Hash)
       return Consolidated_Socket_Type
    is
    begin
@@ -210,7 +210,9 @@ package body API.Manifest.Tools is
 
    --  Get a description for a "generic", uninstanced manifest item. Used currently for displaying plugs.
    function Get_Description
-     (M : Manifest_Type; Hash : Manifest_Hash) return Item_Description
+     (M    : Manifest_Type;
+      Hash : Destiny_Inventory_Item_Definition_Manifest_Hash)
+      return Item_Description
    is
       MDID : constant Destiny_Inventory_Item_Definition :=
         M.Destiny_Inventory_Items (Hash);

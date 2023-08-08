@@ -5,7 +5,7 @@ with Shared.JSON;    use Shared.JSON;
 with Shared.Strings; use Shared.Strings;
 
 procedure API.Manifest.Inventory_Bucket_Callback
-  (Hash         :        Manifest_Hash;
+  (Hash         :        Base_Manifest_Hash;
    Reader       : in out JSON_Simple_Pull_Reader;
    The_Manifest :    out Manifest_Type)
 is
@@ -47,5 +47,6 @@ begin
    Read_Next (Reader);
    Bucket.FIFO := Boolean_Value (Reader);
 
-   The_Manifest.Destiny_Inventory_Buckets.Insert (Hash, Bucket);
+   The_Manifest.Destiny_Inventory_Buckets.Insert
+     (Destiny_Inventory_Bucket_Definition_Manifest_Hash (Hash), Bucket);
 end API.Manifest.Inventory_Bucket_Callback;

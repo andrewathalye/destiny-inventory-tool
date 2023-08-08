@@ -5,7 +5,7 @@ with Shared.JSON;    use Shared.JSON;
 with Shared.Strings; use Shared.Strings;
 
 procedure API.Manifest.Destination_Callback
-  (Hash         :        Manifest_Hash;
+  (Hash         :        Base_Manifest_Hash;
    Reader       : in out JSON_Simple_Pull_Reader;
    The_Manifest :    out Manifest_Type)
 is
@@ -23,12 +23,14 @@ begin
    Wait_Until_Key (Reader, "placeHash");
    Read_Next (Reader);
    Destination.Place_Hash :=
-     Manifest_Hash (As_Integer (Number_Value (Reader)));
+     Destiny_Place_Definition_Manifest_Hash
+       (As_Integer (Number_Value (Reader)));
 
    Read_Next (Reader); --  "defaultFreeroamActivityHash"
    Read_Next (Reader);
    Destination.Default_Freeroam_Activity_Hash :=
-     Manifest_Hash (As_Integer (Number_Value (Reader)));
+     Destiny_Activity_Definition_Manifest_Hash
+       (As_Integer (Number_Value (Reader)));
 
    Wait_Until_Key (Reader, "bubbles");
    Read_Next (Reader); --  START_ARRAY
@@ -55,5 +57,6 @@ begin
       Read_Next (Reader); --  START_OBJECT or END_ARRAY
    end loop;
 
-   The_Manifest.Destiny_Destinations.Insert (Hash, Destination);
+   The_Manifest.Destiny_Destinations.Insert
+     (Destiny_Destination_Definition_Manifest_Hash (Hash), Destination);
 end API.Manifest.Destination_Callback;

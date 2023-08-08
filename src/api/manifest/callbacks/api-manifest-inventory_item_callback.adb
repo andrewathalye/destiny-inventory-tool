@@ -8,7 +8,7 @@ with Shared.Strings; use Shared.Strings;
 --  with Shared.Debug;   use Shared.Debug;
 
 procedure API.Manifest.Inventory_Item_Callback
-  (Hash         :        Manifest_Hash;
+  (Hash         :        Base_Manifest_Hash;
    Reader       : in out JSON_Simple_Pull_Reader;
    The_Manifest :    out Manifest_Type)
 is
@@ -139,7 +139,8 @@ begin
       Read_Next (Reader); --  "bucketTypeHash"
       Read_Next (Reader);
       Item.Bucket_Type_Hash :=
-        Manifest_Hash (As_Integer (Number_Value (Reader)));
+        Destiny_Inventory_Bucket_Definition_Manifest_Hash
+          (As_Integer (Number_Value (Reader)));
 
       Wait_Until_Key (Reader, "tierType");
       Read_Next (Reader);
@@ -222,10 +223,12 @@ begin
       Read_Next (Reader); --  "defaultDamageTypeHash"
       Read_Next (Reader);
       Item.Default_Damage_Type_Hash :=
-        Manifest_Hash (As_Integer (Number_Value (Reader)));
+        Destiny_Damage_Type_Definition_Manifest_Hash
+          (As_Integer (Number_Value (Reader)));
    end if;
 
 --   Put_Line ("Loaded " & (+Item.Name));
 --   Put_Line (Item'Image);
-   The_Manifest.Destiny_Inventory_Items.Insert (Hash, Item);
+   The_Manifest.Destiny_Inventory_Items.Insert
+     (Destiny_Inventory_Item_Definition_Manifest_Hash (Hash), Item);
 end API.Manifest.Inventory_Item_Callback;

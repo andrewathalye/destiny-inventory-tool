@@ -7,7 +7,9 @@ is
 begin
    Read_Next (Reader); -- "itemHash"
    Read_Next (Reader);
-   Item.Item_Hash := Manifest_Hash (As_Integer (Number_Value (Reader)));
+   Item.Item_Hash :=
+     Destiny_Inventory_Item_Definition_Manifest_Hash
+       (As_Integer (Number_Value (Reader)));
 
    --  Optional field: itemInstanceId
    Read_Next (Reader); -- "itemInstanceId" or "quantity"
@@ -33,7 +35,9 @@ begin
 
    Read_Next (Reader); -- "bucketHash"
    Read_Next (Reader);
-   Item.Bucket_Hash := Manifest_Hash (As_Integer (Number_Value (Reader)));
+   Item.Bucket_Hash :=
+     Destiny_Inventory_Bucket_Definition_Manifest_Hash
+       (As_Integer (Number_Value (Reader)));
 
    Read_Next (Reader); -- "transferStatus"
    Read_Next (Reader);
@@ -71,7 +75,8 @@ begin
    if VS2S (Key_Name (Reader)) = "overrideStyleItemHash" then
       Read_Next (Reader);
       Item.Override_Style_Item_Hash :=
-        Manifest_Hash (As_Integer (Number_Value (Reader)));
+        Destiny_Inventory_Item_Definition_Manifest_Hash
+          (As_Integer (Number_Value (Reader)));
       Read_Next (Reader); -- "expirationDate" or "isWrapper"
    end if;
 

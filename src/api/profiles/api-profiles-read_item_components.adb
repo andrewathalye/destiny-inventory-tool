@@ -136,7 +136,7 @@ begin
       while Event_Kind (Reader) /= End_Object loop
          declare
             Stats     : Stats_Map;
-            Stat_Hash : Manifest_Hash;
+            Stat_Hash : Destiny_Stat_Definition_Manifest_Hash;
          begin
             Item_Instance_ID :=
               Item_Instance_ID_Type'Value (VS2S (Key_Name (Reader)));
@@ -153,7 +153,8 @@ begin
 
                   Read_Next (Reader);
                   Stat_Hash :=
-                    Manifest_Hash (As_Integer (Number_Value (Reader)));
+                    Destiny_Stat_Definition_Manifest_Hash
+                      (As_Integer (Number_Value (Reader)));
 
                   Read_Next (Reader); -- "value"
                   Read_Next (Reader);
@@ -202,7 +203,8 @@ begin
                   if VS2S (Key_Name (Reader)) = "plugHash" then
                      Read_Next (Reader);
                      Socket.Plug_Hash :=
-                       Manifest_Hash (As_Integer (Number_Value (Reader)));
+                       Destiny_Inventory_Item_Definition_Manifest_Hash
+                         (As_Integer (Number_Value (Reader)));
                      Read_Next (Reader); -- "isEnabled"
                   else
                      Socket.Plug_Hash := 0;
@@ -259,7 +261,7 @@ begin
          declare
             --  Temp Variables used for insertion
             Map       : Plug_Objective_Map;
-            Plug_Hash : Manifest_Hash;
+            Plug_Hash : Destiny_Inventory_Item_Definition_Manifest_Hash;
          begin
             Item_Instance_ID :=
               Item_Instance_ID_Type'Value (VS2S (Key_Name (Reader)));
@@ -274,7 +276,8 @@ begin
                      List : Plug_Objective_List;
                   begin
                      Plug_Hash :=
-                       Manifest_Hash'Value (VS2S (Key_Name (Reader)));
+                       Destiny_Inventory_Item_Definition_Manifest_Hash'Value
+                         (VS2S (Key_Name (Reader)));
 
                      Read_Next (Reader); -- Start_Array
                      Read_Next (Reader); -- START_OBJECT or END_ARRAY
@@ -287,7 +290,7 @@ begin
                               Read_Next (Reader); -- "objectiveHash"
                               Read_Next (Reader);
                               Objective.Objective_Hash :=
-                                Manifest_Hash
+                                Destiny_Objective_Definition_Manifest_Hash
                                   (As_Integer (Number_Value (Reader)));
 
                               Read_Next
@@ -376,7 +379,8 @@ begin
                   Read_Next (Reader); -- "perkHash"
                   Read_Next (Reader);
                   Perk.Perk_Hash :=
-                    Manifest_Hash (As_Integer (Number_Value (Reader)));
+                    Destiny_Sandbox_Perk_Definition_Manifest_Hash
+                      (As_Integer (Number_Value (Reader)));
 
                   Read_Next (Reader); -- "iconPath"
                   Read_Next (Reader);

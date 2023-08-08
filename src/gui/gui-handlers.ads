@@ -15,7 +15,8 @@ package GUI.Handlers is
 
    --  Dynamic Handlers
    procedure Character_Menu_Button_Clicked_Handler
-     (Button : access Gtk_Widget_Record'Class; User_Data : Natural);
+     (Button    : access Gtk_Widget_Record'Class;
+      User_Data : API.Profiles.Character_Range);
    procedure Transfer_Handler
      (Button : access Gtk_Widget_Record'Class;
       Target : Profiles.Character_Type);

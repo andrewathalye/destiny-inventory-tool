@@ -104,20 +104,16 @@ package body GUI.Handlers is
       Debug.Put_Line ("Equip a non-transferrable item");
 
       Transfers.Equip
-        (GUI.Character.Inventory,
-         GUI.Current_Item,
-         GUI.Character.Current_Character);
+        (Inventory =>
+           GUI.Character.Inventory (GUI.Character.Current_Character_Index),
+         D      => GUI.Current_Item,
+         Source => GUI.Character.Current_Character);
 
       --  Update UI State
-      Inventories.Character.Remove_Item
-        (GUI.Character.Inventory,
-         GUI.Character.Current_Character,
-         GUI.Current_Item);
-
-      Inventories.Character.Equip_Item
-        (GUI.Character.Inventory,
-         GUI.Character.Current_Character,
-         GUI.Current_Item);
+      GUI.Character.Inventory (GUI.Character.Current_Character_Index).Remove
+        (GUI.Current_Item);
+      GUI.Character.Inventory (GUI.Character.Current_Character_Index).Equip
+        (GUI.Current_Item);
 
       GUI.Character.Render; --  Global Side (Vault) not changed by this
    end Equip_Button_Clicked_Handler;
@@ -158,7 +154,8 @@ package body GUI.Handlers is
    pragma Warnings (Off, "is not referenced");
 
    procedure Character_Menu_Button_Clicked_Handler
-     (Button : access Gtk_Widget_Record'Class; User_Data : Natural)
+     (Button    : access Gtk_Widget_Record'Class;
+      User_Data : API.Profiles.Character_Range)
    is
 
       Character_Menu : constant Gtk_Popover :=
@@ -166,7 +163,7 @@ package body GUI.Handlers is
 
    begin
       Character_Menu.Popdown;
-      Character.Update_For_Character (Profile.Characters (User_Data));
+      Character.Update_For_Character (User_Data);
       GUI.Character.Render;
    end Character_Menu_Button_Clicked_Handler;
 
@@ -177,6 +174,10 @@ package body GUI.Handlers is
      (Button : access Gtk_Widget_Record'Class;
       Target : Profiles.Character_Type)
    is
+      --  Renames
+      Target_Inventory :
+        API.Inventories.Character.Character_Inventory_Type renames
+        GUI.Character.Inventory (GUI.Profile.Characters.Find_Index (Target));
    begin
       Debug.Put_Line ("Item Transfer");
       Debug.Put_Line
@@ -192,7 +193,7 @@ package body GUI.Handlers is
 
          begin
             Transfers.Unvault
-              (GUI.Character.Inventory,
+              (GUI.Character.Inventory (GUI.Character.Current_Character_Index),
                GUI.The_Manifest,
                GUI.Current_Item,
                Target);
@@ -209,10 +210,8 @@ package body GUI.Handlers is
          end;
 
          --  Update UI State
-         Inventories.Global.Remove_Item
-           (GUI.Global.Inventory, GUI.Current_Item);
-         Inventories.Character.Add_Item
-           (GUI.Character.Inventory, Target, GUI.Current_Item);
+         GUI.Global.Inventory.Remove (GUI.Current_Item);
+         Target_Inventory.Add (GUI.Current_Item);
          GUI.Global.Render;
          return;
       end if;
@@ -227,7 +226,7 @@ package body GUI.Handlers is
          begin
             Transfers.Postmaster_Pull
               (GUI.Global.Inventory,
-               GUI.Character.Inventory,
+               GUI.Character.Inventory (GUI.Character.Current_Character_Index),
                GUI.The_Manifest,
                GUI.Current_Item,
                GUI.Character.Current_Character);
@@ -243,7 +242,7 @@ package body GUI.Handlers is
             begin
                Transfers.Transfer
                  (GUI.Global.Inventory,
-                  GUI.Character.Inventory,
+                  Target_Inventory,
                   GUI.The_Manifest,
                   GUI.Current_Item,
                   GUI.Character.Current_Character,
@@ -261,13 +260,9 @@ package body GUI.Handlers is
          end if;
 
          --  Update UI State
-         Inventories.Character.Remove_Item
-           (GUI.Character.Inventory,
-            GUI.Character.Current_Character,
-            GUI.Current_Item);
-
-         Inventories.Character.Add_Item
-           (GUI.Character.Inventory, Target, GUI.Current_Item);
+         GUI.Character.Inventory (GUI.Character.Current_Character_Index).Remove
+           (GUI.Current_Item);
+         Target_Inventory.Add (GUI.Current_Item);
 
          GUI.Character.Render;
          return;
@@ -281,7 +276,9 @@ package body GUI.Handlers is
 
          begin
             Transfers.Equip
-              (GUI.Character.Inventory, GUI.Current_Item, Target);
+              (GUI.Character.Inventory (GUI.Character.Current_Character_Index),
+               GUI.Current_Item,
+               Target);
          exception
             when Transfers.Item_Unique_Equip_Restricted =>
                Base.Error_Message
@@ -291,11 +288,8 @@ package body GUI.Handlers is
          end;
 
          --  Update UI State
-         Inventories.Character.Remove_Item
-           (GUI.Character.Inventory, Target, GUI.Current_Item);
-
-         Inventories.Character.Equip_Item
-           (GUI.Character.Inventory, Target, GUI.Current_Item);
+         Target_Inventory.Remove (GUI.Current_Item);
+         Target_Inventory.Equip (GUI.Current_Item);
 
          GUI.Character.Render;
          return;
@@ -307,7 +301,7 @@ package body GUI.Handlers is
       begin
          Transfers.Transfer
            (GUI.Global.Inventory,
-            GUI.Character.Inventory,
+            Target_Inventory,
             GUI.The_Manifest,
             GUI.Current_Item,
             GUI.Character.Current_Character,
@@ -319,13 +313,9 @@ package body GUI.Handlers is
             return;
       end;
       --  Update UI State
-      Inventories.Character.Remove_Item
-        (GUI.Character.Inventory,
-         GUI.Character.Current_Character,
-         GUI.Current_Item);
-
-      Inventories.Character.Add_Item
-        (GUI.Character.Inventory, Target, GUI.Current_Item);
+      GUI.Character.Inventory (GUI.Character.Current_Character_Index).Remove
+        (GUI.Current_Item);
+      Target_Inventory.Add (GUI.Current_Item);
 
       GUI.Character.Render_Contents (GUI.Current_Item.Bucket_Location);
    exception
@@ -347,7 +337,7 @@ package body GUI.Handlers is
          begin
             Transfers.Postmaster_Pull
               (GUI.Global.Inventory,
-               GUI.Character.Inventory,
+               GUI.Character.Inventory (GUI.Character.Current_Character_Index),
                GUI.The_Manifest,
                GUI.Current_Item,
                GUI.Character.Current_Character);
@@ -377,12 +367,10 @@ package body GUI.Handlers is
       end;
 
       --  Update inventory state
-      Inventories.Character.Remove_Item
-        (GUI.Character.Inventory,
-         GUI.Character.Current_Character,
-         GUI.Current_Item);
+      GUI.Character.Inventory (GUI.Character.Current_Character_Index).Remove
+        (GUI.Current_Item);
 
-      Inventories.Global.Add_Item (GUI.Global.Inventory, GUI.Current_Item);
+      GUI.Global.Inventory.Add (GUI.Current_Item);
       GUI.Global.Render;
 
       --  Redraw as little as possible for performance :)

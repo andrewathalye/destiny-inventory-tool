@@ -39,14 +39,6 @@ package API.Transfers is
       D                   : Manifest.Tools.Item_Description;
       Target              : Profiles.Character_Type);
 
-   --  Provided for convenience
-   procedure Transfer
-     (Vault_Inventory     : Inventories.Global.Global_Inventory_Type;
-      Character_Inventory : Inventories.Character.Character_Inventory_Type;
-      M                   : Manifest.Manifest_Type;
-      D                   : Manifest.Tools.Item_Description;
-      Source, Target      : Profiles.Character_Type);
-
    procedure Postmaster_Pull
      (Vault_Inventory     : Inventories.Global.Global_Inventory_Type;
       Character_Inventory : Inventories.Character.Character_Inventory_Type;
@@ -58,4 +50,13 @@ package API.Transfers is
      (Inventory : Inventories.Character.Character_Inventory_Type;
       D         : Manifest.Tools.Item_Description;
       Source    : Profiles.Character_Type);
+
+   --  Provided for convenience
+   procedure Transfer
+     (Vault_Inventory  : Inventories.Global.Global_Inventory_Type;
+      Target_Inventory : Inventories.Character.Character_Inventory_Type;
+      M                : Manifest.Manifest_Type;
+      D                : Manifest.Tools.Item_Description;
+      Source, Target   : Profiles.Character_Type);
+
 end API.Transfers;

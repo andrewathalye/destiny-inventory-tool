@@ -26,7 +26,6 @@ with GUI.GUI_Tasks; use GUI.GUI_Tasks;
 
 with API.Inventories.Global;
 with API.Memberships;
-with API.Inventories.Character;
 with API.Manifest;
 with API.Profiles;
 use all type API.Manifest.Destiny_Item_Type;
@@ -148,15 +147,18 @@ package body GUI.Base is
       Status_Name.Set_Label ("Loading vault...");
       Do_Events;
 
-      API.Inventories.Global.Update_Inventory
-        (GUI.Global.Inventory, GUI.Profile, GUI.The_Manifest);
+      GUI.Global.Inventory.Update (GUI.Profile, GUI.The_Manifest);
       GUI.Global.Update_GUI;
       Status_Name.Set_Label ("Loading character inventories...");
       Do_Events;
 
-      API.Inventories.Character.Update_Inventory
-        (GUI.Character.Inventory, GUI.Profile, GUI.The_Manifest);
-      GUI.Character.Update_For_Character (GUI.Profile.Characters (0));
+      for Character of GUI.Profile.Characters loop
+         GUI.Character.Inventory
+           (GUI.Profile.Characters.Find_Index (Character))
+           .Update
+           (GUI.Profile, GUI.The_Manifest, Character);
+      end loop;
+      GUI.Character.Update_For_Character (API.Profiles.Character_Range'First);
 
       GUI.Global.Render;
       GUI.Character.Render;
@@ -225,7 +227,8 @@ package body GUI.Base is
            .Unref; --  Allow it to be disposed of if no longer needed
       end loop;
 
-      Cache.Clear; --  Ensure that old Accesses are not reused (clear the queue for the download task)
+      Cache
+        .Clear; --  Ensure that old Accesses are not reused (clear the queue for the download task)
 
       GUI_Task.Resume;
    end Image_Callback;

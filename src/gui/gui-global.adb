@@ -29,8 +29,8 @@ with Secrets; use Secrets;
 
 package body GUI.Global is
    --  Instantiations
-   package User_Callback_Natural is new User_Callback
-     (Gtk_Widget_Record, Natural);
+   package User_Callback_Character_Range is new User_Callback
+     (Gtk_Widget_Record, API.Profiles.Character_Range);
    package User_Callback_Character is new User_Callback
      (Gtk_Widget_Record, Profiles.Character_Type);
 
@@ -64,8 +64,8 @@ package body GUI.Global is
         Gtk_Button (GUI.Builder.Get_Object ("emblem_button"));
       Character_Menu : constant Gtk_Popover :=
         Gtk_Popover (GUI.Builder.Get_Object ("character_menu"));
-      Count : Gint := 0;
 
+      Count : Gint := 0;
    begin
       Character_Menu.Set_Relative_To (Emblem_Button);
 
@@ -78,8 +78,8 @@ package body GUI.Global is
          begin
             Gtk_New (Image);
             Gtk_New (Button, Manifest.Tools.Get_Description (The_Manifest, C));
-            --  Load emblem
 
+            --  Load emblem
             if Global_Pixbuf_Cache.Contains (C.Emblem_Path) then
                Image.Set
                  (Global_Pixbuf_Cache.Element
@@ -90,16 +90,20 @@ package body GUI.Global is
                Tasks.Download.Global_Task.Download
                  (+(Bungie_Root & (+C.Emblem_Path)), Gtk_Widget (Image));
             end if;
-            User_Callback_Natural.Connect
+
+            User_Callback_Character_Range.Connect
               (Button,
                "clicked",
-               User_Callback_Natural.To_Marshaller
+               User_Callback_Character_Range.To_Marshaller
                  (Handlers.Character_Menu_Button_Clicked_Handler'Access),
-               User_Data => Natural (Count));
+               User_Data => Profiles.Character_Range (Count + 1));
+
             Image.Show;
             Button.Show;
+
             Character_Grid.Attach (Image, 0, Count);
             Character_Grid.Attach (Button, 1, Count);
+
             Count := @ + 1;
          end;
       end loop;
@@ -110,7 +114,9 @@ package body GUI.Global is
 
       Transfer_Grid : constant Gtk_Grid :=
         Gtk_Grid (GUI.Builder.Get_Object ("transfer_grid"));
-      Count : Gint := 0;
+
+      Count : Gint :=
+        0; --  Ada containers start at 1 usually, but Gtk stuff starts at 0
 
       Vault_Icon_Path : constant Unbounded_String :=
         The_Manifest.Destiny_Vendors (Vault_Vendor_Hash).Icon_Path;
@@ -127,8 +133,8 @@ package body GUI.Global is
          begin
             Gtk_New (Image);
             Gtk_New (Button, Manifest.Tools.Get_Description (The_Manifest, C));
-            --  Load emblem
 
+            --  Load emblem
             if Global_Pixbuf_Cache.Contains (+(Bungie_Root & (+C.Emblem_Path)))
             then
                Image.Set
@@ -140,6 +146,7 @@ package body GUI.Global is
                Tasks.Download.Global_Task.Download
                  (+(Bungie_Root & (+C.Emblem_Path)), Gtk_Widget (Image));
             end if;
+
             Image.Show;
             User_Callback_Character.Connect
               (Button,
@@ -148,8 +155,10 @@ package body GUI.Global is
                  (Handlers.Transfer_Handler'Access),
                C);
             Button.Show;
+
             Transfer_Grid.Attach (Image, 0, Count);
             Transfer_Grid.Attach (Button, 1, Count);
+
             Count := @ + 1;
          end;
       end loop;
@@ -184,8 +193,7 @@ package body GUI.Global is
         Gtk_Grid (GUI.Builder.Get_Object ("vault_currency"));
    begin
       Base.Clear_Bucket (Vault_Currency);
-      Render_Items
-        (Inventories.Global.Currency_Inventory (Inventory), Vault_Currency, 7);
+      Render_Items (Inventory.Get_Currency, Vault_Currency, 7);
    end Render_Currencies;
 
    --  Public Subprograms
@@ -195,10 +203,10 @@ package body GUI.Global is
 
    procedure Render is
       --  Renames
-
       Vault_Inventory :
         Inventories.Item_Description_List_Bucket_Location_Type_Array renames
-        Inventories.Global.Vault_Inventory (Inventory);
+        Inventory.Get_Sorted;
+
       Vault_Kinetic : constant Gtk_Grid :=
         Gtk_Grid (GUI.Builder.Get_Object ("vault_kinetic"));
       Vault_Energy : constant Gtk_Grid :=
@@ -287,7 +295,10 @@ package body GUI.Global is
    --  One-time label creation
    procedure Setup_Descriptions is
 
-      function Make_Label (Hash : Manifest.Manifest_Hash) return Gtk_Label is
+      function Make_Label
+        (Hash : Manifest.Destiny_Inventory_Bucket_Definition_Manifest_Hash)
+         return Gtk_Label
+      is
 
          Result : Gtk_Label;
 

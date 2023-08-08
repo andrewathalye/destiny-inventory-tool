@@ -8,7 +8,7 @@ with Shared.Strings; use Shared.Strings;
 --  with Shared.Debug;   use Shared.Debug;
 
 procedure API.Manifest.Vendor_Callback
-  (Hash         :        Manifest_Hash;
+  (Hash         :        Base_Manifest_Hash;
    Reader       : in out JSON_Simple_Pull_Reader;
    The_Manifest :    out Manifest_Type)
 is
@@ -54,7 +54,8 @@ begin
    Wait_Until_Key (Reader, "displayItemHash");
    Read_Next (Reader);
    Vendor.Display_Item_Hash :=
-     Manifest_Hash (As_Integer (Number_Value (Reader)));
+     Destiny_Inventory_Item_Definition_Manifest_Hash
+       (As_Integer (Number_Value (Reader)));
 
    -------------------
    -- inhibitBuying --
@@ -75,7 +76,9 @@ begin
    -----------------
    Read_Next (Reader); --  "factionHash"
    Read_Next (Reader);
-   Vendor.Faction_Hash := Manifest_Hash (As_Integer (Number_Value (Reader)));
+   Vendor.Faction_Hash :=
+     Destiny_Faction_Definition_Manifest_Hash
+       (As_Integer (Number_Value (Reader)));
 
    ----------------------
    -- failureStrings[] --
@@ -149,7 +152,8 @@ begin
             Read_Next (Reader); --  "itemHash"
             Read_Next (Reader);
             DVID.Item_Hash :=
-              Manifest_Hash (As_Integer (Number_Value (Reader)));
+              Destiny_Inventory_Item_Definition_Manifest_Hash
+                (As_Integer (Number_Value (Reader)));
 
             Read_Next (Reader); --  "quantity"
             Read_Next (Reader);
@@ -183,7 +187,8 @@ begin
                      if VS2S (Key_Name (Reader)) = "singleItemHash" then
                         Read_Next (Reader);
                         DVISO.Single_Item_Hash :=
-                          Manifest_Hash (As_Integer (Number_Value (Reader)));
+                          Destiny_Inventory_Item_Definition_Manifest_Hash
+                            (As_Integer (Number_Value (Reader)));
                         Read_Next (Reader); --  randomizedOptionsCount
                      end if;
 
@@ -194,7 +199,8 @@ begin
                      Read_Next (Reader); --  "socketTypeHash"
                      Read_Next (Reader);
                      DVISO.Socket_Type_Hash :=
-                       Manifest_Hash (As_Integer (Number_Value (Reader)));
+                       Destiny_Socket_Type_Definition_Manifest_Hash
+                         (As_Integer (Number_Value (Reader)));
 
                      DVID.Socket_Overrides.Append (DVISO);
 
@@ -237,7 +243,8 @@ begin
          Read_Next (Reader); --  "destinationHash"
          Read_Next (Reader);
          Vendor_Location.Destination_Hash :=
-           Manifest_Hash (As_Integer (Number_Value (Reader)));
+           Destiny_Destination_Definition_Manifest_Hash
+             (As_Integer (Number_Value (Reader)));
 
          Read_Next (Reader); --  "backgroundImagePath" or END_OBJECT
 
@@ -280,7 +287,9 @@ begin
    if Event_Kind (Reader) /= End_Array then
       Read_Next (Reader); --  "vendorGroupHash"
       Read_Next (Reader);
-      Vendor.Group := Manifest_Hash (As_Integer (Number_Value (Reader)));
+      Vendor.Group :=
+        Destiny_Vendor_Group_Definition_Manifest_Hash
+          (As_Integer (Number_Value (Reader)));
 
       Read_Next (Reader); --  END_OBJECT
       Read_Next (Reader); --  END_ARRAY
@@ -295,7 +304,8 @@ begin
    Read_Next (Reader); --  NUMBER_VALUE or END_ARRAY
    while Event_Kind (Reader) /= End_Array loop
       Vendor.Ignore_Sale_Hashes.Append
-        (Manifest_Hash (As_Integer (Number_Value (Reader))));
+        (Destiny_Inventory_Item_Definition_Manifest_Hash
+           (As_Integer (Number_Value (Reader))));
       Read_Next (Reader); --  NUMBER_VALUE or END_ARRAY
    end loop;
 
@@ -304,5 +314,6 @@ begin
    --------------
    --  Add finished Vendor to Manifest
 --   Put_Line ("Vendor Complete: " & (+Vendor.Name));
-   The_Manifest.Destiny_Vendors.Insert (Hash, Vendor);
+   The_Manifest.Destiny_Vendors.Insert
+     (Destiny_Vendor_Definition_Manifest_Hash (Hash), Vendor);
 end API.Manifest.Vendor_Callback;
