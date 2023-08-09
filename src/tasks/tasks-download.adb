@@ -1,6 +1,4 @@
 pragma Ada_2022;
-with Ada.Exceptions; use Ada.Exceptions;
-with Ada.Text_IO;    use Ada.Text_IO;
 with Ada.Containers;
 use type Ada.Containers.Count_Type;
 
@@ -13,7 +11,7 @@ with AWS.Messages; use AWS;
 --  Local Packages
 with Secrets;        use Secrets;
 with Shared.Strings; use Shared.Strings;
-with Shared.Debug;
+with Shared.Debug; use Shared.Debug;
 with Shared.Files;   use Shared;
 
 package body Tasks.Download is
@@ -25,11 +23,11 @@ package body Tasks.Download is
    procedure Check_Status (Data : AWS.Response.Data) is
    begin
       if AWS.Response.Status_Code (Data) not in AWS.Messages.Success then
-         Debug.Put_Line (AWS.Response.Status_Code (Data)'Image);
+         Put_Line (AWS.Response.Status_Code (Data)'Image);
          AWS.Headers.Debug (True);
          AWS.Headers.Debug_Print (AWS.Response.Header (Data));
          AWS.Headers.Debug (False);
-         Debug.Put_Line (AWS.Response.Message_Body (Data));
+         Put_Line (AWS.Response.Message_Body (Data));
 
          raise Program_Error with "Request failed.";
       end if;
@@ -47,7 +45,7 @@ package body Tasks.Download is
       Data       : Response.Data;
 
    begin
-      --  Debug.Put_Line ("Start Download " & (+Path));
+      --  Put_Line ("Start Download " & (+Path));
       if Simulate_Slow then
          delay 0.05;
       end if;
@@ -58,7 +56,7 @@ package body Tasks.Download is
          return Files.Get_Cached (+Path);
 
       else
-         Debug.Put_Line ("Download " & (+Path));
+         Put_Line ("Download " & (+Path));
          Client.Create (Connection, +Path);
 
          if Needs_Auth then
@@ -97,7 +95,7 @@ package body Tasks.Download is
       --  Note: We avoid using Client.Get because it results in a stack
       --  overflow on musl libc
 
-      Debug.Put_Line ("Download as string " & (+Path));
+      Put_Line ("Download as string " & (+Path));
       Client.Create (Connection, +Path);
 
       if Needs_Auth then
@@ -199,9 +197,5 @@ package body Tasks.Download is
             terminate;
          end select;
       end loop;
-   exception
-      when E : others =>
-         Put_Line (Standard_Error, Exception_Information (E));
-         Reraise_Occurrence (E);
    end Download_Task;
 end Tasks.Download;

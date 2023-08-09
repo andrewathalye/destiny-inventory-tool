@@ -1,8 +1,4 @@
 with Ada.Calendar;   use Ada.Calendar;
-with Ada.Text_IO;    use Ada.Text_IO;
-with Ada.Exceptions; use Ada.Exceptions;
-
-with GNAT.OS_Lib; use GNAT.OS_Lib;
 
 --  GtkAda
 with Gtkada.Builder; use Gtkada.Builder;
@@ -75,11 +71,6 @@ package body GUI.GUI_Tasks is
                GUI.Base.Reload_Profile_Data;
             end if;
          end loop Main_Loop;
-   exception
-      when X : others =>
-         New_Line (Standard_Error);
-         Put_Line (Standard_Error, Exception_Information (X));
-         OS_Exit (-1);
    end GUI_Task;
 
 end GUI.GUI_Tasks;

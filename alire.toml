@@ -25,6 +25,7 @@ aws = { path = "alire_local/aws" }
 "*".style_checks = ["-gnatyaAbcdefhiIklnprtx-o"]
 release.runtime_checks = "None"
 validation.runtime_checks = "Everything"
+development.optimization = "Performance"
 
 [gpr-set-externals]
 LIBRARY_TYPE = "relocatable"

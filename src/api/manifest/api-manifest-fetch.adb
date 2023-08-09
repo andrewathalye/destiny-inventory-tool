@@ -236,8 +236,8 @@ begin
       end Read_Database;
 
    return Result;
-   pragma Warnings (Off);
 
-   Delete_File (Database_Path);
+   --  TODO: Enable when we are ready
+   --  Delete_File (Database_Path);
 
 end API.Manifest.Fetch;

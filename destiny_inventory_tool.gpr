@@ -28,7 +28,7 @@ project Destiny_Inventory_Tool is
             Binder_Switches := Binder_Switches & ("-shared");
       end case;
 
-      for Default_Switches ("Ada") use Binder_Switches;
+      for Switches ("Ada") use Binder_Switches;
    end Binder;
 
    package Linker is
