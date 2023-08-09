@@ -11,7 +11,7 @@ with AWS.Messages; use AWS;
 --  Local Packages
 with Secrets;        use Secrets;
 with Shared.Strings; use Shared.Strings;
-with Shared.Debug; use Shared.Debug;
+with Shared.Debug;   use Shared.Debug;
 with Shared.Files;   use Shared;
 
 package body Tasks.Download is

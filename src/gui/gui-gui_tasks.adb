@@ -1,4 +1,4 @@
-with Ada.Calendar;   use Ada.Calendar;
+with Ada.Calendar; use Ada.Calendar;
 
 --  GtkAda
 with Gtkada.Builder; use Gtkada.Builder;

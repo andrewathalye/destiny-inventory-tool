@@ -28,7 +28,8 @@ begin
    --  If this behaviour is changed, exception handlers must be added to
    --  all other tasks.
    GNAT.Exception_Traces.Trace_On (Unhandled_Raise);
-   GNAT.Exception_Traces.Set_Trace_Decorator (GNAT.Traceback.Symbolic.Symbolic_Traceback'Access);
+   GNAT.Exception_Traces.Set_Trace_Decorator
+     (GNAT.Traceback.Symbolic.Symbolic_Traceback'Access);
 
    GUI_Task.Start;
 end Inventory_Tool;

@@ -129,8 +129,6 @@ package body GUI.Base is
    --  GUI calls
 
    procedure Reload_Profile_Data is
-
-      Window : constant Gtk_Window := Gtk_Window (Builder.Get_Object ("root"));
       Status_Window : constant Gtk_Window :=
         Gtk_Window (Builder.Get_Object ("status_window"));
       Status_Name : constant Gtk_Label :=
@@ -162,8 +160,8 @@ package body GUI.Base is
 
       GUI.Global.Render;
       GUI.Character.Render;
+
       Status_Window.Hide;
-      Window.Show;
    end Reload_Profile_Data;
 
    procedure Reload_Data is
@@ -191,6 +189,10 @@ package body GUI.Base is
 
       The_Manifest := Manifest.Get_Manifest;
       GUI.Global.Setup_Descriptions; -- One-time setup for GUI descriptions
+
+      --  Present the (blank) main window
+      Window.Show;
+      Do_Events;
 
       Reload_Profile_Data;
    end Reload_Data;
