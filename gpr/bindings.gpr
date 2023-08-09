@@ -8,6 +8,6 @@ library project Bindings is
    for Library_Kind use "static-pic";
 
    package Binder is
-      for Switches ("Ada") use ("-Es"); --  Symbolic traceback
+      for Default_Switches ("Ada") use ("-Es"); --  Symbolic traceback
    end Binder;
 end Bindings;

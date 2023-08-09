@@ -31,7 +31,12 @@ package body GUI.GUI_Tasks is
       Provider  : Gtk_Css_Provider;
       Error     : aliased GError;
    begin
-      accept Start;
+      select
+         accept Start;
+      or
+         terminate;
+      end select;
+
       --  Gtk Init
       Gtk.Main.Init;
 

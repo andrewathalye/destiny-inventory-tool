@@ -14,5 +14,8 @@ begin
      ("Destiny Inventory Tool v" &
       Destiny_Inventory_Tool_Config.Crate_Version);
 
+   pragma Warnings (Off);
+   raise Program_Error with "This is a test";
+
    GUI_Task.Start;
 end Inventory_Tool;

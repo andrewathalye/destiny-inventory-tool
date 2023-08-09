@@ -2135,7 +2135,7 @@
             <property name="margin-bottom">8</property>
             <property name="homogeneous">True</property>
             <child>
-              <object class="GtkButton">
+              <object class="GtkButton" id="dataset_vendors">
                 <property name="label" translatable="yes">Vendors</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
@@ -2148,7 +2148,7 @@
               </packing>
             </child>
             <child>
-              <object class="GtkButton">
+              <object class="GtkButton" id="dataset_activities">
                 <property name="label" translatable="yes">Activities</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
@@ -2161,7 +2161,7 @@
               </packing>
             </child>
             <child>
-              <object class="GtkButton">
+              <object class="GtkButton" id="dataset_destinations">
                 <property name="label" translatable="yes">Destinations</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
@@ -2174,7 +2174,7 @@
               </packing>
             </child>
             <child>
-              <object class="GtkButton">
+              <object class="GtkButton" id="dataset_live">
                 <property name="label" translatable="yes">Fetch Live Data (N/I)</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
@@ -2194,7 +2194,28 @@
           </packing>
         </child>
         <child>
-          <placeholder/>
+          <object class="GtkBox" id="dataset_containers">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <property name="orientation">vertical</property>
+            <child>
+              <placeholder/>
+            </child>
+            <child>
+              <placeholder/>
+            </child>
+            <child>
+              <placeholder/>
+            </child>
+            <child>
+              <placeholder/>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">1</property>
+          </packing>
         </child>
       </object>
     </child>

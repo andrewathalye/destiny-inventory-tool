@@ -28,11 +28,11 @@ project Destiny_Inventory_Tool is
             Binder_Switches := Binder_Switches & ("-shared");
       end case;
 
-      for Switches ("Ada") use Binder_Switches;
+      for Default_Switches ("Ada") use Binder_Switches;
    end Binder;
 
    package Linker is
-      Linker_Switches := ("-larchive");
+      Linker_Switches := ("-larchive", "-Wl,--gc-sections");
       case Destiny_Inventory_Tool_Config.Build_Profile is
          when "release" | "development" => 
 	    for Default_Switches ("Ada") use Linker_Switches;

@@ -22,6 +22,6 @@ library project Bungie_API is
             Binder_Switches := Binder_Switches & ("-shared");
       end case;
 
-      for Switches ("Ada") use Binder_Switches;
+      for Default_Switches ("Ada") use Binder_Switches;
    end Binder;
 end Bungie_API;
