@@ -1,6 +1,6 @@
 limited with API.Manifest;
 with VSS.JSON.Pull_Readers.Simple; use VSS.JSON.Pull_Readers.Simple;
-with API.Definitions.Hashes; use API.Definitions.Hashes;
+with API.Definitions.Hashes;       use API.Definitions.Hashes;
 
 package API.Definitions.Destiny_Faction is
 ------------------------------
