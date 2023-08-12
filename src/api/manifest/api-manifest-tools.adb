@@ -250,7 +250,7 @@ package body API.Manifest.Tools is
    is
    begin
       if C.Title_Record_Hash /= 0 then
-         return M.Destiny_Titles (C.Title_Record_Hash) (Get_Gender (M, C));
+         return M.Destiny_Records (C.Title_Record_Hash) (Get_Gender (M, C));
       end if;
       return Null_Unbounded_String;
    end Get_Title;

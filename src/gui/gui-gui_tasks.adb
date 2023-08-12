@@ -1,8 +1,6 @@
 with Ada.Calendar; use Ada.Calendar;
 
---  GtkAda
-with Gtkada.Builder; use Gtkada.Builder;
-
+--  Gtk
 with Gtk.Main;
 with Gtk.Css_Provider;   use Gtk.Css_Provider;
 with Gtk.Style_Context;
@@ -15,14 +13,14 @@ use Glib;
 --  Local Packages
 with GUI.Base;
 with GUI.Handlers;
+with GUI.Elements;
 
-with API.Debug;
 with Shared.Debug;
+with Shared.Config;
 
 package body GUI.GUI_Tasks is
    --  Tasks
    task body GUI_Task is
-      Discard_G : Guint;
       Discard_B : Boolean;
       Provider  : Gtk_Css_Provider;
       Error     : aliased GError;
@@ -34,13 +32,14 @@ package body GUI.GUI_Tasks is
       end select;
 
       --  Gtk Init
+      --  Elaboration of GUI.Elements already initialised Gtk, but we
+      --  are on a different thread.
       Gtk.Main.Init;
 
       --  Load Interface
-      Gtk_New (GUI.Builder);
-      Discard_G := GUI.Builder.Add_From_File ("res/gui.glade", Error'Access);
-      GUI.Handlers.Set_Handlers;
-      Do_Connect (GUI.Builder);
+      --  Builder initialised during elaboration of GUI.Elements
+      GUI.Handlers.Set_Handlers (GUI.Elements.Builder);
+      GUI.Elements.Builder.Do_Connect;
 
       --  Load CSS
       Gtk_New (Provider);
@@ -63,7 +62,7 @@ package body GUI.GUI_Tasks is
 
             --  Reload profile data if it is more than 120 seconds old
             --  No need to reload data if we’re caching it anyway
-            if not API.Debug.Caching
+            if not Shared.Config.Debug_API
               and then (Clock - GUI.Profile.Response_Minted_Timestamp) > 120.0
             then
                Shared.Debug.Put_Line

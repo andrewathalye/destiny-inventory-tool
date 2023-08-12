@@ -13,7 +13,7 @@ with VSS.Stream_Element_Vectors.Conversions;
 use VSS.Stream_Element_Vectors.Conversions;
 
 --  Local Packages
-with API.Debug;
+with Shared.Config;
 
 with Shared.JSON;    use Shared.JSON;
 with Shared.Strings; use Shared.Strings;
@@ -99,7 +99,7 @@ package body API.Profiles is
                 (+M.Primary_Membership_ID) & "/" &
                 "?components=ProfileInventories,ProfileCurrencies,PlatformSilver,Characters,CharacterInventories,CharacterProgressions,CharacterEquipment,CharacterLoadouts,ItemInstances,ItemStats,ItemSockets,ItemPlugObjectives,ItemPerks,StringVariables"),
                Needs_Auth => True,
-               Caching    => API.Debug.Caching)));
+               Caching    => Shared.Config.Debug_API)));
       Set_Stream (Reader, Input_Text_Stream_Access (Stream));
 
       ------------------------

@@ -1,8 +1,13 @@
 with Ada.Containers.Vectors;
+with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
+
+with Interfaces; use Interfaces;
 
 --  Local Packages
-
 with API.Profiles; use API.Profiles;
+
+with API.Definitions;        use API.Definitions;
+with API.Definitions.Hashes; use API.Definitions.Hashes;
 
 package API.Manifest.Tools is
    type Bucket_Location_Type is
@@ -176,7 +181,7 @@ package API.Manifest.Tools is
 
    function Get_Description
      (M    : Manifest.Manifest_Type;
-      Hash : Manifest.Destiny_Inventory_Item_Definition_Manifest_Hash)
+      Hash : Destiny_Inventory_Item_Definition_Manifest_Hash)
       return Item_Description;
 
    function Get_Title

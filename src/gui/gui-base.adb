@@ -1,35 +1,31 @@
 pragma Ada_2022;
 
-with Ada.Calendar; use Ada.Calendar;
-
---  GtkAda
-with Gtkada.Builder; use Gtkada.Builder;
-
 --  Gtk
 with Gtk.Main;
 with Gtk.Container;      use Gtk.Container;
 with Gtk.Window;         use Gtk.Window;
 with Gtk.Message_Dialog; use Gtk.Message_Dialog;
 with Gtk.Label;          use Gtk.Label;
-with Gtk.Overlay;        use Gtk.Overlay;
 with Gtk.Image;          use Gtk.Image;
+with Gtk.Widget;         use Gtk.Widget;
 
 with Gdk.Pixbuf; use Gdk.Pixbuf;
 
 --  Local Packages
-with GUI.Handlers;
 with GUI.Character;
 with GUI.Global;
 with GUI.Authorise;
-with GUI.Base.Get_Overlay;
 with GUI.GUI_Tasks; use GUI.GUI_Tasks;
+
+with GUI.Elements.Base; use GUI.Elements.Base;
 
 with API.Inventories.Global;
 with API.Memberships;
 with API.Manifest;
 with API.Profiles;
-use all type API.Manifest.Destiny_Item_Type;
-use API;
+
+with API.Definitions.Destiny_Inventory_Item;
+use all type API.Definitions.Destiny_Inventory_Item.Destiny_Item_Type;
 
 with Shared.Debug;
 with Shared.Strings; use Shared.Strings;
@@ -67,55 +63,8 @@ package body GUI.Base is
         (Gtk_Container (B), Remove_Callback'Access, Gtk_Container (B));
    end Clear_Bucket;
 
-   --  Inventory Item Rendering (Exported)
-   procedure Render_Items
-     (List     : Inventories.Item_Description_List;
-      Bucket   : Gtk_Grid;
-      T        : Tasks.Download.Download_Task;
-      Max_Left : Gint := 2)
-   is
-
-      Left : Gint := 0;
-      Top  : Gint := 0;
-      --  Local Copies
-      Search : constant String := +Search_Query;
-
-   begin
-      for D of List loop
-         --  Filter Items based upon Search Query
-         if Search'Length /= 0 and then Index (D.Name, Search) = 0 then
-            goto Skip_Item;
-         end if;
-
-         declare
-
-            Overlay : constant Gtk_Overlay :=
-              Get_Overlay
-                (D,
-                 T,
-                 User_Callback_Item_Description.To_Marshaller
-                   (Handlers.Item_Button_Handler'Access));
-
-         begin
-            --  Display Overlay and Attach
-            Overlay.Show;
-            Bucket.Attach (Overlay, Left, Top);
-            Left := @ + 1;
-
-            if Left > Max_Left then
-               Left := 0;
-               Top  := @ + 1;
-            end if;
-         end;
-         <<Skip_Item>>
-      end loop;
-      Show (Bucket);
-   end Render_Items;
-
    procedure Do_Events is
-
       Discard : Boolean;
-
    begin
       while Gtk.Main.Events_Pending loop
          Discard := Gtk.Main.Main_Iteration;
@@ -129,11 +78,6 @@ package body GUI.Base is
    --  GUI calls
 
    procedure Reload_Profile_Data is
-      Status_Window : constant Gtk_Window :=
-        Gtk_Window (Builder.Get_Object ("status_window"));
-      Status_Name : constant Gtk_Label :=
-        Gtk_Label (Builder.Get_Object ("status_name"));
-
    begin
       Status_Window.Show;
 
@@ -165,13 +109,6 @@ package body GUI.Base is
    end Reload_Profile_Data;
 
    procedure Reload_Data is
-
-      Window : constant Gtk_Window := Gtk_Window (Builder.Get_Object ("root"));
-      Status_Window : constant Gtk_Window :=
-        Gtk_Window (Builder.Get_Object ("status_window"));
-      Status_Name : constant Gtk_Label :=
-        Gtk_Label (Builder.Get_Object ("status_name"));
-
    begin
       Shared.Debug.Put_Line ("Reloading all data");
 
@@ -198,10 +135,6 @@ package body GUI.Base is
    end Reload_Data;
 
    procedure Error_Message (Name : String; Message : String) is
-
-      Error_Dialog : constant Gtk_Message_Dialog :=
-        Gtk_Message_Dialog (Builder.Get_Object ("error_dialog"));
-
    begin
       Error_Dialog.Set_Markup (Name);
       Error_Dialog.Format_Secondary_Markup (Message);

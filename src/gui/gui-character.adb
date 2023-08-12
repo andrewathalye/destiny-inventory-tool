@@ -21,7 +21,10 @@ use all type API.Manifest.Tools.Bucket_Location_Type;
 use API; -- For general reference
 
 with GUI.Base;
-with GUI.Base.Get_Overlay;
+with GUI.Items;
+
+with GUI.Elements.Character; use GUI.Elements.Character;
+
 with Shared.Strings; use Shared.Strings;
 with Shared.Files;
 with Shared.Debug;   use Shared;
@@ -45,7 +48,7 @@ package body GUI.Character is
       Max_Left : Gint                         := 2)
    is
    begin
-      Base.Render_Items (List, Bucket, T, Max_Left);
+      Items.Render_Items (List, Bucket, T, Max_Left);
    end Render_Items;
 
    --  Cache
@@ -54,10 +57,6 @@ package body GUI.Character is
 
    procedure Render_Contents (Location : Manifest.Tools.Bucket_Location_Type)
    is
-
-      Contents_Grid : constant Gtk_Grid :=
-        Gtk_Grid (Builder.Get_Object ("full_contents_grid"));
-
    begin
       Base.Clear_Bucket (Contents_Grid);
       Render_Items
@@ -71,10 +70,6 @@ package body GUI.Character is
      (Widget    : access Gtk_Widget_Record'Class;
       User_Data : Manifest.Tools.Item_Description)
    is
-
-      Contents : constant Gtk_Popover :=
-        Gtk_Popover (Builder.Get_Object ("full_contents"));
-
    begin
       Tasks.Download.Contents_Task.Interrupt;
 
@@ -119,10 +114,10 @@ package body GUI.Character is
       end if;
 
       Overlay :=
-        Base.Get_Overlay
+        Items.Get_Overlay
           (D,
            Tasks.Download.Character_Task,
-           Base.User_Callback_Item_Description.To_Marshaller
+           Items.User_Callback_Item_Description.To_Marshaller
              (Equipped_Clicked_Handler'Access));
       Overlay.Show;
 
@@ -142,39 +137,9 @@ package body GUI.Character is
       Equipped_Items :
         Inventories.Item_Description_Bucket_Location_Type_Array renames
         Inventory (Global_Character_Index).Get_Equipped;
-
-      --  Buckets
-      Postmaster_Grid : constant Gtk_Grid :=
-        Gtk_Grid (Builder.Get_Object ("postmaster"));
-      Subclass_Box : constant Gtk_Box :=
-        Gtk_Box (Builder.Get_Object ("subclass"));
-
-      Kinetic_Box : constant Gtk_Box :=
-        Gtk_Box (Builder.Get_Object ("kinetic"));
-      Energy_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("energy"));
-      Power_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("power"));
-      Shell_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("shell"));
-      Artefact_Box : constant Gtk_Box :=
-        Gtk_Box (Builder.Get_Object ("artefact"));
-
-      Helmet_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("helmet"));
-      Gauntlets_Box : constant Gtk_Box :=
-        Gtk_Box (Builder.Get_Object ("gauntlets"));
-      Chest_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("chest"));
-      Leg_Box   : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("leg"));
-      Class_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("class"));
-
-      Emblem_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("emblem"));
-      Sparrow_Box : constant Gtk_Box :=
-        Gtk_Box (Builder.Get_Object ("sparrow"));
-      Ship_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("ship"));
-
-      Finisher_Box : constant Gtk_Box :=
-        Gtk_Box (Builder.Get_Object ("finisher"));
-      Emote_Box : constant Gtk_Box := Gtk_Box (Builder.Get_Object ("emote"));
-
    begin
       Tasks.Download.Character_Task.Interrupt;
+
       --  Update Buckets
       Base.Clear_Bucket (Postmaster_Grid);
       Render_Items
@@ -229,11 +194,6 @@ package body GUI.Character is
    procedure Update_For_Character
      (Character_Index : API.Profiles.Character_Range)
    is
-      --  Labels and Images to be updated for each character
-      Title : constant Gtk_Label  := Gtk_Label (Builder.Get_Object ("title"));
-      Light : constant Gtk_Label  := Gtk_Label (Builder.Get_Object ("light"));
-      Emblem_Button : constant Gtk_Button :=
-        Gtk_Button (Builder.Get_Object ("emblem_button"));
       Emblem : Gtk_Image;
 
       --  Renames

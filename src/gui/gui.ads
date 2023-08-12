@@ -3,7 +3,6 @@ with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 private with Ada.Streams;
 
 --  Gtkada
-with Gtkada.Builder; use Gtkada.Builder;
 private with Gdk.Pixbuf;
 
 --  Local Packages
@@ -15,9 +14,6 @@ private with Shared.Strings;
 
 --  Note: Unless marked otherwise, nothing here or in child packages is thread-safe. Use only from GUI task.
 package GUI is
-   --  Variables
-   Builder :
-     Gtkada_Builder; -- Left uninitialised, should be setup along with Gtk_Main
 
    --  Before use, execute GUI.Base.Reload_Data Undefined behaviour will occur
    --  otherwise

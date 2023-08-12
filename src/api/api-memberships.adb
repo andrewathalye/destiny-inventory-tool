@@ -11,7 +11,7 @@ with VSS.Stream_Element_Vectors.Conversions;
 use VSS.Stream_Element_Vectors.Conversions;
 
 --  Local Packages
-with API.Debug;
+with Shared.Config;
 
 with Shared.JSON;    use Shared.JSON;
 with Shared.Strings; use Shared.Strings;
@@ -55,7 +55,7 @@ package body API.Memberships is
            (Tasks.Download.Download
               (+(API_Root & "/User/GetMembershipsForCurrentUser/"),
                Needs_Auth => True,
-               Caching    => API.Debug.Caching)));
+               Caching    => Shared.Config.Debug_API)));
       Set_Stream (Reader, Input_Text_Stream_Access (Stream));
 
       Wait_Until_Key (Reader, "destinyMemberships");

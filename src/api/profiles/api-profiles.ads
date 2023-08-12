@@ -8,7 +8,14 @@ with Interfaces;            use Interfaces;
 --  Local Packages
 with Shared.Strings;
 with API.Memberships; use API.Memberships;
-with API.Manifest;    use API.Manifest;
+
+with API.Definitions;        use API.Definitions;
+with API.Definitions.Hashes; use API.Definitions.Hashes;
+
+with API.Definitions.Destiny_Inventory_Bucket;
+use API.Definitions.Destiny_Inventory_Bucket;
+with API.Definitions.Destiny_Inventory_Item;
+use API.Definitions.Destiny_Inventory_Item;
 
 package API.Profiles is
    --  Note: All types in this package correspond roughly to

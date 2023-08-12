@@ -14,7 +14,9 @@ with Gtk.Box;            use Gtk.Box;
 with GUI.Character;
 with GUI.Global;
 with GUI.Base;
-with GUI.Base.Populate_Item_Details;
+with GUI.Items;
+
+with GUI.Elements.Handlers; use GUI.Elements.Handlers;
 
 with API.Transfers;
 with API.Manifest.Tools;
@@ -24,11 +26,14 @@ with API.Profiles;
 use type API.Profiles.Character_Type;
 use all type API.Profiles.Transfer_Status_Type;
 
-with API.Manifest;
-use all type API.Manifest.Item_Location_Type;
-use all type API.Manifest.Destiny_Inventory_Bucket_Category;
-use all type API.Manifest.Destiny_Tier_Type;
-use all type API.Manifest.Destiny_Item_Type;
+with API.Definitions.Destiny_Inventory_Item;
+use all type API.Definitions.Destiny_Inventory_Item.Destiny_Tier_Type;
+use all type API.Definitions.Destiny_Inventory_Item.Destiny_Item_Type;
+
+with API.Definitions.Destiny_Inventory_Bucket;
+use all type API.Definitions.Destiny_Inventory_Bucket.Item_Location_Type;
+use all type
+  API.Definitions.Destiny_Inventory_Bucket.Destiny_Inventory_Bucket_Category;
 
 with API.Inventories.Character;
 with API.Inventories.Global; use API;
@@ -55,10 +60,6 @@ package body GUI.Handlers is
    procedure Emblem_Button_Clicked_Handler
      (Builder : access Gtkada_Builder_Record'Class)
    is
-
-      Character_Menu : constant Gtk_Popover :=
-        Gtk_Popover (GUI.Builder.Get_Object ("character_menu"));
-
    begin
       Character_Menu.Popup;
    end Emblem_Button_Clicked_Handler;
@@ -67,12 +68,8 @@ package body GUI.Handlers is
    procedure Search_Changed_Handler
      (Builder : access Gtkada_Builder_Record'Class)
    is
-
-      Search : constant Gtk_Search_Entry :=
-        Gtk_Search_Entry (GUI.Builder.Get_Object ("search"));
-
    begin
-      Base.Search_Query := +Search.Get_Chars (0);
+      Items.Search_Query := +Search.Get_Chars (0);
       GUI.Global.Render;
       GUI.Character.Render;
    end Search_Changed_Handler;
@@ -81,10 +78,6 @@ package body GUI.Handlers is
    procedure Error_Dialog_Close_Button_Handler
      (Builder : access Gtkada_Builder_Record'Class)
    is
-
-      Error_Dialog : constant Gtk_Message_Dialog :=
-        Gtk_Message_Dialog (Builder.Get_Object ("error_dialog"));
-
    begin
       Error_Dialog.Hide;
    end Error_Dialog_Close_Button_Handler;
@@ -139,35 +132,32 @@ package body GUI.Handlers is
    end Equip_Button_Clicked_Handler;
 
    --  Install Handlers
-   procedure Set_Handlers is
-      Vault_Button : constant Gtk_Widget :=
-        Gtk_Widget (Builder.Get_Object ("vault_button"));
+   procedure Set_Handlers (Builder : Gtkada_Builder) is
    begin
-      Register_Handler
-        (GUI.Builder, "window_close_handler", Window_Close_Handler'Access);
-      Register_Handler
-        (Builder,
-         "emblem_button_clicked_handler",
-         Emblem_Button_Clicked_Handler'Access);
-      Register_Handler
-        (Builder, "search_changed_handler", Search_Changed_Handler'Access);
-      Register_Handler
-        (Builder,
-         "error_dialog_close_button_handler",
-         Error_Dialog_Close_Button_Handler'Access);
-      Register_Handler
-        (Builder,
-         "reload_button_clicked_handler",
-         Reload_Button_Clicked_Handler'Access);
-      Widget_Callback.Connect
-        (Vault_Button,
-         "clicked",
-         Widget_Callback.To_Marshaller (Vault_Handler'Access));
-      Register_Handler
-        (Builder,
-         "equip_button_clicked_handler",
-         Equip_Button_Clicked_Handler'Access);
+      Builder.Register_Handler
+        ("window_close_handler", Window_Close_Handler'Access);
 
+      Builder.Register_Handler
+        ("emblem_button_clicked_handler",
+         Emblem_Button_Clicked_Handler'Access);
+
+      Builder.Register_Handler
+        ("search_changed_handler", Search_Changed_Handler'Access);
+
+      Builder.Register_Handler
+        ("error_dialog_close_button_handler",
+         Error_Dialog_Close_Button_Handler'Access);
+
+      Builder.Register_Handler
+        ("reload_button_clicked_handler",
+         Reload_Button_Clicked_Handler'Access);
+
+      --  Widget_Callback.Connect
+      --    (Vault_Button, "clicked",
+      --     Widget_Callback.To_Marshaller (Vault_Handler'Access));
+
+      Builder.Register_Handler
+        ("equip_button_clicked_handler", Equip_Button_Clicked_Handler'Access);
    end Set_Handlers;
 
    --  Dynamic Handlers (Public)
@@ -177,10 +167,6 @@ package body GUI.Handlers is
      (Button    : access Gtk_Widget_Record'Class;
       User_Data : API.Profiles.Character_Range)
    is
-
-      Character_Menu : constant Gtk_Popover :=
-        Gtk_Popover (GUI.Builder.Get_Object ("character_menu"));
-
    begin
       Character_Menu.Popdown;
       Character.Update_For_Character (User_Data);
@@ -415,21 +401,11 @@ package body GUI.Handlers is
      (Widget    : access Gtk_Widget_Record'Class;
       User_Data : Manifest.Tools.Item_Description)
    is
-
-      Item_Details : constant Gtk_Popover :=
-        Gtk_Popover (Builder.Get_Object ("item_details"));
-      Transfer_Menu : constant Gtk_Popover :=
-        Gtk_Popover (Builder.Get_Object ("transfer_menu"));
-      Vault_Menu : constant Gtk_Popover :=
-        Gtk_Popover (Builder.Get_Object ("vault_menu"));
-      Equip_Menu : constant Gtk_Popover :=
-        Gtk_Popover (Builder.Get_Object ("equip_menu"));
-
    begin
       Current_Item := User_Data;
 
       --  Display item details
-      Base.Populate_Item_Details (Current_Item);
+      Items.Populate_Item_Details (Current_Item);
       Item_Details.Set_Relative_To (Widget);
       Item_Details.Popup;
 
@@ -468,16 +444,6 @@ package body GUI.Handlers is
      (Widget    : access Gtk_Widget_Record'Class;
       User_Data : Manifest.Tools.Item_Description)
    is
-      Socket_Name_Type_Box : constant Gtk_Box :=
-        Gtk_Box (Builder.Get_Object ("socket_name_type_box"));
-      Socket_Popover : constant Gtk_Popover :=
-        Gtk_Popover (Builder.Get_Object ("socket_popover"));
-      Socket_Name : constant Gtk_Label :=
-        Gtk_Label (Builder.Get_Object ("socket_name"));
-      Socket_Type_And_Tier_Display_Name : constant Gtk_Label :=
-        Gtk_Label (Builder.Get_Object ("socket_type_and_tier_display_name"));
-      Socket_Description : constant Gtk_Label :=
-        Gtk_Label (Builder.Get_Object ("socket_description"));
    begin
       Socket_Name.Set_Label (+User_Data.Name);
 
@@ -499,5 +465,4 @@ package body GUI.Handlers is
       Socket_Popover.Set_Relative_To (Widget);
       Socket_Popover.Popup;
    end Socket_Item_Button_Handler;
-
 end GUI.Handlers;

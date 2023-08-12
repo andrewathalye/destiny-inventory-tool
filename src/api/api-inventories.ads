@@ -4,6 +4,8 @@ with Ada.Containers.Vectors;
 with API.Manifest.Tools;
 use type API.Manifest.Tools.Item_Description;
 
+with API.Definitions.Hashes;
+
 package API.Inventories is
    --  Exceptions
    Inventory_Full : exception;
@@ -58,7 +60,7 @@ package API.Inventories is
    function Item_Count
      (Inventory : Destiny_Inventory_Type;
       Location  : Manifest.Tools.Bucket_Location_Type)
-      return Manifest.Quantity_Type is abstract;
+      return Definitions.Quantity_Type is abstract;
 
    --  Returns all items actually located in _Location_
    function Get
@@ -76,7 +78,8 @@ package API.Inventories is
    --  .raises Item_Not_Found if Hash does not match any item
    function Get
      (Inventory : Destiny_Inventory_Type;
-      Hash      : Manifest.Destiny_Inventory_Item_Definition_Manifest_Hash)
+      Hash      : Definitions.Hashes
+        .Destiny_Inventory_Item_Definition_Manifest_Hash)
       return Manifest.Tools.Item_Description is abstract;
 
    --  Return the full inventory contents, either sorted by bucket location type or unsorted (as desired)

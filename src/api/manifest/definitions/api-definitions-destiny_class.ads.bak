@@ -1,0 +1,17 @@
+with API.Definitions.Hashes;         use API.Definitions.Hashes;
+with API.Definitions.Destiny_Gender; use API.Definitions.Destiny_Gender;
+
+package API.Definitions.Destiny_Class is
+----------------------------
+   -- DestinyClassDefinition --
+   ----------------------------
+   type Destiny_Class_Name is array (Destiny_Gender_Type) of Unbounded_String;
+   package DCNM is new Ada.Containers.Ordered_Maps
+     (Key_Type     => Destiny_Class_Definition_Manifest_Hash,
+      Element_Type => Destiny_Class_Name);
+   subtype Destiny_Class_Map is DCNM.Map;
+   procedure Read
+     (Hash         :        Base_Manifest_Hash;
+      Reader       : in out JSON_Simple_Pull_Reader;
+      The_Manifest :    out Manifest.Manifest_Type);
+end API.Definitions.Destiny_Class;

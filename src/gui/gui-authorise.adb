@@ -2,11 +2,11 @@ with Ada.Numerics.Discrete_Random;
 with Interfaces; use Interfaces;
 
 --  Gtk
-with Gtk.GEntry; use Gtk.GEntry;
-with Gtk.Window; use Gtk.Window;
 with Gtk.Main;
 
 --  Local Packages
+with GUI.Elements.Authorise; use GUI.Elements.Authorise;
+
 with API.Authorise; use API;
 with Secrets;
 with Constant_Secrets;
@@ -43,17 +43,12 @@ procedure GUI.Authorise is
    end Auth_Loop;
 
    task body Auth_Loop is
-
-      Auth_Window : Gtk_Window;
-      Auth_URL    : Gtk_Entry;
-      Discard     : Boolean;
+      Discard : Boolean;
 
    begin
       loop
          select
             accept Start;
-            Auth_Window := Gtk_Window (GUI.Builder.Get_Object ("auth_window"));
-            Auth_URL    := Gtk_Entry (GUI.Builder.Get_Object ("auth_url"));
             Auth_URL.Set_Text
               (API.Authorise.OAuth_Authorise_Endpoint & "?client_id=" &
                Constant_Secrets.Client_ID & "&response_type=code" & "&state=" &

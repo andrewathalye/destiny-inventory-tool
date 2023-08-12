@@ -4,6 +4,8 @@ pragma Ada_2022;
 with API.Manifest.Tools;
 with API.Profiles;
 
+with API.Definitions.Hashes;
+
 package API.Inventories.Global is
    --  The Vault ("Global") stores three kinds of items: General Consumables Modifications
    --
@@ -52,7 +54,7 @@ package API.Inventories.Global is
    overriding function Item_Count
      (Inventory : Global_Inventory_Type;
       Location  : Manifest.Tools.Bucket_Location_Type)
-      return API.Manifest.Quantity_Type with
+      return API.Definitions.Quantity_Type with
      Inline;
 
    overriding function Get
@@ -68,7 +70,8 @@ package API.Inventories.Global is
 
    overriding function Get
      (Inventory : Global_Inventory_Type;
-      Hash      : Manifest.Destiny_Inventory_Item_Definition_Manifest_Hash)
+      Hash      : Definitions.Hashes
+        .Destiny_Inventory_Item_Definition_Manifest_Hash)
       return Manifest.Tools.Item_Description;
 
    overriding function Get_Sorted

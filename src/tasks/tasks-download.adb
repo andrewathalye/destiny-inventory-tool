@@ -9,15 +9,14 @@ with AWS.Headers;
 with AWS.Messages; use AWS;
 
 --  Local Packages
-with Secrets;        use Secrets;
+with Secrets; use Secrets;
+
 with Shared.Strings; use Shared.Strings;
 with Shared.Debug;   use Shared.Debug;
-with Shared.Files;   use Shared;
+with Shared.Files;
+with Shared.Config;
 
 package body Tasks.Download is
-   --  Debugging
-   Simulate_Slow : constant Boolean := False;
-
    --  Check the status of a request
    --  Raises an exception on failure
    procedure Check_Status (Data : AWS.Response.Data) is
@@ -33,6 +32,13 @@ package body Tasks.Download is
       end if;
    end Check_Status;
 
+   procedure Debug_Delay is
+   begin
+      if Shared.Config.Debug_Downloads then
+         delay 0.05;
+      end if;
+   end Debug_Delay;
+
    --  Synchronous download functions
    function Download
      (Path       : Unbounded_String;
@@ -45,15 +51,12 @@ package body Tasks.Download is
       Data       : Response.Data;
 
    begin
-      --  Put_Line ("Start Download " & (+Path));
-      if Simulate_Slow then
-         delay 0.05;
-      end if;
+      Debug_Delay;
 
       --  Note: We avoid using Client.Get because it results in a stack
       --  overflow on musl libc
-      if Caching and then Files.Has_Cached (+Path) then
-         return Files.Get_Cached (+Path);
+      if Caching and then Shared.Files.Has_Cached (+Path) then
+         return Shared.Files.Get_Cached (+Path);
 
       else
          Put_Line ("Download " & (+Path));
@@ -75,7 +78,7 @@ package body Tasks.Download is
          Check_Status (Data);
 
          if Caching then
-            Files.Cache (+Path, Response.Message_Body (Data));
+            Shared.Files.Cache (+Path, Response.Message_Body (Data));
          end if;
          return Response.Message_Body (Data);
       end if;
@@ -88,9 +91,7 @@ package body Tasks.Download is
       Connection : Client.HTTP_Connection;
       Data       : Response.Data;
    begin
-      if Simulate_Slow then
-         delay 0.05;
-      end if;
+      Debug_Delay;
 
       --  Note: We avoid using Client.Get because it results in a stack
       --  overflow on musl libc

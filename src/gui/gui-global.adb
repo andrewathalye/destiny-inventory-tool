@@ -15,9 +15,15 @@ with Glib;         use Glib;
 --  Local Packages
 with GUI.Handlers;
 with GUI.Base;
+with GUI.Items;
+
+with GUI.Elements.Global; use GUI.Elements.Global;
+
 with API.Profiles;
 with API.Manifest.Tools;
 use all type API.Manifest.Tools.Bucket_Location_Type;
+
+with API.Definitions.Hashes;
 
 with Shared.Files;
 with Shared.Strings; use Shared.Strings;
@@ -48,20 +54,12 @@ package body GUI.Global is
       T        : Tasks.Download.Download_Task := Tasks.Download.Global_Task)
    is
    begin
-      Base.Render_Items (List, Bucket, T, Max_Left);
+      Items.Render_Items (List, Bucket, T, Max_Left);
    end Render_Items;
 
    --  Private Subprograms
 
    procedure Setup_Character_Menu is
-
-      Character_Grid : constant Gtk_Grid :=
-        Gtk_Grid (GUI.Builder.Get_Object ("character_grid"));
-      Emblem_Button : constant Gtk_Button :=
-        Gtk_Button (GUI.Builder.Get_Object ("emblem_button"));
-      Character_Menu : constant Gtk_Popover :=
-        Gtk_Popover (GUI.Builder.Get_Object ("character_menu"));
-
       Count : Gint := 0;
    begin
       --  It is possible for characters to change on profile reload, so be prepared
@@ -117,10 +115,6 @@ package body GUI.Global is
 
    --  One-time init for "transfer_grid"
    procedure Setup_Transfer_Menu is
-
-      Transfer_Grid : constant Gtk_Grid :=
-        Gtk_Grid (GUI.Builder.Get_Object ("transfer_grid"));
-
       Count : Gint :=
         0; --  Ada containers start at 1 usually, but Gtk stuff starts at 0
 
@@ -205,8 +199,6 @@ package body GUI.Global is
    end Setup_Transfer_Menu;
 
    procedure Render_Currencies is
-      Vault_Currency : constant Gtk_Grid :=
-        Gtk_Grid (GUI.Builder.Get_Object ("vault_currency"));
    begin
       Base.Clear_Bucket (Vault_Currency);
       Render_Items (Inventory.Get_Currency, Vault_Currency, 7);
@@ -222,36 +214,6 @@ package body GUI.Global is
       Vault_Inventory :
         Inventories.Item_Description_List_Bucket_Location_Type_Array renames
         Inventory.Get_Sorted;
-
-      Vault_Kinetic : constant Gtk_Grid :=
-        Gtk_Grid (GUI.Builder.Get_Object ("vault_kinetic"));
-      Vault_Energy : constant Gtk_Grid :=
-        Gtk_Grid (GUI.Builder.Get_Object ("vault_energy"));
-      Vault_Power : constant Gtk_Grid :=
-        Gtk_Grid (GUI.Builder.Get_Object ("vault_power"));
-      Vault_Shell : constant Gtk_Grid :=
-        Gtk_Grid (GUI.Builder.Get_Object ("vault_shell"));
-      Vault_Helmet : constant Gtk_Grid :=
-        Gtk_Grid (GUI.Builder.Get_Object ("vault_helmet"));
-      Vault_Gauntlets : constant Gtk_Grid :=
-        Gtk_Grid (GUI.Builder.Get_Object ("vault_gauntlets"));
-      Vault_Chest : constant Gtk_Grid :=
-        Gtk_Grid (GUI.Builder.Get_Object ("vault_chest"));
-      Vault_Leg : constant Gtk_Grid :=
-        Gtk_Grid (GUI.Builder.Get_Object ("vault_leg"));
-      Vault_Class : constant Gtk_Grid :=
-        Gtk_Grid (GUI.Builder.Get_Object ("vault_class"));
-      Vault_Sparrow : constant Gtk_Grid :=
-        Gtk_Grid (GUI.Builder.Get_Object ("vault_sparrow"));
-      Vault_Ship : constant Gtk_Grid :=
-        Gtk_Grid (GUI.Builder.Get_Object ("vault_ship"));
-      Vault_Consumable : constant Gtk_Grid :=
-        Gtk_Grid (GUI.Builder.Get_Object ("vault_consumable"));
-      Vault_Modification : constant Gtk_Grid :=
-        Gtk_Grid (GUI.Builder.Get_Object ("vault_modification"));
-      Vault_Other : constant Gtk_Grid :=
-        Gtk_Grid (GUI.Builder.Get_Object ("vault_other"));
-
    begin
       Tasks.Download.Global_Task.Interrupt;
 
@@ -295,9 +257,6 @@ package body GUI.Global is
 
    --  Global Update_Inventory
    procedure Update_GUI is
-
-      Name : constant Gtk_Label := Gtk_Label (GUI.Builder.Get_Object ("name"));
-
    begin
       --  Update username
       Set_Label (Name, +Secrets.Membership.Bungie_Net_User.Unique_Name);
@@ -312,7 +271,8 @@ package body GUI.Global is
    procedure Setup_Descriptions is
 
       function Make_Label
-        (Hash : Manifest.Destiny_Inventory_Bucket_Definition_Manifest_Hash)
+        (Hash : API.Definitions.Hashes
+           .Destiny_Inventory_Bucket_Definition_Manifest_Hash)
          return Gtk_Label
       is
 
@@ -323,60 +283,6 @@ package body GUI.Global is
          Result.Show;
          return Result;
       end Make_Label;
-
-      --  Inventory Section Labels
-      Subclass_Description : constant Gtk_Label :=
-        Gtk_Label (GUI.Builder.Get_Object ("subclass_description"));
-
-      Weapon_Descriptions : constant Gtk_Box :=
-        Gtk_Box (GUI.Builder.Get_Object ("weapon_descriptions"));
-      Armour_Descriptions : constant Gtk_Box :=
-        Gtk_Box (GUI.Builder.Get_Object ("armour_descriptions"));
-
-      Emblem_Sparrow_Ship_Descriptions : constant Gtk_Box :=
-        Gtk_Box (GUI.Builder.Get_Object ("emblem_sparrow_ship_descriptions"));
-      Finisher_Emote_Descriptions : constant Gtk_Box :=
-        Gtk_Box (GUI.Builder.Get_Object ("finisher_emote_descriptions"));
-
-      Blank_Label : constant Gtk_Label := Gtk_Label_New;
-
-      --  Vault Label
-      Vault_Label : constant Gtk_Label :=
-        Gtk_Label (GUI.Builder.Get_Object ("vault_label"));
-
-      --  Expander Labels
-      Vault_Currency_Label : constant Gtk_Label :=
-        Gtk_Label (GUI.Builder.Get_Object ("vault_currency_label"));
-
-      Vault_Kinetic_Label : constant Gtk_Label :=
-        Gtk_Label (GUI.Builder.Get_Object ("vault_kinetic_label"));
-      Vault_Energy_Label : constant Gtk_Label :=
-        Gtk_Label (GUI.Builder.Get_Object ("vault_energy_label"));
-      Vault_Power_Label : constant Gtk_Label :=
-        Gtk_Label (GUI.Builder.Get_Object ("vault_power_label"));
-      Vault_Shell_Label : constant Gtk_Label :=
-        Gtk_Label (GUI.Builder.Get_Object ("vault_shell_label"));
-
-      Vault_Helmet_Label : constant Gtk_Label :=
-        Gtk_Label (GUI.Builder.Get_Object ("vault_helmet_label"));
-      Vault_Gauntlets_Label : constant Gtk_Label :=
-        Gtk_Label (GUI.Builder.Get_Object ("vault_gauntlets_label"));
-      Vault_Chest_Label : constant Gtk_Label :=
-        Gtk_Label (GUI.Builder.Get_Object ("vault_chest_label"));
-      Vault_Leg_Label : constant Gtk_Label :=
-        Gtk_Label (GUI.Builder.Get_Object ("vault_leg_label"));
-      Vault_Class_Label : constant Gtk_Label :=
-        Gtk_Label (GUI.Builder.Get_Object ("vault_class_label"));
-
-      Vault_Sparrow_Label : constant Gtk_Label :=
-        Gtk_Label (GUI.Builder.Get_Object ("vault_sparrow_label"));
-      Vault_Ship_Label : constant Gtk_Label :=
-        Gtk_Label (GUI.Builder.Get_Object ("vault_ship_label"));
-      Vault_Consumable_Label : constant Gtk_Label :=
-        Gtk_Label (GUI.Builder.Get_Object ("vault_consumable_label"));
-      Vault_Modification_Label : constant Gtk_Label :=
-        Gtk_Label (GUI.Builder.Get_Object ("vault_modification_label"));
-
    begin
       --  Inventory Section
       Subclass_Description.Set_Text

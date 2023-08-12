@@ -1,3 +1,6 @@
+--  Gtkada
+with Gtkada.Builder; use Gtkada.Builder;
+
 --  Gtk
 with Gtk.Handlers; use Gtk.Handlers;
 with Gtk.Widget;   use Gtk.Widget;
@@ -11,7 +14,7 @@ package GUI.Handlers is
    package Widget_Callback is new Callback (Gtk_Widget_Record);
 
    --  Global Handlers
-   procedure Set_Handlers;
+   procedure Set_Handlers (Builder : Gtkada_Builder);
 
    --  Dynamic Handlers
    procedure Character_Menu_Button_Clicked_Handler

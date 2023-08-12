@@ -1,9 +1,14 @@
 pragma Ada_2022;
 
 with API.Manifest.Tools; use API.Manifest.Tools;
-use type API.Manifest.Item_Location_Type;
-use type API.Manifest.Quantity_Type;
-use type API.Manifest.Destiny_Inventory_Item_Definition_Manifest_Hash;
+
+with API.Definitions.Destiny_Inventory_Bucket;
+use all type API.Definitions.Destiny_Inventory_Bucket.Item_Location_Type;
+use type API.Definitions.Quantity_Type;
+
+with API.Definitions.Hashes;
+use type
+  API.Definitions.Hashes.Destiny_Inventory_Item_Definition_Manifest_Hash;
 
 package body API.Inventories.Global is
    ---------
@@ -16,10 +21,9 @@ package body API.Inventories.Global is
    is
       Modified_Item : Manifest.Tools.Item_Description;
    begin
-      Modified_Item.Location        := Manifest.Vault;
-      Modified_Item.Bucket_Location :=
-        Manifest.Tools.General; -- The item is now in the Vault
-      Modified_Item.Bucket_Hash := Manifest.Tools.General'Enum_Rep; -- ^^
+      Modified_Item.Location        := Vault;
+      Modified_Item.Bucket_Location := General; -- The item is now in the Vault
+      Modified_Item.Bucket_Hash     := Manifest.Tools.General'Enum_Rep; -- ^^
 
       Inventory.Inventory (Item.Default_Bucket_Location).Append
         (Modified_Item);
@@ -110,7 +114,7 @@ package body API.Inventories.Global is
 
       --  Load vault inventory
       for I of Profile.Profile_Inventory loop
-         if I.Location = Manifest.Vault then
+         if I.Location = Vault then
             declare
                D : constant Manifest.Tools.Item_Description :=
                  Manifest.Tools.Get_Description (The_Manifest, Profile, I);
@@ -128,21 +132,21 @@ package body API.Inventories.Global is
    overriding function Item_Count
      (Inventory : Global_Inventory_Type;
       Location  : Manifest.Tools.Bucket_Location_Type)
-      return API.Manifest.Quantity_Type
+      return API.Definitions.Quantity_Type
    is
 
-      Count : API.Manifest.Quantity_Type := 0;
+      Count : API.Definitions.Quantity_Type := 0;
 
    begin
       case Location is
          when Consumable =>
             return
-              API.Manifest.Quantity_Type
+              API.Definitions.Quantity_Type
                 (Inventory.Inventory (Consumable).Length);
 
          when Modification =>
             return
-              API.Manifest.Quantity_Type
+              API.Definitions.Quantity_Type
                 (Inventory.Inventory (Modification).Length);
 
          when others =>
@@ -153,7 +157,7 @@ package body API.Inventories.Global is
                   when others =>
                      Count :=
                        @ +
-                       API.Manifest.Quantity_Type
+                       API.Definitions.Quantity_Type
                          (Inventory.Inventory (BLT).Length);
                end case;
             end loop;
@@ -209,7 +213,8 @@ package body API.Inventories.Global is
 
    overriding function Get
      (Inventory : Global_Inventory_Type;
-      Hash      : Manifest.Destiny_Inventory_Item_Definition_Manifest_Hash)
+      Hash      : API.Definitions.Hashes
+        .Destiny_Inventory_Item_Definition_Manifest_Hash)
       return Manifest.Tools.Item_Description
    is
    begin

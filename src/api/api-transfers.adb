@@ -10,14 +10,20 @@ with GNATCOLL.JSON; use GNATCOLL.JSON;
 
 --  Local Packages
 with API.Memberships;
-with API.Profiles;
 
+with API.Profiles;
 use all type API.Profiles.Transfer_Status_Type;
+
 with API.Manifest.Tools;
 use all type API.Manifest.Tools.Bucket_Location_Type;
-use all type API.Manifest.Destiny_Tier_Type;
-use all type API.Manifest.Destiny_Item_Type;
-use type API.Manifest.Quantity_Type;
+
+with API.Definitions.Destiny_Inventory_Item;
+use all type API.Definitions.Destiny_Inventory_Item.Destiny_Tier_Type;
+use all type API.Definitions.Destiny_Inventory_Item.Destiny_Item_Type;
+with API.Definitions.Destiny_Inventory_Bucket;
+use all type API.Definitions.Destiny_Inventory_Bucket.Item_Location_Type;
+
+use type API.Definitions.Quantity_Type;
 
 with API.Error_Codes;
 use all type API.Error_Codes.Error_Code_Type;
@@ -76,9 +82,9 @@ package body API.Transfers is
       D         : Manifest.Tools.Item_Description)
    is
 
-      Bucket_Item_Count : constant API.Manifest.Quantity_Type :=
+      Bucket_Item_Count : constant API.Definitions.Quantity_Type :=
         Inventory.Item_Count (D.Default_Bucket_Location);
-      Max_Item_Count : constant API.Manifest.Quantity_Type :=
+      Max_Item_Count : constant API.Definitions.Quantity_Type :=
         M.Destiny_Inventory_Buckets (D.Default_Bucket_Hash).Item_Count;
 
    begin
@@ -94,11 +100,11 @@ package body API.Transfers is
       D         : Manifest.Tools.Item_Description)
    is
 
-      Bucket_Item_Count : constant API.Manifest.Quantity_Type :=
+      Bucket_Item_Count : constant API.Definitions.Quantity_Type :=
         Inventories.Global.Item_Count (Inventory, D.Bucket_Location);
-      Max_Item_Count : constant API.Manifest.Quantity_Type :=
+      Max_Item_Count : constant API.Definitions.Quantity_Type :=
         M.Destiny_Inventory_Buckets (General'Enum_Rep).Item_Count;
-      Item_Stack_Quantity : API.Manifest.Quantity_Type := 0;
+      Item_Stack_Quantity : API.Definitions.Quantity_Type := 0;
 
    begin
       --  Attempt to find the item stack quantity. There is not necessarily an item in the vault
@@ -217,7 +223,7 @@ package body API.Transfers is
 
       --  Check_Item_Not_Vaulted
       case D.Location is
-         when Manifest.Vault =>
+         when Vault =>
             raise Item_Already_Here;
 
          when others =>

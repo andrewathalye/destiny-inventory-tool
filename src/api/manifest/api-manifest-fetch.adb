@@ -31,21 +31,7 @@ with Shared.JSON;    use Shared.JSON;
 with Shared.Strings; use Shared.Strings;
 with Shared.Streams; use Shared.Streams;
 
---  Standalone Procedures: Processing callbacks
-with API.Manifest.Class_Callback;
-with API.Manifest.Gender_Callback;
-with API.Manifest.Inventory_Bucket_Callback;
-with API.Manifest.Race_Callback;
-with API.Manifest.Damage_Type_Callback;
-with API.Manifest.Stat_Callback;
-with API.Manifest.Inventory_Item_Callback;
-with API.Manifest.Objective_Callback;
-with API.Manifest.Record_Callback;
-with API.Manifest.Vendor_Callback;
-with API.Manifest.Faction_Callback;
-with API.Manifest.Destination_Callback;
-with API.Manifest.Place_Callback;
-with API.Manifest.Activity_Callback;
+with API.Definitions.Hashes; use API.Definitions.Hashes;
 
 function API.Manifest.Fetch
   (Localised_Manifest_Path : Unbounded_String) return Manifest_Type
@@ -197,37 +183,48 @@ begin
 
          --  Add data from tables using callbacks
          Add_Data
-           ("DestinyClassDefinition", API.Manifest.Class_Callback'Access);
+           ("DestinyClassDefinition",
+            API.Definitions.Destiny_Class.Read'Access);
          Add_Data
-           ("DestinyGenderDefinition", API.Manifest.Gender_Callback'Access);
+           ("DestinyGenderDefinition",
+            API.Definitions.Destiny_Gender.Read'Access);
          Add_Data
            ("DestinyInventoryBucketDefinition",
-            API.Manifest.Inventory_Bucket_Callback'Access);
-         Add_Data ("DestinyRaceDefinition", API.Manifest.Race_Callback'Access);
+            API.Definitions.Destiny_Inventory_Bucket.Read'Access);
+         Add_Data
+           ("DestinyRaceDefinition", API.Definitions.Destiny_Race.Read'Access);
          Add_Data
            ("DestinyDamageTypeDefinition",
-            API.Manifest.Damage_Type_Callback'Access);
-         Add_Data ("DestinyStatDefinition", API.Manifest.Stat_Callback'Access);
+            API.Definitions.Destiny_Damage_Type.Read'Access);
+         Add_Data
+           ("DestinyStatDefinition", API.Definitions.Destiny_Stat.Read'Access);
          Add_Data
            ("DestinyInventoryItemDefinition",
-            API.Manifest.Inventory_Item_Callback'Access);
+            API.Definitions.Destiny_Inventory_Item.Read'Access);
          Add_Data
            ("DestinyObjectiveDefinition",
-            API.Manifest.Objective_Callback'Access);
+            API.Definitions.Destiny_Objective.Read'Access);
          Add_Data
-           ("DestinyRecordDefinition", API.Manifest.Record_Callback'Access);
+           ("DestinyRecordDefinition",
+            API.Definitions.Destiny_Record.Read'Access);
          Add_Data
-           ("DestinyVendorDefinition", API.Manifest.Vendor_Callback'Access);
+           ("DestinyVendorDefinition",
+            API.Definitions.Destiny_Vendor.Read'Access);
          Add_Data
-           ("DestinyFactionDefinition", API.Manifest.Faction_Callback'Access);
+           ("DestinyVendorGroupDefinition",
+            API.Definitions.Destiny_Vendor_Group.Read'Access);
+         Add_Data
+           ("DestinyFactionDefinition",
+            API.Definitions.Destiny_Faction.Read'Access);
          Add_Data
            ("DestinyDestinationDefinition",
-            API.Manifest.Destination_Callback'Access);
+            API.Definitions.Destiny_Destination.Read'Access);
          Add_Data
-           ("DestinyPlaceDefinition", API.Manifest.Place_Callback'Access);
+           ("DestinyPlaceDefinition",
+            API.Definitions.Destiny_Place.Read'Access);
          Add_Data
            ("DestinyActivityDefinition",
-            API.Manifest.Activity_Callback'Access);
+            API.Definitions.Destiny_Activity.Read'Access);
 
          --  Done reading, free connection and description
          GNATCOLL.SQL.Exec.Free (Connection);

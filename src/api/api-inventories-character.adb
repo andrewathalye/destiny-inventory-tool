@@ -1,8 +1,14 @@
 pragma Ada_2022;
 
 with Shared.Debug; use Shared.Debug;
-with API.Manifest;
-use type API.Manifest.Destiny_Inventory_Item_Definition_Manifest_Hash;
+
+with API.Definitions.Hashes;
+use type
+  API.Definitions.Hashes.Destiny_Inventory_Item_Definition_Manifest_Hash;
+
+with API.Definitions.Destiny_Inventory_Bucket;
+with API.Definitions.Destiny_Inventory_Item;
+use all type API.Definitions.Destiny_Inventory_Item.Destiny_Item_Type;
 
 package body API.Inventories.Character is
    ---------
@@ -19,13 +25,13 @@ package body API.Inventories.Character is
       --  Item is not vaulted (any longer), so ensure Bucket_Location is
       --  updated. The item is also no longer equipped, so it can be transferred
       --  once again.
-      Temp.Location        := Manifest.Inventory;
+      Temp.Location := API.Definitions.Destiny_Inventory_Bucket.Inventory;
       Temp.Bucket_Location := Item.Default_Bucket_Location;
       Temp.Bucket_Hash     := Item.Default_Bucket_Hash;
       Temp.Transfer_Status :=
         (case Item.Item_Type is
-           when Manifest.Emblem => Profiles.Not_Transferable,
-           when others          => Profiles.Can_Transfer);
+           when Emblem => Profiles.Not_Transferable,
+           when others => Profiles.Can_Transfer);
       Inventory.Character_Items (Item.Default_Bucket_Location).Append (Temp);
    end Add;
 
@@ -140,13 +146,9 @@ package body API.Inventories.Character is
    overriding function Item_Count
      (Inventory : Character_Inventory_Type;
       Location  : Manifest.Tools.Bucket_Location_Type)
-      return API.Manifest.Quantity_Type
-   is
-   begin
-      return
-        API.Manifest.Quantity_Type
-          (Inventory.Character_Items (Location).Length);
-   end Item_Count;
+      return API.Definitions.Quantity_Type is
+     (API.Definitions.Quantity_Type
+        (Inventory.Character_Items (Location).Length));
 
    ---------
    -- Get --
@@ -155,11 +157,8 @@ package body API.Inventories.Character is
    overriding function Get
      (Inventory : Character_Inventory_Type;
       Location  : Manifest.Tools.Bucket_Location_Type)
-      return Item_Description_List
-   is
-   begin
-      return Inventory.Character_Items (Location);
-   end Get;
+      return Item_Description_List is
+     (Inventory.Character_Items (Location));
 
    ---------
    -- Get --
@@ -167,7 +166,8 @@ package body API.Inventories.Character is
 
    overriding function Get
      (Inventory : Character_Inventory_Type;
-      Hash      : Manifest.Destiny_Inventory_Item_Definition_Manifest_Hash)
+      Hash      : Definitions.Hashes
+        .Destiny_Inventory_Item_Definition_Manifest_Hash)
       return Manifest.Tools.Item_Description
    is
    begin
@@ -188,11 +188,8 @@ package body API.Inventories.Character is
 
    overriding function Get_Sorted
      (Inventory : Character_Inventory_Type)
-      return Item_Description_List_Bucket_Location_Type_Array
-   is
-   begin
-      return Inventory.Character_Items;
-   end Get_Sorted;
+      return Item_Description_List_Bucket_Location_Type_Array is
+     (Inventory.Character_Items);
 
    ------------------
    -- Get_Unsorted --
@@ -216,10 +213,7 @@ package body API.Inventories.Character is
 
    function Get_Equipped
      (Inventory : Character_Inventory_Type)
-      return Item_Description_Bucket_Location_Type_Array
-   is
-   begin
-      return Inventory.Equipped_Items;
-   end Get_Equipped;
+      return Item_Description_Bucket_Location_Type_Array is
+     (Inventory.Equipped_Items);
 
 end API.Inventories.Character;

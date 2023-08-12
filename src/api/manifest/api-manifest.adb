@@ -14,10 +14,9 @@ use VSS.JSON.Pull_Readers;
 use VSS.JSON;
 
 --  Local Packages
-with API.Debug;
-
 with Shared.JSON;    use Shared.JSON;
 with Shared.Debug;
+with Shared.Config;
 with Shared.Strings; use Shared.Strings;
 
 with Tasks.Download;
@@ -47,7 +46,7 @@ package body API.Manifest is
            (Tasks.Download.Download
               (+(API_Root & "/Destiny2/Manifest/"),
                Needs_Auth => True,
-               Caching    => API.Debug.Caching)));
+               Caching    => Shared.Config.Debug_API)));
       Set_Stream (Reader, Input_Text_Stream_Access (Stream));
 
       Wait_Until_Key (Reader, "version");

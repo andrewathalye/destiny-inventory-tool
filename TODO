@@ -1,4 +1,4 @@
-For Search:
+P3 For Search:
 	Character
 	[items]
 	Character
@@ -6,15 +6,13 @@ For Search:
 	Vault
 	[items]
 
-Loadout Support
+P3 Loadout Support
 
-Farming mode?
+P4 Farming mode?
+P4 Fix Really Big Foundry Icon Bug
 
-TODO make transfers asynchronous too
+P1 make transfers asynchronous too
 
-DestinyVendorGroupDefinition
+P2 Vendor, Activity, Destination browser in separate window
 
-Vendor, Activity, Destination browser in separate window
-Fix tracebacks
-
-Show flavortexts
+P2 Show flavortexts
