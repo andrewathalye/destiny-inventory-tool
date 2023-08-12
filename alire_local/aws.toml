@@ -1,0 +1,50 @@
+description = "Ada Web Server"
+website = "https://github.com/adacore/aws"
+name = "aws"
+version = "24.0.0"
+authors = ["AdaCore"]
+licenses = "GPL-3.0-only WITH GCC-exception-3.1"
+maintainers = ["chouteau@adacore.com"]
+maintainers-logins = ["Fabien-Chouteau"]
+project-files = ["aws.gpr"]
+tags = ["aws", "web", "server", "http", "https", "soap", "wsdl", "ssl"]
+
+# Since the AWS project doesn't build alone with just gprbuild we build and
+# install with the Makefile from post-fetch action.
+[[actions]]
+type = "post-fetch"
+command = ["make", "setup", "ZLIB=false", "DEMOS=false",
+           "LAL=false", "XMLADA=false", "SOCKET=openssl", "DEBUG=false", "prefix=install_dir",
+           "PRJ_BUILD=Release"]
+
+[[depends-on]]
+gnatcoll = "~23.0.0"
+make = "*"
+gnat = ">=12"
+openssl = "*"
+
+[gpr-externals]
+LIBRARY_TYPE = ["static", "relocatable"]
+PRJ_BUILD = ["Debug", "Release"]
+PRJ_SOCKLIB = ["gnat", "ipv6", "ipv4"]
+PRJ_TARGET = ["Windows_NT", "UNIX", "Darwin", "vxworks", "freebsd"]
+SOCKET = ["std", "ssl", "openssl", "gnutls"]
+
+[gpr-set-externals]
+PRJ_LDAP="Disabled"
+PRJ_SOCKLIB="gnat"
+PRJ_BUILD="Release"
+PRJ_LAL="Disabled"
+SOCKET="openssl"
+
+[gpr-set-externals."case(os)".linux]
+PRJ_TARGET = "UNIX"
+TARGET = "x86_64-unknown-linux-gnu"
+
+[gpr-set-externals."case(os)".macos]
+PRJ_TARGET = "Darwin"
+TARGET = "x86_64-apple-darwin19.6.0"
+
+[gpr-set-externals."case(os)".windows]
+PRJ_TARGET = "Windows_NT"
+TARGET = "x86_64-w64-mingw32"
