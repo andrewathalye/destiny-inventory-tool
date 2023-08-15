@@ -1,4 +1,7 @@
 with Interfaces.C.Strings; use Interfaces.C.Strings;
+use Interfaces.C;
+
+with System; use System;
 
 package body libarchive is
    --  Types
@@ -36,8 +39,7 @@ package body libarchive is
    --  I/O
    procedure Archive_Read_Open_Memory
      (Archive : not null access Archive_Type;
-      Buffer  : System.Address;
-      Length  : size_t)
+      Data    : aliased Stream_Element_Array)
    is
       function Archive_Read_Open_Memory
         (a : not null access Archive_Type;
@@ -47,15 +49,14 @@ package body libarchive is
         Import => True, Convention => C;
 
       Result : constant Archive_Result_Type :=
-        Archive_Read_Open_Memory (Archive, Buffer, Length);
+        Archive_Read_Open_Memory (Archive, Data'Address, Data'Length);
    begin
       Check_Result (Archive, Result);
    end Archive_Read_Open_Memory;
 
    procedure Archive_Read_Data
      (Archive : not null access Archive_Type;
-      Buffer  : System.Address;
-      Length  : size_t)
+      Data    : access Stream_Element_Array)
    is
       function Archive_Read_Data
         (a : not null access Archive_Type;
@@ -64,12 +65,12 @@ package body libarchive is
          return ssize_t with
         Import => True, Convention => C;
 
-      Result : constant ssize_t := Archive_Read_Data (Archive, Buffer, Length);
+      Result : constant ssize_t := Archive_Read_Data (Archive, Data.all'Address, Data.all'Length);
    begin
-      if Result = -1 or Result /= ssize_t (Length) then
+      if Result /= Data.all'Length then
          raise Archive_Error
-           with "Failed reading archive data: got " & Result'Image &
-           " instead of" & Length'Image;
+           with "Failed reading archive data: got length " & Result'Image &
+           " instead of" & Data.all'Length'Image;
       end if;
    end Archive_Read_Data;
 

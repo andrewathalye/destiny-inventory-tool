@@ -1,3 +1,6 @@
+with "gtkada";
+
+--  Local
 with "config/destiny_inventory_tool_config";
 with "gpr/bungie_api";
 

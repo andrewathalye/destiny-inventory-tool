@@ -44,11 +44,20 @@ package body Tasks.Download is
      (Path       : Unbounded_String;
       Needs_Auth : Boolean := False;
       Caching    : Boolean := True)
-      return Stream_Element_Array
+      return Stream_Element_Array is
+     (Shared_Stream_Element_Array'(Download (Path, Needs_Auth, Caching)).Get);
+
+   function Download
+     (Path       : Unbounded_String;
+      Needs_Auth : Boolean := False;
+      Caching    : Boolean := True)
+      return Shared_Stream_Element_Array
    is
 
       Connection : Client.HTTP_Connection;
       Data       : Response.Data;
+
+      SSEA : Shared_Stream_Element_Array;
 
    begin
       Debug_Delay;
@@ -57,31 +66,31 @@ package body Tasks.Download is
       --  overflow on musl libc
       if Caching and then Shared.Files.Has_Cached (+Path) then
          return Shared.Files.Get_Cached (+Path);
+      end if;
+      Put_Line ("Download " & (+Path));
+      Client.Create (Connection, +Path);
+
+      if Needs_Auth then
+         Client.HTTP_Utils.Send_Request
+           (Connection => Connection,
+            Kind       => Client.HTTP_Utils.GET,
+            Result     => Data,
+            URI        => +Path,
+            Headers    => Secrets.Headers);
 
       else
-         Put_Line ("Download " & (+Path));
-         Client.Create (Connection, +Path);
-
-         if Needs_Auth then
-            Client.HTTP_Utils.Send_Request
-              (Connection => Connection,
-               Kind       => Client.HTTP_Utils.GET,
-               Result     => Data,
-               URI        => +Path,
-               Headers    => Secrets.Headers);
-
-         else
-            Client.HTTP_Utils.Send_Request
-              (Connection, Client.HTTP_Utils.GET, Data, +Path);
-         end if;
-
-         Check_Status (Data);
-
-         if Caching then
-            Shared.Files.Cache (+Path, Response.Message_Body (Data));
-         end if;
-         return Response.Message_Body (Data);
+         Client.HTTP_Utils.Send_Request
+           (Connection, Client.HTTP_Utils.GET, Data, +Path);
       end if;
+
+      Check_Status (Data);
+
+      if Caching then
+         Shared.Files.Cache (+Path, Response.Message_Body (Data));
+      end if;
+
+      SSEA.Set (Response.Message_Body (Data));
+      return SSEA;
    end Download;
 
    --  Note: No caching is available for this version
@@ -172,13 +181,13 @@ package body Tasks.Download is
                      --  Prevents attempting to download the same file multiple times if interrupted
                      if not DQE.Complete then
                         declare
-                           SEA_A : constant Stream_Element_Array_Access :=
-                             new Stream_Element_Array'
-                               (Download (DQE.Path, DQE.Needs_Auth));
+                           SSEA : Shared_Stream_Element_Array;
                         begin
+                           SSEA.Set (Download (DQE.Path, DQE.Needs_Auth));
+
                            Download_Cache.Append
                              (Download_Cache_Entry'
-                                (DQE.Path, DQE.Widget, SEA_A));
+                                (DQE.Path, DQE.Widget, SSEA));
                         end;
 
                         DQE.Complete := True;

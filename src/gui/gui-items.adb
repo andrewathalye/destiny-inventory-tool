@@ -36,17 +36,18 @@ use Shared;
 package body GUI.Items is
    --  Cached High-Frequency Pixbufs
    Placeholder_Icon : constant Gdk_Pixbuf :=
-     Load_Image ("png", Files.Get_Data ("res/placeholder_icon.png"));
+     Load_Image ("png", Files.Get_Data ("res/placeholder_icon.png").Get);
    Crafted_Masterwork_Overlay : constant Gdk_Pixbuf :=
-     Load_Image ("png", Files.Get_Data ("res/crafted_masterwork_overlay.png"));
+     Load_Image
+       ("png", Files.Get_Data ("res/crafted_masterwork_overlay.png").Get);
    Crafted_Overlay : constant Gdk_Pixbuf :=
-     Load_Image ("png", Files.Get_Data ("res/crafted_overlay.png"));
+     Load_Image ("png", Files.Get_Data ("res/crafted_overlay.png").Get);
    Masterwork_Overlay : constant Gdk_Pixbuf :=
-     Load_Image ("png", Files.Get_Data ("res/masterwork_overlay.png"));
+     Load_Image ("png", Files.Get_Data ("res/masterwork_overlay.png").Get);
    Normal_Overlay : constant Gdk_Pixbuf :=
-     Load_Image ("png", Files.Get_Data ("res/normal_overlay.png"));
+     Load_Image ("png", Files.Get_Data ("res/normal_overlay.png").Get);
    Ornament_Overlay : constant Gdk_Pixbuf :=
-     Load_Image ("png", Files.Get_Data ("res/ornament_overlay.png"));
+     Load_Image ("png", Files.Get_Data ("res/ornament_overlay.png").Get);
 
    --  Constants for separate subprograms
    Unix_Epoch : constant Ada.Calendar.Time :=

@@ -44,7 +44,8 @@ package body GUI.Global is
 
    --  Cache
    Placeholder_Icon : constant Gdk_Pixbuf :=
-     Load_Image ("png", Shared.Files.Get_Data ("res/placeholder_icon.png"));
+     Load_Image
+       ("png", Shared.Files.Get_Data ("res/placeholder_icon.png").Get);
 
    --  Redirections
    procedure Render_Items

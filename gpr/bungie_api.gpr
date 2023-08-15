@@ -1,3 +1,9 @@
+with "gtkada";
+with "vss_json";
+with "gnatcoll_sqlite";
+with "aws";
+
+--  Local
 with "../config/destiny_inventory_tool_config";
 with "./bindings";
 

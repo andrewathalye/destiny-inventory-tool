@@ -149,8 +149,7 @@ package body GUI.Base is
       Temp : Gdk_Pixbuf;
    begin
       for Cache_Entry of Cache loop
-         Temp := GUI.Load_Image (+Cache_Entry.Path, Cache_Entry.Data.all);
-         Free (Cache_Entry.Data);
+         Temp := GUI.Load_Image (+Cache_Entry.Path, Cache_Entry.Data.Get);
 
          if not Global_Pixbuf_Cache.Contains (Cache_Entry.Path) then
             Global_Pixbuf_Cache.Insert (Cache_Entry.Path, Temp);

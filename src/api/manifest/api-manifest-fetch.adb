@@ -1,10 +1,10 @@
 pragma Ada_2022;
 
-with Ada.Directories; use Ada.Directories;
-with Ada.Streams.Stream_IO;
+with Ada.Directories;       use Ada.Directories;
+with Ada.Streams.Stream_IO; use Ada.Streams;
 with Ada.Unchecked_Conversion;
 with Ada.Text_IO;
-with Ada.Exceptions;  use Ada.Exceptions;
+with Ada.Exceptions;        use Ada.Exceptions;
 
 --  VSS
 with VSS.JSON.Pull_Readers.Simple; use VSS.JSON.Pull_Readers.Simple;
@@ -31,6 +31,8 @@ with Shared.JSON;    use Shared.JSON;
 with Shared.Strings; use Shared.Strings;
 with Shared.Streams; use Shared.Streams;
 
+with Shared.Streams.Unsafe; use Shared.Streams.Unsafe;
+
 with API.Definitions.Hashes; use API.Definitions.Hashes;
 
 function API.Manifest.Fetch
@@ -42,15 +44,15 @@ is
    --  Variables
    Result : Manifest_Type;
 
-   --  Note: These need to be freed after we are done
-   Manifest_Data : Stream_Element_Array_Access;
-   Archive_Data  : Stream_Element_Array_Access;
+   Manifest_Data : Shared_Stream_Element_Array;
+
+   --  Free when done
+   Archive_Data : Stream_Element_Array_Access;
 
 begin
    Shared.Debug.Put_Line ("Fetch manifest");
    Manifest_Data :=
-     new Ada.Streams.Stream_Element_Array'
-       (Tasks.Download.Download (+(Bungie_Root & (+Localised_Manifest_Path))));
+     Tasks.Download.Download (+(Bungie_Root & (+Localised_Manifest_Path)));
 
    Shared.Debug.Put_Line ("Decompress manifest");
 
@@ -62,8 +64,7 @@ begin
    begin
       Archive_Read_Support_Format_Zip (Archive);
 
-      Archive_Read_Open_Memory
-        (Archive, Manifest_Data.all'Address, Manifest_Data.all'Length);
+      Archive_Read_Open_Memory (Archive, Manifest_Data.Get);
 
       Archive_Entry := Archive_Read_Next_Header (Archive);
 
@@ -78,13 +79,10 @@ begin
          raise Program_Error with "Manifest zip entry had unset size";
       end if;
 
-      Archive_Read_Data
-        (Archive, Archive_Data.all'Address, Archive_Data.all'Length);
+      Archive_Read_Data (Archive, Archive_Data);
 
       Archive_Read_Free (Archive);
    end;
-
-   Free (Manifest_Data); --  Manifest unzipped
 
    Shared.Debug.Put_Line ("Load database and start parsing fields");
 

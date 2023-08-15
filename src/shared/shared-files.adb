@@ -1,9 +1,11 @@
 pragma Ada_2022;
 
 with Ada.Streams.Stream_IO; use Ada.Streams.Stream_IO;
-use Ada.Streams;
-with Ada.Directories; use Ada.Directories;
+with Ada.Directories;       use Ada.Directories;
 with Ada.Strings.Hash;
+
+--  Local Packages
+with Shared.Streams.Unsafe; use Shared.Streams.Unsafe;
 
 package body Shared.Files is
    --  Cache Utilities
@@ -17,18 +19,19 @@ package body Shared.Files is
    --  Original_Name should be "" unless the original file name was encoded
    --  in the file being read
    function Get_Data
-     (Name : String; Original_Name : String) return Stream_Element_Array
+     (Name : String; Original_Name : String) return Shared_Stream_Element_Array
    is
 
       SF : File_Type;
       S  : Stream_Access;
 
-      SF_Size : constant Natural := Natural (Size (Name));
-      SEA     :
-        Stream_Element_Array
-          (1 .. Stream_Element_Offset (SF_Size - Original_Name'Length));
-
+      SF_Size      : constant Natural := Natural (Size (Name));
       Discard_Name : String (Original_Name'Range);
+
+      SEA_A : Stream_Element_Array_Access :=
+        new Stream_Element_Array
+          (1 .. Stream_Element_Offset (SF_Size - Original_Name'Length));
+      SSEA : Shared_Stream_Element_Array;
 
    begin
       Open (SF, In_File, Name, "shared=yes");
@@ -39,15 +42,20 @@ package body Shared.Files is
          String'Read (S, Discard_Name); --  Original Name
       end if;
 
-      Stream_Element_Array'Read (S, SEA);
+      Stream_Element_Array'Read (S, SEA_A.all);
       Close (SF);
-      return SEA;
+
+      --  Load data into Shared_Stream_Element_Array and clean up
+      SSEA.Set (SEA_A.all);
+      Free (SEA_A);
+
+      return SSEA;
    end Get_Data;
 
-   function Get_Data (Name : String) return Stream_Element_Array is
+   function Get_Data (Name : String) return Shared_Stream_Element_Array is
      (Get_Data (Name => Name, Original_Name => ""));
 
-   function Get_Cached (Name : String) return Stream_Element_Array is
+   function Get_Cached (Name : String) return Shared_Stream_Element_Array is
      (Get_Data
         (Name => Get_Cache_Path (Name), Original_Name => Name & ASCII.NUL));
 

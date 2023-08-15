@@ -4,9 +4,16 @@ Destiny Inventory Tool
 An item manager for Destiny 2.
 Destiny 1 support is planned, but has not been implemented.
 
-Installation
-------------
+Initial Setup
+-------------
+Building may be performed via Nix or via Alire.
+Both are supported, however Alire is used for first-time setup of variables.
+
+Using Alire
+-----------
 Install GTK and OpenSSL systemwide, then install Alire.
+
+Uncomment Alire dependency lines in alire.toml
 
 `alr build` or for development `alr exec bash` and then `gprbuild -j0`
 
@@ -14,6 +21,12 @@ Custom versions of AWS and Gtkada are bundled until an upstream source conflict 
 and (for AWS) the build system is fixed to work with AWS (currently config is not saved when building via GPRBuild)
 
 Tickets have been submitted upstream for both issues.
+
+Using Nix
+---------
+You may optionally use Nix and Alire simultaneously: `nix-shell nix/alire.nix`, in which case see above.
+
+Otherwise, enter the build environment: `nix-shell nix`
 
 Usage
 -----

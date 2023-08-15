@@ -53,7 +53,7 @@ package body GUI.Character is
 
    --  Cache
    Placeholder_Emblem : constant Gdk_Pixbuf :=
-     Load_Image (".png", Files.Get_Data ("res/placeholder_emblem.png"));
+     Load_Image (".png", Files.Get_Data ("res/placeholder_emblem.png").Get);
 
    procedure Render_Contents (Location : Manifest.Tools.Bucket_Location_Type)
    is

@@ -1,6 +1,6 @@
-with Interfaces.C; use Interfaces.C;
+with Ada.Streams; use Ada.Streams;
+
 with Interfaces;   use Interfaces;
-with System;
 
 --  Note: Thick binding over the parts of libarchive needed
 --  to deal with Zip files in memory. No other parts of the API
@@ -24,12 +24,10 @@ package libarchive is
    --  I/O
    procedure Archive_Read_Open_Memory
      (Archive : not null access Archive_Type;
-      Buffer  : System.Address;
-      Length  : size_t);
+      Data    : aliased Stream_Element_Array);
    procedure Archive_Read_Data
      (Archive : not null access Archive_Type;
-      Buffer  : System.Address;
-      Length  : size_t);
+      Data    : access Stream_Element_Array);
 
    --  Metadata
    procedure Archive_Read_Support_Format_Zip
