@@ -134,7 +134,7 @@ package body API.Authorise is
              Constant_Secrets.Client_ID & "&client_secret=" &
              Constant_Secrets.Client_Secret,
            Content_Type => "application/x-www-form-urlencoded");
---              Debug.Put_Line (Response.Message_Body (Data));
+      --              Debug.Put_Line (Response.Message_Body (Data));
 
       Tasks.Download.Check_Status (Data);
       return Parse_JSON (Response.Message_Body (Data));
@@ -156,7 +156,7 @@ package body API.Authorise is
              "&client_id=" & Constant_Secrets.Client_ID & "&client_secret=" &
              Constant_Secrets.Client_Secret,
            Content_Type => "application/x-www-form-urlencoded");
---              Debug.Put_Line (Response.Message_Body (Data));
+      --              Debug.Put_Line (Response.Message_Body (Data));
 
       Tasks.Download.Check_Status (Data);
       return Parse_JSON (Response.Message_Body (Data));

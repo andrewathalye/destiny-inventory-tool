@@ -4,7 +4,7 @@ with API.Definitions.Hashes;         use API.Definitions.Hashes;
 with API.Definitions.Destiny_Gender; use API.Definitions.Destiny_Gender;
 
 package API.Definitions.Destiny_Record is
------------------------------
+   -----------------------------
    -- DestinyRecordDefinition --
    -----------------------------
    type Destiny_Title_Name is array (Destiny_Gender_Type) of Unbounded_String;

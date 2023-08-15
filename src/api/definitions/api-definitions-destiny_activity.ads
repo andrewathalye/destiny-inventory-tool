@@ -3,7 +3,7 @@ with VSS.JSON.Pull_Readers.Simple; use VSS.JSON.Pull_Readers.Simple;
 with API.Definitions.Hashes;       use API.Definitions.Hashes;
 
 package API.Definitions.Destiny_Activity is
--------------------------------
+   -------------------------------
    -- DestinyActivityDefinition --
    -------------------------------
    type Destiny_Activity_Definition is record

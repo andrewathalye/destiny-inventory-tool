@@ -38,7 +38,7 @@ package body libarchive is
 
    --  I/O
    procedure Archive_Read_Open_Memory
-     (Archive : not null access Archive_Type;
+     (Archive :         not null access Archive_Type;
       Data    : aliased Stream_Element_Array)
    is
       function Archive_Read_Open_Memory
@@ -65,7 +65,9 @@ package body libarchive is
          return ssize_t with
         Import => True, Convention => C;
 
-      Result : constant ssize_t := Archive_Read_Data (Archive, Data.all'Address, Data.all'Length);
+      Result : constant ssize_t :=
+        Archive_Read_Data
+          (a => Archive, b => Data.all'Address, l => Data.all'Length);
    begin
       if Result /= Data.all'Length then
          raise Archive_Error

@@ -1,17 +1,22 @@
 { pkgs ? import <nixpkgs> {}
 , nix ? import ../../nix {}
+, shared ? import ./shared.nix {}
 }:
 pkgs.mkShell {
   buildInputs = [
-    # nix.gnatstudio
-    nix.alire
     nix.aws
     nix.vss-stable
     nix.gtkada
-    pkgs.libarchive
-    pkgs.gnat
-    pkgs.gprbuild
     pkgs.gnatcoll-core
     pkgs.gnatcoll-sqlite
-  ];
+  ]
+  ++ shared.common;
+
+  shellHook = ''
+    export NIX_ENFORCE_PURITY=0
+    export GPR_PROJECT_PATH=$GPR_PROJECT_PATH_FOR_TARGET
+    export LIBRARY_TYPE=relocatable
+    fish
+    exit
+  '';
 }

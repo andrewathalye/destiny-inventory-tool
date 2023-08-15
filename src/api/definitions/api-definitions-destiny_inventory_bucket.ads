@@ -3,7 +3,7 @@ with VSS.JSON.Pull_Readers.Simple; use VSS.JSON.Pull_Readers.Simple;
 with API.Definitions.Hashes;       use API.Definitions.Hashes;
 
 package API.Definitions.Destiny_Inventory_Bucket is
---------------------------------------
+   --------------------------------------
    -- DestinyInventoryBucketDefinition --
    --------------------------------------
    type Destiny_Inventory_Bucket_Category is

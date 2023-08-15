@@ -3,7 +3,7 @@ with VSS.JSON.Pull_Readers.Simple; use VSS.JSON.Pull_Readers.Simple;
 with API.Definitions.Hashes;       use API.Definitions.Hashes;
 
 package API.Definitions.Destiny_Destination is
-----------------------------------
+   ----------------------------------
    -- DestinyDestinationDefinition --
    ----------------------------------
    type Destiny_Bubble_Hash_Type is new Unsigned_32;
