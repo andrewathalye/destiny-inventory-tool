@@ -10,4 +10,9 @@ pkgs.mkShell {
     pkgs.gtk3
   ]
   ++ shared.common;
+
+  shellHook = ''
+    fish -C "function fish_right_prompt; echo DEV; end"
+    exit
+  '';
 }

@@ -16,7 +16,7 @@ pkgs.mkShell {
     export NIX_ENFORCE_PURITY=0
     export GPR_PROJECT_PATH=$GPR_PROJECT_PATH_FOR_TARGET
     export LIBRARY_TYPE=relocatable
-    fish
+    fish -C "function fish_right_prompt; echo DEV; end"
     exit
   '';
 }
