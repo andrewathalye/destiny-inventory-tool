@@ -15,7 +15,6 @@ with Gdk.Pixbuf; use Gdk.Pixbuf;
 with GUI.Character;
 with GUI.Global;
 with GUI.Authorise;
-with GUI.GUI_Tasks; use GUI.GUI_Tasks;
 
 with GUI.Elements.Base; use GUI.Elements.Base;
 
@@ -144,7 +143,7 @@ package body GUI.Base is
    --  Semi-Public. Does NOT pause GUI Thread. Updates Widget image data
    --  Note: NOT thread-safe!!!
    procedure Event_Image_Callback
-     (Cache : in out Tasks.Download.Download_Cache_Type)
+     (Cache : in out GUI_Download_Task.Download_Cache_Type)
    is
       Temp : Gdk_Pixbuf;
    begin
@@ -155,9 +154,9 @@ package body GUI.Base is
             Global_Pixbuf_Cache.Insert (Cache_Entry.Path, Temp);
          end if;
 
-         Gtk_Image (Cache_Entry.Widget).Set (Temp);
+         Gtk_Image (Cache_Entry.Opaque).Set (Temp);
 
-         Cache_Entry.Widget
+         Cache_Entry.Opaque
            .Unref; --  Allow it to be disposed of if no longer needed
       end loop;
 
@@ -166,8 +165,8 @@ package body GUI.Base is
    end Event_Image_Callback;
 
    --  Semi-Public. Pauses GUI Thread and updates Widget image data.
-   --  TODO is this safe??????
-   procedure Image_Callback (Cache : in out Tasks.Download.Download_Cache_Type)
+   procedure Image_Callback
+     (Cache : in out GUI_Download_Task.Download_Cache_Type)
    is
    begin
       GUI_Task.Pause;

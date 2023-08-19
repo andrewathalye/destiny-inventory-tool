@@ -22,13 +22,13 @@ use API; -- For general reference
 
 with GUI.Base;
 with GUI.Items;
+with GUI.GUI_Tasks; use GUI.GUI_Tasks;
 
 with GUI.Elements.Character; use GUI.Elements.Character;
 
 with Shared.Strings; use Shared.Strings;
 with Shared.Files;
 with Shared.Debug;   use Shared;
-with Tasks.Download;
 
 package body GUI.Character is
    --  Global-ish state
@@ -44,8 +44,8 @@ package body GUI.Character is
    procedure Render_Items
      (List     : Inventories.Item_Description_List;
       Bucket   : Gtk_Grid;
-      T        : Tasks.Download.Download_Task := Tasks.Download.Character_Task;
-      Max_Left : Gint                         := 2)
+      T : GUI_Download_Task.Download_Task := GUI.GUI_Tasks.Character_Task;
+      Max_Left : Gint                            := 2)
    is
    begin
       Items.Render_Items (List, Bucket, T, Max_Left);
@@ -62,7 +62,7 @@ package body GUI.Character is
       Render_Items
         (Inventory (Global_Character_Index).Get (Location),
          Contents_Grid,
-         Tasks.Download.Contents_Task);
+         GUI.GUI_Tasks.Contents_Task);
    end Render_Contents;
 
    --  Popup full bucket contents if equipped item is clicked
@@ -71,7 +71,7 @@ package body GUI.Character is
       User_Data : Manifest.Tools.Item_Description)
    is
    begin
-      Tasks.Download.Contents_Task.Interrupt;
+      GUI.GUI_Tasks.Contents_Task.Interrupt;
 
       --  Emotes are a special case here
       if User_Data.Bucket_Location = Emote_Collection then
@@ -80,7 +80,7 @@ package body GUI.Character is
          Render_Contents (User_Data.Bucket_Location);
       end if;
 
-      Tasks.Download.Contents_Task.Execute (GUI.Base.Image_Callback'Access);
+      GUI.GUI_Tasks.Contents_Task.Execute (GUI.Base.Image_Callback'Access);
 
       Contents.Set_Relative_To (Widget);
       Contents.Popup;
@@ -116,7 +116,7 @@ package body GUI.Character is
       Overlay :=
         Items.Get_Overlay
           (D,
-           Tasks.Download.Character_Task,
+           GUI.GUI_Tasks.Character_Task,
            Items.User_Callback_Item_Description.To_Marshaller
              (Equipped_Clicked_Handler'Access));
       Overlay.Show;
@@ -138,14 +138,14 @@ package body GUI.Character is
         Inventories.Item_Description_Bucket_Location_Type_Array renames
         Inventory (Global_Character_Index).Get_Equipped;
    begin
-      Tasks.Download.Character_Task.Interrupt;
+      GUI.GUI_Tasks.Character_Task.Interrupt;
 
       --  Update Buckets
       Base.Clear_Bucket (Postmaster_Grid);
       Render_Items
         (Character_Items (Postmaster),
          Postmaster_Grid,
-         Tasks.Download.Character_Task,
+         GUI.GUI_Tasks.Character_Task,
          6);
 
       Base.Clear_Bucket (Subclass_Box);
@@ -187,7 +187,7 @@ package body GUI.Character is
       --  TODO: Render engrams?
 
       --  Complete downloads queued by Render calls
-      Tasks.Download.Character_Task.Execute (GUI.Base.Image_Callback'Access);
+      GUI.GUI_Tasks.Character_Task.Execute (GUI.Base.Image_Callback'Access);
    end Render;
    --  Update UI elements for new character
 
@@ -227,7 +227,7 @@ package body GUI.Character is
               (+(Bungie_Root & (+Emblem_Secondary_Icon_Path))));
       else
          Emblem.Set (Placeholder_Emblem);
-         Tasks.Download.Character_Task.Download
+         GUI.GUI_Tasks.Character_Task.Download
            (+(Bungie_Root & (+Emblem_Secondary_Icon_Path)),
             Gtk_Widget (Emblem));
       end if;

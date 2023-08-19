@@ -8,12 +8,13 @@ P3 For Search:
 
 P3 Loadout Support
 P3 No Symbols in Production Build
+P3 Refactor Tasks into API.Tasks and add GUI.Tasks as a proper thing
 
 P4 Farming mode?
 P4 Fix Really Big Foundry Icon Bug
 
 P1 make transfers asynchronous too
+P1 black box security features
 
 P2 Vendor, Activity, Destination browser in separate window
-
 P2 Show flavortexts

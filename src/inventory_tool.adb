@@ -7,7 +7,7 @@ use all type GNAT.Exception_Traces.Trace_Kind;
 with GNAT.Traceback.Symbolic;
 
 --  Local Packages
-with GUI.GUI_Tasks; use GUI.GUI_Tasks;
+with GUI.Tasks;
 
 --  Alire
 with Destiny_Inventory_Tool_Config;
@@ -31,5 +31,5 @@ begin
    GNAT.Exception_Traces.Set_Trace_Decorator
      (GNAT.Traceback.Symbolic.Symbolic_Traceback'Access);
 
-   GUI_Task.Start;
+   GUI.Tasks.GUI_Task.Start;
 end Inventory_Tool;

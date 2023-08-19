@@ -17,7 +17,8 @@ with Shared.JSON;    use Shared.JSON;
 with Shared.Strings; use Shared.Strings;
 with Shared.Debug;
 
-with Tasks.Download;
+with API.Tasks.Synchronous_Download;
+with API.Constants; use API.Constants;
 
 package body API.Memberships is
 
@@ -41,7 +42,8 @@ package body API.Memberships is
       return Result (Result'First + 1 .. Result'Last);
    end Find_Default_Platform_ID;
 
-   function Get_Memberships return Membership_Type is
+   function Get_Memberships (Headers : AWS.Headers.List) return Membership_Type
+   is
 
       Reader : JSON_Simple_Pull_Reader;
       Stream : Memory_UTF8_Input_Stream_Access := new Memory_UTF8_Input_Stream;
@@ -52,10 +54,11 @@ package body API.Memberships is
       Set_Data
         (Stream.all,
          To_Stream_Element_Vector
-           (Tasks.Download.Download
+           (Tasks.Synchronous_Download.Download
               (+(API_Root & "/User/GetMembershipsForCurrentUser/"),
-               Needs_Auth => True,
-               Caching    => Shared.Config.Debug_API)));
+               Headers => Headers,
+               Caching => Shared.Config.Debug_API)
+              .Get));
       Set_Stream (Reader, Input_Text_Stream_Access (Stream));
 
       Wait_Until_Key (Reader, "destinyMemberships");

@@ -3,6 +3,8 @@
 , shared ? import ./shared.nix {}
 }:
 pkgs.mkShell {
+  nativeBuildInputs = shared.nativeCommon;
+
   buildInputs = [
     pkgs.pkgconfig
     pkgs.openssl
@@ -12,7 +14,8 @@ pkgs.mkShell {
   ++ shared.common;
 
   shellHook = ''
-    fish -C "function fish_right_prompt; echo DEV; end"
+    export NIX_ENFORCE_PURITY=0
+    fish -C "function fish_right_prompt; echo ALR; end"
     exit
   '';
 }

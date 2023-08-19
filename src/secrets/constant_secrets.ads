@@ -1,4 +1,6 @@
 package Constant_Secrets is
+   pragma Pure (Constant_Secrets);
+
    --  Constant Auth Data
    Client_Secret : constant String :=
      "bybYT7bJTHfk-IHXNcfSUn54fk8aQXA3tXYaSL71.zs";

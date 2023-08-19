@@ -4,6 +4,7 @@ with Ada.Text_IO; use Ada.Text_IO;
 --  AWS
 with AWS.Client;
 with AWS.Response;
+use AWS;
 
 --  GNATCOLL
 with GNATCOLL.JSON; use GNATCOLL.JSON;
@@ -28,10 +29,10 @@ use type API.Definitions.Quantity_Type;
 with API.Error_Codes;
 use all type API.Error_Codes.Error_Code_Type;
 
+with API.Constants; use API.Constants;
+
 with Shared.Strings; use Shared.Strings;
 with Shared.Debug;   use Shared;
-
-with Secrets; use Secrets;
 
 package body API.Transfers is
    --  Server Check
@@ -195,7 +196,8 @@ package body API.Transfers is
    --  The below subprograms perform both local and remote checks See the
    --  specification for more information
    procedure Vault
-     (Vault_Inventory : Inventories.Global.Global_Inventory_Type;
+     (Auth            : API.Identification.Auth_Type;
+      Vault_Inventory : Inventories.Global.Global_Inventory_Type;
       M               : Manifest.Manifest_Type;
       D               : Manifest.Tools.Item_Description;
       Source          : Profiles.Character_Type)
@@ -255,13 +257,14 @@ package body API.Transfers is
              ':' & D.Item_Instance_ID'Image & ',' & '"' & "characterId" & '"' &
              ':' & ' ' & (+Source.Character_ID) & ',' & '"' &
              "membershipType" & '"' & ':' &
-             Memberships.Find_Default_Platform_ID (Secrets.Membership) & "}",
-           Headers => Secrets.Headers);
+             Memberships.Find_Default_Platform_ID (Auth.Membership) & "}",
+           Headers => Auth.Headers);
       Server_Check (Data);
    end Vault;
 
    procedure Unvault
-     (Character_Inventory : Inventories.Character.Character_Inventory_Type;
+     (Auth                : API.Identification.Auth_Type;
+      Character_Inventory : Inventories.Character.Character_Inventory_Type;
       M                   : Manifest.Manifest_Type;
       D                   : Manifest.Tools.Item_Description;
       Target              : Profiles.Character_Type)
@@ -296,13 +299,14 @@ package body API.Transfers is
              '"' & ':' & D.Item_Instance_ID'Image & ',' & '"' & "characterId" &
              '"' & ':' & ' ' & (+Target.Character_ID) & ',' & '"' &
              "membershipType" & '"' & ':' &
-             Memberships.Find_Default_Platform_ID (Secrets.Membership) & "}",
-           Headers => Secrets.Headers);
+             Memberships.Find_Default_Platform_ID (Auth.Membership) & "}",
+           Headers => Auth.Headers);
       Server_Check (Data);
    end Unvault;
 
    procedure Transfer
-     (Vault_Inventory  : Inventories.Global.Global_Inventory_Type;
+     (Auth             : API.Identification.Auth_Type;
+      Vault_Inventory  : Inventories.Global.Global_Inventory_Type;
       Target_Inventory : Inventories.Character.Character_Inventory_Type;
       M                : Manifest.Manifest_Type;
       D                : Manifest.Tools.Item_Description;
@@ -312,13 +316,14 @@ package body API.Transfers is
       --  Local Check
       --  (No Additonal Checks)
 
-      Vault (Vault_Inventory, M, D, Source);
+      Vault (Auth, Vault_Inventory, M, D, Source);
       delay 0.1; -- Throttle timer
-      Unvault (Target_Inventory, M, D, Target);
+      Unvault (Auth, Target_Inventory, M, D, Target);
    end Transfer;
 
    procedure Postmaster_Pull
-     (Vault_Inventory     : Inventories.Global.Global_Inventory_Type;
+     (Auth                : API.Identification.Auth_Type;
+      Vault_Inventory     : Inventories.Global.Global_Inventory_Type;
       Character_Inventory : Inventories.Character.Character_Inventory_Type;
       M                   : Manifest.Manifest_Type;
       D                   : Manifest.Tools.Item_Description;
@@ -350,13 +355,14 @@ package body API.Transfers is
              '"' & "itemId" & '"' & ':' & D.Item_Instance_ID'Image & ',' &
              '"' & "characterId" & '"' & ':' & ' ' & (+Source.Character_ID) &
              ',' & '"' & "membershipType" & '"' & ':' &
-             Memberships.Find_Default_Platform_ID (Secrets.Membership) & "}",
-           Headers => Secrets.Headers);
+             Memberships.Find_Default_Platform_ID (Auth.Membership) & "}",
+           Headers => Auth.Headers);
       Server_Check (Data);
    end Postmaster_Pull;
 
    procedure Equip
-     (Inventory : Inventories.Character.Character_Inventory_Type;
+     (Auth      : API.Identification.Auth_Type;
+      Inventory : Inventories.Character.Character_Inventory_Type;
       D         : Manifest.Tools.Item_Description;
       Source    : Profiles.Character_Type)
    is
@@ -379,9 +385,9 @@ package body API.Transfers is
              "{" & '"' & "itemId" & '"' & ':' & D.Item_Instance_ID'Image &
              ',' & '"' & "characterId" & '"' & ':' & ' ' &
              (+Source.Character_ID) & ',' & '"' & "membershipType" & '"' &
-             ':' & Memberships.Find_Default_Platform_ID (Secrets.Membership) &
+             ':' & Memberships.Find_Default_Platform_ID (Auth.Membership) &
              "}",
-           Headers => Secrets.Headers);
+           Headers => Auth.Headers);
       Server_Check (Data);
    end Equip;
 

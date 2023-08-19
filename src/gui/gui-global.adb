@@ -16,6 +16,7 @@ with Glib;         use Glib;
 with GUI.Handlers;
 with GUI.Base;
 with GUI.Items;
+with GUI.GUI_Tasks; use GUI.GUI_Tasks;
 
 with GUI.Elements.Global; use GUI.Elements.Global;
 
@@ -27,8 +28,6 @@ with API.Definitions.Hashes;
 
 with Shared.Files;
 with Shared.Strings; use Shared.Strings;
-
-with Tasks.Download;
 
 with Secrets; use Secrets;
 
@@ -51,8 +50,8 @@ package body GUI.Global is
    procedure Render_Items
      (List     : Inventories.Item_Description_List;
       Bucket   : Gtk_Grid;
-      Max_Left : Gint                         := 2;
-      T        : Tasks.Download.Download_Task := Tasks.Download.Global_Task)
+      Max_Left : Gint                            := 2;
+      T        : GUI_Download_Task.Download_Task := GUI.GUI_Tasks.Global_Task)
    is
    begin
       Items.Render_Items (List, Bucket, T, Max_Left);
@@ -89,7 +88,7 @@ package body GUI.Global is
 
             else
                Image.Set (Placeholder_Icon);
-               Tasks.Download.Global_Task.Download
+               GUI.GUI_Tasks.Global_Task.Download
                  (+(Bungie_Root & (+Emblem_Secondary_Overlay)),
                   Gtk_Widget (Image));
             end if;
@@ -153,7 +152,7 @@ package body GUI.Global is
 
             else
                Image.Set (Placeholder_Icon);
-               Tasks.Download.Global_Task.Download
+               GUI.GUI_Tasks.Global_Task.Download
                  (+(Bungie_Root & (+Emblem_Secondary_Overlay)),
                   Gtk_Widget (Image));
             end if;
@@ -182,7 +181,7 @@ package body GUI.Global is
            (Global_Pixbuf_Cache ((+(Bungie_Root & (+Vault_Icon_Path)))));
       else
          Vault_Image.Set (Placeholder_Icon);
-         Tasks.Download.Global_Task.Download
+         GUI.GUI_Tasks.Global_Task.Download
            (+(Bungie_Root & (+Vault_Icon_Path)), Gtk_Widget (Vault_Image));
       end if;
       Vault_Image.Show;
@@ -216,7 +215,7 @@ package body GUI.Global is
         Inventories.Item_Description_List_Bucket_Location_Type_Array renames
         Inventory.Get_Sorted;
    begin
-      Tasks.Download.Global_Task.Interrupt;
+      GUI.GUI_Tasks.Global_Task.Interrupt;
 
       Base.Clear_Bucket (Vault_Kinetic);
       Base.Clear_Bucket (Vault_Energy);
@@ -253,7 +252,7 @@ package body GUI.Global is
       Render_Items (Vault_Inventory (Unknown), Vault_Other, 10);
 
       --  Complete downloads queued by Render calls
-      Tasks.Download.Global_Task.Execute (GUI.Base.Image_Callback'Access);
+      GUI.GUI_Tasks.Global_Task.Execute (GUI.Base.Image_Callback'Access);
    end Render;
 
    --  Global Update_Inventory

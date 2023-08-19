@@ -15,6 +15,7 @@ with GUI.Character;
 with GUI.Global;
 with GUI.Base;
 with GUI.Items;
+with GUI.GUI_Tasks; use GUI.GUI_Tasks;
 
 with GUI.Elements.Handlers; use GUI.Elements.Handlers;
 
@@ -40,8 +41,6 @@ with API.Inventories.Global; use API;
 
 with Shared.Strings; use Shared.Strings;
 with Shared.Debug;   use Shared;
-
-with Tasks.Download;
 
 package body GUI.Handlers is
    --  Global Handlers (Private)
@@ -122,7 +121,7 @@ package body GUI.Handlers is
          GUI.Character.Update_For_Character
            (GUI.Character.Current_Character_Index);
 
-         Tasks.Download.Global_Task.Execute (Base.Event_Image_Callback'Access);
+         GUI.GUI_Tasks.Global_Task.Execute (Base.Event_Image_Callback'Access);
          --  This is an event handler, so it isn’t possible to pause the GUI task
          --  from here (it would hang indefinitely). Instead use the thread-unsafe
          --  variant because we are in the thread that would be impacted anyway :)

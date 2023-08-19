@@ -1,4 +1,5 @@
 pragma Ada_2022;
+
 with Ada.Streams.Stream_IO; use Ada.Streams;
 with Ada.Directories;       use Ada.Directories;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
@@ -12,6 +13,7 @@ with AWS.Response;
 with AWS.Status; use AWS.Status;
 with AWS.Messages;
 with AWS.Net;
+use AWS;
 
 --  GNAT
 with GNAT.OS_Lib;
@@ -22,13 +24,19 @@ with GNATCOLL.JSON; use GNATCOLL.JSON;
 --  Local Packages
 with Shared.Strings; use Shared.Strings;
 with Shared.Debug;   use Shared;
-with Tasks.Download;
-with Constant_Secrets;
+with API.Tasks.Synchronous_Download;
 
-package body API.Authorise is
+package body API.Tasks.Authorise is
+   --  Types
+   type Auth_Storage_Type is record
+      Access_Token  : Unbounded_String;
+      Refresh_Token : Unbounded_String;
+   end record;
 
+   --  Shared State / Nonce Value
    Local_State : Unbounded_String;
 
+   --  Impl for a Protected Callback
    protected Authorise_Object is
       procedure Set_Code (Input : String);
       entry Get_Code (Result : out Unbounded_String);
@@ -59,8 +67,8 @@ package body API.Authorise is
       end Reset;
 
    end Authorise_Object;
-   --  Subprograms
 
+   --  Thread-Local Callback
    function Code_Callback (Request : Status.Data) return Response.Data is
    begin
       if Status.Method (Request) = Status.GET then
@@ -78,6 +86,7 @@ package body API.Authorise is
       end if;
    end Code_Callback;
 
+   --  Primary Code Fetching
    function Get_Code return Unbounded_String is
 
       WS   : Server.HTTP;
@@ -101,11 +110,11 @@ package body API.Authorise is
       when AWS.Net.Socket_Error =>
          Put_Line
            (Standard_Error,
-            "[API.Authorise] Failed to bind port 8888. Cannot authenticate. Check if a firewall is preventing the connection, or if there is no cert.pem file in dat/");
+            "[API.Tasks.Authorise] Failed to bind port 8888. Cannot authenticate. Check if a firewall is preventing the connection, or if there is no cert.pem file in dat/");
          GNAT.OS_Lib.OS_Exit (-1);
    end Get_Code;
-   --  Parse JSON
 
+   --  Parse JSON from code response
    function Parse_JSON
      (Message_Body : Unbounded_String) return Auth_Storage_Type
    is
@@ -113,12 +122,12 @@ package body API.Authorise is
    begin
       return
         (Data.Get ("access_token"),
-         Data.Get ("refresh_token"),
-         Data.Get ("membership_id"));
+         Data.Get ("refresh_token"));
    end Parse_JSON;
 
+   --  Fetch the access token and a new refresh token
    function Get_Token
-     (Refresh_Token : Unbounded_String) return Auth_Storage_Type
+     (Refresh_Token : Unbounded_String; Client_Secret : String; Client_ID : String) return Auth_Storage_Type
    is
 
       Data : Response.Data;
@@ -131,17 +140,31 @@ package body API.Authorise is
            Data =>
              "grant_type=refresh_token" & "&refresh_token=" &
              To_String (Refresh_Token) & "&client_id=" &
-             Constant_Secrets.Client_ID & "&client_secret=" &
-             Constant_Secrets.Client_Secret,
+             Client_ID & "&client_secret=" &
+             Client_Secret,
            Content_Type => "application/x-www-form-urlencoded");
       --              Debug.Put_Line (Response.Message_Body (Data));
 
-      Tasks.Download.Check_Status (Data);
+      API.Tasks.Synchronous_Download.Check_Status (Data);
       return Parse_JSON (Response.Message_Body (Data));
    end Get_Token;
 
+   --  Create Auth Headers from API Key and Access Token
+   function Create_Headers
+     (Access_Token : Unbounded_String;
+      API_Key      : String)
+      return AWS.Headers.List
+   is
+      List : AWS.Headers.List;
+   begin
+      List.Add ("Authorization", "Bearer " & (+Access_Token));
+      List.Add ("X-API-Key", API_Key);
+      return List;
+   end Create_Headers;
+
+   --  Initial refresh and access token by auth code
    function Get_Initial_Token
-     (Code : Unbounded_String) return Auth_Storage_Type
+     (Code : Unbounded_String; Client_Secret : String; Client_ID : String) return Auth_Storage_Type
    is
 
       Data : Response.Data;
@@ -153,16 +176,18 @@ package body API.Authorise is
           (URL  => OAuth_Token_Endpoint,
            Data =>
              "grant_type=authorization_code" & "&code=" & To_String (Code) &
-             "&client_id=" & Constant_Secrets.Client_ID & "&client_secret=" &
-             Constant_Secrets.Client_Secret,
+             "&client_id=" & Client_ID & "&client_secret=" &
+             Client_Secret,
            Content_Type => "application/x-www-form-urlencoded");
       --              Debug.Put_Line (Response.Message_Body (Data));
 
-      Tasks.Download.Check_Status (Data);
+      API.Tasks.Synchronous_Download.Check_Status (Data);
       return Parse_JSON (Response.Message_Body (Data));
    end Get_Initial_Token;
 
-   function Do_Authorise (State : String) return Auth_Storage_Type is
+   function Do_Authorise
+     (State : String; Client_Secret : String; API_Key : String; Client_ID : String) return AWS.Headers.List
+   is
 
       Auth_Storage : Auth_Storage_Type;
 
@@ -171,14 +196,12 @@ package body API.Authorise is
 
       if Exists ("dat/refresh.dat") then -- Load token
          Debug.Put_Line ("Load token");
+
          --  Load refresh token
-
          declare
-
             SF            : Stream_IO.File_Type;
             S             : Stream_IO.Stream_Access;
             Refresh_Token : Unbounded_String;
-
          begin
             Stream_IO.Open
               (SF, Mode => Stream_IO.In_File, Name => "dat/refresh.dat");
@@ -186,15 +209,15 @@ package body API.Authorise is
             Unbounded_String'Read (S, Refresh_Token);
             Stream_IO.Close (SF);
             --  Refresh both tokens
-            Auth_Storage := Get_Token (Refresh_Token);
+            Auth_Storage := Get_Token (Refresh_Token, Client_Secret, Client_ID);
          end;
-
       else -- Fetch token
          Debug.Put_Line ("Fetch token");
          --  Get Authorisation Code
          --  Get Access Token and Refresh Token
-         Auth_Storage := Get_Initial_Token (Get_Code);
+         Auth_Storage := Get_Initial_Token (Get_Code, Client_Secret, Client_ID);
       end if;
+
       --  Save refresh token
       Debug.Put_Line ("Save refresh token");
       Save_Refresh_Token :
@@ -215,7 +238,7 @@ package body API.Authorise is
             Unbounded_String'Write (S, Auth_Storage.Refresh_Token);
             Stream_IO.Close (SF);
          end Save_Refresh_Token;
-      return Auth_Storage;
-   end Do_Authorise;
 
-end API.Authorise;
+      return Create_Headers (Auth_Storage.Access_Token, API_Key);
+   end Do_Authorise;
+end API.Tasks.Authorise;

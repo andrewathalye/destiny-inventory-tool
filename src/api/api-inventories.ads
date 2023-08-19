@@ -30,7 +30,6 @@ package API.Inventories is
    type Destiny_Inventory_Type is interface;
 
    --  Associated Subprograms
-
    --------------------------
    -- Inventory Management --
    --------------------------

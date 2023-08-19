@@ -48,8 +48,7 @@ Ada is a somewhat niche language, and GUI programming / game-related work is sel
 If you have a feature to suggest though or some prototype code, no matter the language, please open
 an Issue or Pull Request so that it can be incorporated.
 
-The project can also take code in C++, C, Rust, etc., provided that you can make C or C++ bindings for it
-and integrate the build system into Alire.
+The project can also take code in C++, C, Rust, etc., provided that you can make C or C++ bindings for it.
 
 Forks
 -----

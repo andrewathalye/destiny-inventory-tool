@@ -5,7 +5,7 @@ library project Bindings is
    for Create_Missing_Dirs use "True";
    for Library_Name use "bindings";
    for Library_Dir use "../lib/bindings/";
-   for Library_Kind use "static-pic";
+   for Library_Kind use "relocatable";
 
    package Compiler is
       for Default_Switches ("Ada") use ("-O3", "-gnatB", "-gnatp", "-gnatwa", "-gnatwe", "-gnatyy-s");

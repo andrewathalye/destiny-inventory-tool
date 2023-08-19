@@ -7,6 +7,8 @@ with VSS.Strings;
 with VSS.Strings.Conversions;
 
 package Shared.Strings is
+   pragma Preelaborate (Shared.Strings);
+
    --  Hashed Map Functions
    function Hash (Key : Unbounded_String) return Ada.Containers.Hash_Type is
      (Ada.Strings.Hash (To_String (Key)));

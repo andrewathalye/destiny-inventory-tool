@@ -18,7 +18,12 @@ with GUI.Elements;
 with Shared.Debug;
 with Shared.Config;
 
-package body GUI.GUI_Tasks is
+package body GUI.Tasks is
+   procedure Reference (Widget : Gtk_Widget) is
+   begin
+      Widget.Ref;
+   end Reference;
+
    --  Tasks
    task body GUI_Task is
       Discard_B : Boolean;
@@ -72,4 +77,4 @@ package body GUI.GUI_Tasks is
          end loop Main_Loop;
    end GUI_Task;
 
-end GUI.GUI_Tasks;
+end GUI.Tasks;

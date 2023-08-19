@@ -48,10 +48,4 @@ package API.Manifest is
       --  DestinySocketTypeDefinition
       --  DestinyProgressionDefinition
    end record;
-
-   --  Subprograms
-   function Get_Manifest return Manifest_Type;
-
-private
-   Current_Manifest_Format_Version : constant := 6;
 end API.Manifest;

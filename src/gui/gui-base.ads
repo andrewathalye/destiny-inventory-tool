@@ -3,7 +3,7 @@ with Gtk.Grid; use Gtk.Grid;
 with Gtk.Box;  use Gtk.Box;
 
 --  Local Packages
-with Tasks.Download;
+with GUI.GUI_Tasks; use GUI.GUI_Tasks;
 
 package GUI.Base is
    --  Subprograms
@@ -24,11 +24,11 @@ package GUI.Base is
    --  Note: To be used with Tasks.Download.Download_Task
    --  This sends data back to the GUI thread so we can apply it to images etc.
    procedure Image_Callback
-     (Cache : in out Tasks.Download.Download_Cache_Type);
+     (Cache : in out GUI_Download_Task.Download_Cache_Type);
 
    --  Note: This is the same as above _but_ does not pause the GUI task.
    --  This means it should only be used before the main loop begins or during
    --  a GTK event handler (when the GUI task cannot rendezvous with the Download Tasks)
    procedure Event_Image_Callback
-     (Cache : in out Tasks.Download.Download_Cache_Type);
+     (Cache : in out GUI_Download_Task.Download_Cache_Type);
 end GUI.Base;

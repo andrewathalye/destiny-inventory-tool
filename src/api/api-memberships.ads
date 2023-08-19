@@ -1,6 +1,9 @@
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Containers.Vectors;
 
+--  AWS
+with AWS.Headers;
+
 package API.Memberships is
    --  Types
    type Bungie_Platform_Type is
@@ -37,5 +40,12 @@ package API.Memberships is
    function Find_Default_Platform
      (M : Membership_Type) return Bungie_Platform_Type;
    function Find_Default_Platform_ID (M : Membership_Type) return String;
-   function Get_Memberships return Membership_Type;
+
+   --  Acquisition
+   function Get_Memberships
+     (Headers : AWS.Headers.List) return Membership_Type;
+   --  Get a Membership_Type using authentication headers from Headers
+   --  In most cases, the next step is to combine Headers and Membership using
+   --  API.Identification to obtain an Auth_Type record, which is accepted
+   --  by all other endpoints for identification
 end API.Memberships;
