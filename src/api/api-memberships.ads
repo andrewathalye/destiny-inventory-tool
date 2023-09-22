@@ -1,9 +1,6 @@
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Containers.Vectors;
 
---  AWS
-with AWS.Headers;
-
 package API.Memberships is
    --  Types
    type Bungie_Platform_Type is
@@ -17,6 +14,7 @@ package API.Memberships is
       Membership_ID          : Unbounded_String;
       --  Fields omitted
    end record;
+
    package GUIC_Vector is new Ada.Containers.Vectors
      (Natural, Group_User_Info_Card_Type);
    subtype Group_User_Info_Card_Vector is GUIC_Vector.Vector;
@@ -31,21 +29,21 @@ package API.Memberships is
 
    type Membership_Type is record
       Destiny_Memberships   : Group_User_Info_Card_Vector;
-      Primary_Membership_ID : Unbounded_String :=
-        Null_Unbounded_String; -- For platform profile
+      Primary_Membership_ID : Unbounded_String; --  Nullable
       Bungie_Net_User : Bungie_Net_User_Type;
    end record;
 
    --  Subprograms
    function Find_Default_Platform
      (M : Membership_Type) return Bungie_Platform_Type;
-   function Find_Default_Platform_ID (M : Membership_Type) return String;
+   --  Return the primary platform associated with the given
+   --  Membership. This platform cannot be used directly for
+   --  API calls, but may be compared against any other platform
+   --  data obtained via API calls.
 
-   --  Acquisition
-   function Get_Memberships
-     (Headers : AWS.Headers.List) return Membership_Type;
-   --  Get a Membership_Type using authentication headers from Headers
-   --  In most cases, the next step is to combine Headers and Membership using
-   --  API.Identification to obtain an Auth_Type record, which is accepted
-   --  by all other endpoints for identification
+   function Find_Default_Platform_ID (M : Membership_Type) return String;
+   --  Returns the numeric value of Bungie_Platform_Type corresponding
+   --  to the given Membership. This value is represented as a String
+   --  for ease of use with API calls.
+
 end API.Memberships;

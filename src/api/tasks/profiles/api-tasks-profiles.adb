@@ -25,7 +25,7 @@ with API.Profiles.Read_Item_Components;
 
 with API.Constants; use API.Constants;
 
-package body API.Profiles is
+package body API.Tasks.Profiles is
    --  Note: Position Reader before START_OBJECT
    procedure Read_String_Variables
      (Reader : in out JSON_Simple_Pull_Reader;
@@ -82,7 +82,7 @@ package body API.Profiles is
      (Reader  : in out JSON_Simple_Pull_Reader;
       Loadout :    out Loadout_Type) is separate;
 
-   function Get_Profile
+   function Get
      (Auth : API.Identification.Auth_Type) return Profile_Type
    is
 
@@ -270,6 +270,6 @@ package body API.Profiles is
 
       Free (Stream);
       return Result;
-   end Get_Profile;
+   end Get;
 
-end API.Profiles;
+end API.Tasks.Profiles;

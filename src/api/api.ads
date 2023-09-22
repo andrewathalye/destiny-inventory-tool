@@ -6,5 +6,5 @@ package API is
    --  API.Identification -> Auth_Type
    --  API.Tasks.Manifest -> Manifest_Type
    --  API.Tasks.Profiles -> Profile_Type
-   --  [API.Transfers, API.Manifest.Tools, etc.]
+   --  [any other packages as desired]
 end API;

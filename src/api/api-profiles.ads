@@ -12,8 +12,6 @@ with API.Memberships; use API.Memberships;
 with API.Definitions;        use API.Definitions;
 with API.Definitions.Hashes; use API.Definitions.Hashes;
 
-with API.Identification;
-
 with API.Definitions.Destiny_Inventory_Bucket;
 use API.Definitions.Destiny_Inventory_Bucket;
 with API.Definitions.Destiny_Inventory_Item;
@@ -249,6 +247,4 @@ package API.Profiles is
       Item_Components : Item_Components_Type;
    end record;
 
-   function Get_Profile
-     (Auth : API.Identification.Auth_Type) return Profile_Type;
 end API.Profiles;
