@@ -1,5 +1,5 @@
 { pkgs ? import <nixpkgs> {}
-, nix ? import ../../nix {}
+, nix ? import ../../nix-ada {}
 , shared ? import ./shared.nix {}
 }:
 pkgs.mkShell {

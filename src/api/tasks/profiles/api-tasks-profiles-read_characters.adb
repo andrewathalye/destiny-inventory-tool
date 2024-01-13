@@ -1,5 +1,16 @@
-separate (API.Profiles)
-procedure Read_Characters
+with VSS.JSON.Pull_Readers.Simple;
+use VSS.JSON.Pull_Readers.Simple;
+use VSS.JSON.Pull_Readers;
+use VSS.JSON;
+
+with Shared.Strings; use Shared.Strings;
+with Shared.JSON; use Shared.JSON;
+
+with API.Definitions.Hashes;
+   use API.Definitions.Hashes;
+   use API.Definitions;
+
+procedure API.Tasks.Profiles.Read_Characters
   (Reader : in out JSON_Simple_Pull_Reader; List : out Character_List)
 is
 begin
@@ -92,4 +103,4 @@ begin
          exit;
       end if;
    end loop;
-end Read_Characters;
+end API.Tasks.Profiles.Read_Characters;

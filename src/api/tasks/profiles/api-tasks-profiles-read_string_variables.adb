@@ -1,5 +1,15 @@
-separate (API.Profiles)
-procedure Read_String_Variables
+with Interfaces; use Interfaces;
+
+--  VSS
+with VSS.JSON.Pull_Readers.Simple;
+   use VSS.JSON.Pull_Readers.Simple;
+   use VSS.JSON.Pull_Readers;
+   use VSS.JSON;
+
+--  Local Packages
+with Shared.Strings; use Shared.Strings;
+
+procedure API.Tasks.Profiles.Read_String_Variables
   (Reader : in out JSON_Simple_Pull_Reader; Map : out String_Variable_Map)
 is
    Key : Unsigned_32;
@@ -22,4 +32,4 @@ begin
 
          Read_Next (Reader); -- KEY_NAME or END_OBJECT
       end loop Read_Variable;
-end Read_String_Variables;
+end API.Tasks.Profiles.Read_String_Variables;

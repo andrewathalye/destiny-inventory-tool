@@ -1,9 +1,21 @@
-separate (API.Profiles)
-function Read_Item (Reader : in out JSON_Simple_Pull_Reader) return Item_Type
+with Interfaces; use Interfaces;
+
+with VSS.JSON.Pull_Readers.Simple;
+use VSS.JSON.Pull_Readers.Simple;
+use VSS.JSON.Pull_Readers;
+use VSS.JSON;
+
+with Shared.Strings; use Shared.Strings;
+
+with API.Definitions.Hashes;
+with API.Definitions.Destiny_Inventory_Bucket;
+   use API.Definitions.Destiny_Inventory_Bucket;
+   use API.Definitions.Hashes;
+   use API.Definitions;
+
+function API.Tasks.Profiles.Read_Item (Reader : in out JSON_Simple_Pull_Reader) return Item_Type
 is
-
    Item : Item_Type;
-
 begin
    Read_Next (Reader); -- "itemHash"
    Read_Next (Reader);
@@ -122,4 +134,4 @@ begin
    end if;
 
    return Item;
-end Read_Item;
+end API.Tasks.Profiles.Read_Item;

@@ -15,7 +15,7 @@ with GUI.Character;
 with GUI.Global;
 with GUI.Base;
 with GUI.Items;
-with GUI.GUI_Tasks; use GUI.GUI_Tasks;
+with GUI.Tasks; use GUI.Tasks;
 
 with GUI.Elements.Handlers; use GUI.Elements.Handlers;
 
@@ -98,7 +98,8 @@ package body GUI.Handlers is
       Debug.Put_Line ("Equip a non-transferrable item");
 
       Transfers.Equip
-        (Inventory =>
+        (Auth => Identification,
+         Inventory =>
            GUI.Character.Inventory (GUI.Character.Current_Character_Index),
          D      => GUI.Current_Item,
          Source => GUI.Character.Current_Character);
@@ -121,7 +122,7 @@ package body GUI.Handlers is
          GUI.Character.Update_For_Character
            (GUI.Character.Current_Character_Index);
 
-         GUI.GUI_Tasks.Global_Task.Execute (Base.Event_Image_Callback'Access);
+         GUI.Tasks.Global_Task.Execute (Base.Event_Image_Callback'Access);
          --  This is an event handler, so it isn’t possible to pause the GUI task
          --  from here (it would hang indefinitely). Instead use the thread-unsafe
          --  variant because we are in the thread that would be impacted anyway :)
@@ -198,10 +199,11 @@ package body GUI.Handlers is
 
          begin
             Transfers.Unvault
-              (GUI.Character.Inventory (GUI.Character.Current_Character_Index),
-               GUI.The_Manifest,
-               GUI.Current_Item,
-               Target);
+              (Auth => Identification,
+            Character_Inventory => GUI.Character.Inventory (GUI.Character.Current_Character_Index),
+               M => GUI.The_Manifest,
+               D => GUI.Current_Item,
+               Target => Target);
          exception
             when Transfers.No_Room_In_Destination =>
                GUI.Base.Error_Message
@@ -230,11 +232,12 @@ package body GUI.Handlers is
 
          begin
             Transfers.Postmaster_Pull
-              (GUI.Global.Inventory,
-               GUI.Character.Inventory (GUI.Character.Current_Character_Index),
-               GUI.The_Manifest,
-               GUI.Current_Item,
-               GUI.Character.Current_Character);
+              (Auth => Identification,
+            Vault_Inventory => GUI.Global.Inventory,
+               Character_Inventory => GUI.Character.Inventory (GUI.Character.Current_Character_Index),
+               M => GUI.The_Manifest,
+               D => GUI.Current_Item,
+               Source => GUI.Character.Current_Character);
          exception
             when Transfers.No_Room_In_Destination =>
                GUI.Base.Error_Message
@@ -246,12 +249,13 @@ package body GUI.Handlers is
          if GUI.Character.Current_Character /= Target then
             begin
                Transfers.Transfer
-                 (GUI.Global.Inventory,
-                  Target_Inventory,
-                  GUI.The_Manifest,
-                  GUI.Current_Item,
-                  GUI.Character.Current_Character,
-                  Target);
+                 (Auth => Identification,
+                  Vault_Inventory => GUI.Global.Inventory,
+                  Target_Inventory => Target_Inventory,
+                  M => GUI.The_Manifest,
+                  D => GUI.Current_Item,
+                  Source => GUI.Character.Current_Character,
+                  Target => Target);
             exception -- The previous action cannot be undone, so keep going
                when Transfers.No_Room_In_Destination =>
                   Debug.Put_Line
@@ -281,9 +285,10 @@ package body GUI.Handlers is
 
          begin
             Transfers.Equip
-              (GUI.Character.Inventory (GUI.Character.Current_Character_Index),
-               GUI.Current_Item,
-               Target);
+              (Auth => Identification,
+          Inventory => GUI.Character.Inventory (GUI.Character.Current_Character_Index),
+               D => GUI.Current_Item,
+               Source => Target);
          exception
             when Transfers.Item_Unique_Equip_Restricted =>
                Base.Error_Message
@@ -305,7 +310,8 @@ package body GUI.Handlers is
 
       begin
          Transfers.Transfer
-           (GUI.Global.Inventory,
+           (Identification,
+         GUI.Global.Inventory,
             Target_Inventory,
             GUI.The_Manifest,
             GUI.Current_Item,
@@ -341,7 +347,8 @@ package body GUI.Handlers is
          Debug.Put_Line ("Item was in Postmaster: pulling first");
          begin
             Transfers.Postmaster_Pull
-              (GUI.Global.Inventory,
+              (Identification,
+             GUI.Global.Inventory,
                GUI.Character.Inventory (GUI.Character.Current_Character_Index),
                GUI.The_Manifest,
                GUI.Current_Item,
@@ -356,7 +363,8 @@ package body GUI.Handlers is
 
       begin
          Transfers.Vault
-           (GUI.Global.Inventory,
+           (Identification,
+            GUI.Global.Inventory,
             GUI.The_Manifest,
             GUI.Current_Item,
             GUI.Character.Current_Character);

@@ -24,9 +24,20 @@ with GNATCOLL.JSON; use GNATCOLL.JSON;
 --  Local Packages
 with Shared.Strings; use Shared.Strings;
 with Shared.Debug;   use Shared;
+
 with API.Tasks.Synchronous_Download;
+with API.Constants;
+
+with Constant_Secrets; use Constant_Secrets;
 
 package body API.Tasks.Authorise is
+   --  Constants
+   OAuth_Authorise_Endpoint : constant String :=
+     API.Constants.Bungie_Root & "/en/oauth/authorize";
+
+   OAuth_Token_Endpoint : constant String :=
+     API.Constants.Bungie_Root & "/platform/app/oauth/token/";
+
    --  Types
    type Auth_Storage_Type is record
       Access_Token  : Unbounded_String;
@@ -185,8 +196,7 @@ package body API.Tasks.Authorise is
       return Parse_JSON (Response.Message_Body (Data));
    end Get_Initial_Token;
 
-   function Do_Authorise
-     (State : String; Client_Secret : String; API_Key : String; Client_ID : String) return AWS.Headers.List
+   function Do_Authorise (State : String) return AWS.Headers.List
    is
 
       Auth_Storage : Auth_Storage_Type;
@@ -241,4 +251,10 @@ package body API.Tasks.Authorise is
 
       return Create_Headers (Auth_Storage.Access_Token, API_Key);
    end Do_Authorise;
+
+   function Get_URL (State : String) return String is
+   (OAuth_Authorise_Endpoint
+    & "?client_id=" & Constant_Secrets.Client_ID
+    & "&response_type=code"
+    & "&state=" & State);
 end API.Tasks.Authorise;

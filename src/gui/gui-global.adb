@@ -16,7 +16,7 @@ with Glib;         use Glib;
 with GUI.Handlers;
 with GUI.Base;
 with GUI.Items;
-with GUI.GUI_Tasks; use GUI.GUI_Tasks;
+with GUI.Tasks; use GUI.Tasks;
 
 with GUI.Elements.Global; use GUI.Elements.Global;
 
@@ -25,11 +25,10 @@ with API.Manifest.Tools;
 use all type API.Manifest.Tools.Bucket_Location_Type;
 
 with API.Definitions.Hashes;
+with API.Constants;
 
 with Shared.Files;
 with Shared.Strings; use Shared.Strings;
-
-with Secrets; use Secrets;
 
 package body GUI.Global is
    --  Instantiations
@@ -51,7 +50,7 @@ package body GUI.Global is
      (List     : Inventories.Item_Description_List;
       Bucket   : Gtk_Grid;
       Max_Left : Gint                            := 2;
-      T        : GUI_Download_Task.Download_Task := GUI.GUI_Tasks.Global_Task)
+      T        : Download_Tasks.Download_Task := GUI.Tasks.Global_Task)
    is
    begin
       Items.Render_Items (List, Bucket, T, Max_Left);
@@ -84,12 +83,12 @@ package body GUI.Global is
             if Global_Pixbuf_Cache.Contains (Emblem_Secondary_Overlay) then
                Image.Set
                  (Global_Pixbuf_Cache.Element
-                    (+(Bungie_Root & (+Emblem_Secondary_Overlay))));
+                    (+(API.Constants.Bungie_Root & (+Emblem_Secondary_Overlay))));
 
             else
                Image.Set (Placeholder_Icon);
-               GUI.GUI_Tasks.Global_Task.Download
-                 (+(Bungie_Root & (+Emblem_Secondary_Overlay)),
+               GUI.Tasks.Global_Task.Download
+                 (+(API.Constants.Bungie_Root & (+Emblem_Secondary_Overlay)),
                   Gtk_Widget (Image));
             end if;
 
@@ -144,16 +143,16 @@ package body GUI.Global is
 
             --  Load emblem
             if Global_Pixbuf_Cache.Contains
-                (+(Bungie_Root & (+Emblem_Secondary_Overlay)))
+                (+(API.Constants.Bungie_Root & (+Emblem_Secondary_Overlay)))
             then
                Image.Set
                  (Global_Pixbuf_Cache.Element
-                    (+(Bungie_Root & (+Emblem_Secondary_Overlay))));
+                    (+(API.Constants.Bungie_Root & (+Emblem_Secondary_Overlay))));
 
             else
                Image.Set (Placeholder_Icon);
-               GUI.GUI_Tasks.Global_Task.Download
-                 (+(Bungie_Root & (+Emblem_Secondary_Overlay)),
+               GUI.Tasks.Global_Task.Download
+                 (+(API.Constants.Bungie_Root & (+Emblem_Secondary_Overlay)),
                   Gtk_Widget (Image));
             end if;
 
@@ -175,14 +174,14 @@ package body GUI.Global is
 
       --  Vault Icon and Button
       Gtk_New (Vault_Image);
-      if Global_Pixbuf_Cache.Contains (+(Bungie_Root & (+Vault_Icon_Path)))
+      if Global_Pixbuf_Cache.Contains (+(API.Constants.Bungie_Root & (+Vault_Icon_Path)))
       then
          Vault_Image.Set
-           (Global_Pixbuf_Cache ((+(Bungie_Root & (+Vault_Icon_Path)))));
+           (Global_Pixbuf_Cache ((+(API.Constants.Bungie_Root & (+Vault_Icon_Path)))));
       else
          Vault_Image.Set (Placeholder_Icon);
-         GUI.GUI_Tasks.Global_Task.Download
-           (+(Bungie_Root & (+Vault_Icon_Path)), Gtk_Widget (Vault_Image));
+         GUI.Tasks.Global_Task.Download
+           (+(API.Constants.Bungie_Root & (+Vault_Icon_Path)), Gtk_Widget (Vault_Image));
       end if;
       Vault_Image.Show;
 
@@ -215,7 +214,7 @@ package body GUI.Global is
         Inventories.Item_Description_List_Bucket_Location_Type_Array renames
         Inventory.Get_Sorted;
    begin
-      GUI.GUI_Tasks.Global_Task.Interrupt;
+      GUI.Tasks.Global_Task.Interrupt;
 
       Base.Clear_Bucket (Vault_Kinetic);
       Base.Clear_Bucket (Vault_Energy);
@@ -252,14 +251,14 @@ package body GUI.Global is
       Render_Items (Vault_Inventory (Unknown), Vault_Other, 10);
 
       --  Complete downloads queued by Render calls
-      GUI.GUI_Tasks.Global_Task.Execute (GUI.Base.Image_Callback'Access);
+      GUI.Tasks.Global_Task.Execute (GUI.Base.Image_Callback'Access);
    end Render;
 
    --  Global Update_Inventory
    procedure Update_GUI is
    begin
       --  Update username
-      Set_Label (Name, +Secrets.Membership.Bungie_Net_User.Unique_Name);
+      Set_Label (Name, +Identification.Membership.Bungie_Net_User.Unique_Name);
 
       --  One-time setup per profile
       Setup_Transfer_Menu;

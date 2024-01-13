@@ -55,6 +55,8 @@ with API.Definitions.Destiny_Place;
 with API.Definitions.Destiny_Activity;
 
 package body API.Tasks.Manifest is
+   Current_Manifest_Format_Version : constant Natural := 7;
+
    function Fetch
      (Localised_Manifest_Path : Unbounded_String) return Manifest_Type
    is
@@ -260,7 +262,7 @@ package body API.Tasks.Manifest is
       --  Delete_File (Database_Path);
    end Fetch;
 
-   function Get (Headers : AWS.Headers.List) return Manifest_Type is
+   function Get (Identification : API.Identification.Auth_Type) return Manifest_Type is
       --  Storage
       Current_Manifest_Version : Unbounded_String;
       Localised_Manifest_Path  : Unbounded_String;
@@ -280,7 +282,7 @@ package body API.Tasks.Manifest is
          To_Stream_Element_Vector
            (Tasks.Synchronous_Download.Download
               (+(API_Root & "/Destiny2/Manifest/"),
-               Headers => Headers,
+               Headers => Identification.Headers,
                Caching => Shared.Config.Debug_API)
               .Get));
       Set_Stream (Reader, Input_Text_Stream_Access (Stream));

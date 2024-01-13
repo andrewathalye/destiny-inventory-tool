@@ -6,6 +6,7 @@ private with Ada.Streams;
 private with Gdk.Pixbuf;
 
 --  Local Packages
+with API.Identification;
 with API.Profiles;
 with API.Manifest; use API;
 
@@ -17,8 +18,9 @@ package GUI is
 
    --  Before use, execute GUI.Base.Reload_Data Undefined behaviour will occur
    --  otherwise
-   Profile      : Profiles.Profile_Type;
-   The_Manifest : Manifest.Manifest_Type;
+   Identification : API.Identification.Auth_Type;
+   Profile        : Profiles.Profile_Type;
+   The_Manifest   : Manifest.Manifest_Type;
 private
    use Ada.Streams;
    use Gdk.Pixbuf;

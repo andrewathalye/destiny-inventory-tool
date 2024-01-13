@@ -5,11 +5,15 @@ with VSS.JSON.Pull_Readers.Simple; use VSS.JSON.Pull_Readers;
 use VSS.JSON;
 
 --  Local Packages
+with API.Definitions.Hashes;
+   use API.Definitions;
+   use API.Definitions.Hashes;
+
 with Shared.Strings; use Shared.Strings;
 with Shared.JSON;    use Shared.JSON;
 with Shared.Debug;   use Shared;
 
-procedure API.Profiles.Read_Item_Components
+procedure API.Tasks.Profiles.Read_Item_Components
   (Reader     : in out JSON_Simple_Pull_Reader;
    Components :    out Item_Components_Type)
 is
@@ -407,4 +411,4 @@ begin
       end loop Add_Perks;
 
    Debug.Put_Line ("Perks read");
-end API.Profiles.Read_Item_Components;
+end API.Tasks.Profiles.Read_Item_Components;

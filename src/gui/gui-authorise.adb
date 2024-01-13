@@ -4,16 +4,16 @@ with Interfaces; use Interfaces;
 --  Gtk
 with Gtk.Main;
 
+--  AWS
+with AWS.Headers;
+
 --  Local Packages
 with GUI.Elements.Authorise; use GUI.Elements.Authorise;
 
-with API.Authorise; use API;
-with Secrets;
-with Constant_Secrets;
+with API.Tasks.Authorise;
 
-procedure GUI.Authorise is
+function GUI.Authorise return AWS.Headers.List is
    --  Global Variables
-
    function Generate_State return String is
 
       package Unsigned_64_Random is new Ada.Numerics.Discrete_Random
@@ -31,9 +31,11 @@ procedure GUI.Authorise is
          return Output (Output'First + 1 .. Output'Last);
       end;
    end Generate_State;
-   State : constant String := Generate_State;
-   --  Tasking
 
+   State : constant String := Generate_State;
+   Headers : AWS.Headers.List;
+
+   --  Tasking
    task Auth_Loop is
 
       entry Start;
@@ -49,11 +51,9 @@ procedure GUI.Authorise is
       loop
          select
             accept Start;
-            Auth_URL.Set_Text
-              (API.Authorise.OAuth_Authorise_Endpoint & "?client_id=" &
-               Constant_Secrets.Client_ID & "&response_type=code" & "&state=" &
-               State);
+            Auth_URL.Set_Text (API.Tasks.Authorise.Get_URL (State));
             Auth_Window.Show;
+
             Gtk_Main_Loop :
                loop
                   select
@@ -76,10 +76,11 @@ procedure GUI.Authorise is
          end select;
       end loop;
    end Auth_Loop;
-
 begin
    Auth_Loop.Start;
-   Secrets.Auth_Data := API.Authorise.Do_Authorise (State);
+   Headers := API.Tasks.Authorise.Do_Authorise (State);
    Auth_Loop.Close;
    Auth_Loop.Stop;
+
+   return Headers;
 end GUI.Authorise;

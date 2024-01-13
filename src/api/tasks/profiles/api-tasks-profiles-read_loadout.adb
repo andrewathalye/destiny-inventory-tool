@@ -1,5 +1,14 @@
-separate (API.Profiles)
-procedure Read_Loadout
+--  VSS
+with VSS.JSON.Pull_Readers.Simple;
+   use VSS.JSON.Pull_Readers;
+   use VSS.JSON;
+
+--  Local Packages
+with Shared.Strings; use Shared.Strings;
+
+with API.Definitions.Hashes; use API.Definitions.Hashes;
+
+procedure API.Tasks.Profiles.Read_Loadout
   (Reader : in out JSON_Simple_Pull_Reader; Loadout : out Loadout_Type)
 is
    --  Note: Position Reader at START_OBJECT
@@ -71,4 +80,4 @@ begin
             raise Program_Error;
       end case;
    end loop;
-end Read_Loadout;
+end API.Tasks.Profiles.Read_Loadout;

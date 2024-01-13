@@ -33,7 +33,8 @@ with Shared.Strings; use Shared.Strings;
 with Shared.Files;   use Shared.Files;
 use Shared;
 
-with Tasks.Synchronous_Download;
+with API.Tasks.Synchronous_Download;
+with API.Constants;
 
 package body GUI.Items is
    --  Cached High-Frequency Pixbufs
@@ -59,7 +60,7 @@ package body GUI.Items is
    procedure Render_Items
      (List     : Inventories.Item_Description_List;
       Bucket   : Gtk_Grid;
-      T        : GUI_Download_Task.Download_Task;
+      T        : Download_Tasks.Download_Task;
       Max_Left : Gint := 2)
    is
 
@@ -102,7 +103,7 @@ package body GUI.Items is
 
    function Get_Overlay
      (D       : Manifest.Tools.Item_Description;
-      T       : GUI_Download_Task.Download_Task;
+      T       : Download_Tasks.Download_Task;
       Handler : User_Callback_Item_Description.Marshallers.Marshaller)
       return Gtk_Overlay
    is
@@ -160,16 +161,16 @@ package body GUI.Items is
          Gtk_New (Button);
 
          if Length (D.Icon_Path) > 0 then
-            if Global_Pixbuf_Cache.Contains (+(Bungie_Root & (+D.Icon_Path)))
+            if Global_Pixbuf_Cache.Contains (+(API.Constants.Bungie_Root & (+D.Icon_Path)))
             then
                Image.Set
                  (Global_Pixbuf_Cache.Element
-                    (+(Bungie_Root & (+D.Icon_Path))));
+                    (+(API.Constants.Bungie_Root & (+D.Icon_Path))));
 
             else -- Asynchronously download the icon
                Image.Set (Placeholder_Icon);
                T.Download
-                 (+(Bungie_Root & (+D.Icon_Path)), Gtk_Widget (Image));
+                 (+(API.Constants.Bungie_Root & (+D.Icon_Path)), Gtk_Widget (Image));
             end if;
          else -- No image available
             Image.Set (Placeholder_Icon);
@@ -195,15 +196,15 @@ package body GUI.Items is
             Gtk_New (Watermark);
 
             if Global_Pixbuf_Cache.Contains
-                (+(Bungie_Root & (+D.Watermark_Path)))
+                (+(API.Constants.Bungie_Root & (+D.Watermark_Path)))
             then
                Watermark.Set
                  (Global_Pixbuf_Cache.Element
-                    (+(Bungie_Root & (+D.Watermark_Path))));
+                    (+(API.Constants.Bungie_Root & (+D.Watermark_Path))));
 
             else -- Asynchronously download the watermark
                T.Download
-                 (+(Bungie_Root & (+D.Watermark_Path)),
+                 (+(API.Constants.Bungie_Root & (+D.Watermark_Path)),
                   Gtk_Widget (Watermark));
             end if;
 
@@ -297,7 +298,7 @@ package body GUI.Items is
             Alignment : Gtk_Alignment;
 
             Icon_Path : constant Unbounded_String :=
-              +(Bungie_Root &
+              +(API.Constants.Bungie_Root &
                (+The_Manifest.Destiny_Damage_Types (D.Default_Damage_Type_Hash)
                   .Icon_Path));
          begin
@@ -310,7 +311,7 @@ package body GUI.Items is
                  Scale_Simple
                    (Load_Image
                       (+Icon_Path,
-                       Tasks.Synchronous_Download.Download (Icon_Path).Get),
+                       API.Tasks.Synchronous_Download.Download (Icon_Path).Get),
                     24,
                     24);
                Global_Pixbuf_Cache.Insert (Icon_Path, Pixbuf);
@@ -404,7 +405,7 @@ package body GUI.Items is
       end Format_Description;
    begin
       --  Interrupt the download task so more items can be queued
-      GUI.GUI_Tasks.Contents_Task.Interrupt;
+      GUI.Tasks.Contents_Task.Interrupt;
 
       --  Set background colour by rarity (using CSS)
       Name_Type_Box.Set_Name
@@ -443,15 +444,15 @@ package body GUI.Items is
 
          --  Download the icon or use the cached version
          if Global_Pixbuf_Cache.Contains
-             (+(Bungie_Root & (+D.Secondary_Icon_Path)))
+             (+(API.Constants.Bungie_Root & (+D.Secondary_Icon_Path)))
          then
             Secondary_Icon.Set
               (Global_Pixbuf_Cache.Element
-                 (+(Bungie_Root & (+D.Secondary_Icon_Path))));
+                 (+(API.Constants.Bungie_Root & (+D.Secondary_Icon_Path))));
 
          else -- Asynchronous download
-            GUI.GUI_Tasks.Contents_Task.Download
-              (+(Bungie_Root & (+D.Secondary_Icon_Path)),
+            GUI.Tasks.Contents_Task.Download
+              (+(API.Constants.Bungie_Root & (+D.Secondary_Icon_Path)),
                Gtk_Widget (Secondary_Icon));
          end if;
       else
@@ -516,7 +517,7 @@ package body GUI.Items is
                   Overlay : constant Gtk_Overlay :=
                     Get_Overlay
                       (Get_Description (The_Manifest, Socket.Plug_Hash),
-                       GUI.GUI_Tasks.Contents_Task,
+                       GUI.Tasks.Contents_Task,
                        User_Callback_Item_Description.To_Marshaller
                          (Handlers.Socket_Item_Button_Handler'Access));
                begin
@@ -592,6 +593,6 @@ package body GUI.Items is
          end loop Populate_Sockets;
 
          --  Resume the download task
-      GUI.GUI_Tasks.Contents_Task.Execute (GUI.Base.Image_Callback'Access);
+      GUI.Tasks.Contents_Task.Execute (GUI.Base.Image_Callback'Access);
    end Populate_Item_Details;
 end GUI.Items;

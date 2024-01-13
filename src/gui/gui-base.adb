@@ -11,6 +11,9 @@ with Gtk.Widget;         use Gtk.Widget;
 
 with Gdk.Pixbuf; use Gdk.Pixbuf;
 
+--  AWS
+with AWS.Headers;
+
 --  Local Packages
 with GUI.Character;
 with GUI.Global;
@@ -19,9 +22,12 @@ with GUI.Authorise;
 with GUI.Elements.Base; use GUI.Elements.Base;
 
 with API.Inventories.Global;
-with API.Memberships;
-with API.Manifest;
+with API.Identification;
 with API.Profiles;
+
+with API.Tasks.Profiles;
+with API.Tasks.Memberships;
+with API.Tasks.Manifest;
 
 with API.Definitions.Destiny_Inventory_Item;
 use all type API.Definitions.Destiny_Inventory_Item.Destiny_Item_Type;
@@ -30,8 +36,6 @@ with Shared.Debug;
 with Shared.Strings; use Shared.Strings;
 with Shared.Streams; use Shared.Streams;
 use Shared;
-
-with Secrets; use Secrets;
 
 package body GUI.Base is
    --  Instantiations
@@ -84,7 +88,7 @@ package body GUI.Base is
       Status_Name.Set_Label ("Loading profile...");
       Do_Events;
 
-      Profile := Profiles.Get_Profile (Secrets.Membership);
+      Profile := API.Tasks.Profiles.Get (Identification);
       Status_Name.Set_Label ("Loading vault...");
       Do_Events;
 
@@ -110,20 +114,24 @@ package body GUI.Base is
    procedure Reload_Data is
    begin
       Shared.Debug.Put_Line ("Reloading all data");
-
       Window.Hide;
-      GUI.Authorise;
-      Headers := API.Create_Headers (Auth_Data);
 
       Status_Window.Show;
       Status_Name.Set_Label ("Loading memberships...");
       Do_Events;
 
-      Secrets.Membership := Memberships.Get_Memberships;
+      declare
+         Headers : constant AWS.Headers.List := GUI.Authorise;
+      begin
+         Identification := API.Identification.Get (
+            Headers => Headers,
+            Membership => API.Tasks.Memberships.Get (Headers));
+      end;
+
       Status_Name.Set_Label ("Loading manifest... (this can take a bit)");
       Do_Events;
 
-      The_Manifest := Manifest.Get_Manifest;
+      The_Manifest := API.Tasks.Manifest.Get (Identification);
       GUI.Global.Setup_Descriptions; -- One-time setup for GUI descriptions
 
       --  Present the (blank) main window
@@ -143,7 +151,7 @@ package body GUI.Base is
    --  Semi-Public. Does NOT pause GUI Thread. Updates Widget image data
    --  Note: NOT thread-safe!!!
    procedure Event_Image_Callback
-     (Cache : in out GUI_Download_Task.Download_Cache_Type)
+     (Cache : in out Download_Tasks.Download_Cache_Type)
    is
       Temp : Gdk_Pixbuf;
    begin
@@ -166,7 +174,7 @@ package body GUI.Base is
 
    --  Semi-Public. Pauses GUI Thread and updates Widget image data.
    procedure Image_Callback
-     (Cache : in out GUI_Download_Task.Download_Cache_Type)
+     (Cache : in out Download_Tasks.Download_Cache_Type)
    is
    begin
       GUI_Task.Pause;

@@ -1,10 +1,10 @@
 { pkgs ? import <nixpkgs> {}
-, nix ? import ../../nix {}
+, nix ? import ../../nix-ada {}
 }: rec {
   nativeCommon = [
     pkgs.gprbuild
     pkgs.gnat
-    nix.alire
+    pkgs.alire
     #nix.libadalang-tools
     #nix.ada-language-server
     #nix.gnatstudio

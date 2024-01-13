@@ -1,6 +1,8 @@
 pragma Ada_2022;
 
 with Ada.Calendar.Formatting; use Ada.Calendar.Formatting;
+with Ada.Calendar; use Ada.Calendar;
+with Ada.Strings.Unbounded;
 
 --  VSS
 with VSS.Text_Streams.Memory_UTF8_Input;
@@ -20,26 +22,18 @@ with Shared.Strings; use Shared.Strings;
 with Shared.Debug;
 
 with API.Tasks.Synchronous_Download;
-
-with API.Profiles.Read_Item_Components;
-
+with API.Memberships; use API.Memberships;
 with API.Constants; use API.Constants;
 
+--  Child procedures
+with API.Tasks.Profiles.Read_Item_Components;
+with API.Tasks.Profiles.Read_Characters;
+with API.Tasks.Profiles.Read_Item;
+with API.Tasks.Profiles.Read_Silver;
+with API.Tasks.Profiles.Read_Loadout;
+with API.Tasks.Profiles.Read_String_Variables;
+
 package body API.Tasks.Profiles is
-   --  Note: Position Reader before START_OBJECT
-   procedure Read_String_Variables
-     (Reader : in out JSON_Simple_Pull_Reader;
-      Map    :    out String_Variable_Map) is separate;
-
-   --  Note: Position Reader before "data"
-   procedure Read_Characters
-     (Reader : in out JSON_Simple_Pull_Reader;
-      List   :    out Character_List) is separate;
-
-   --  Note: Position Reader at START_OBJECT
-   function Read_Item
-     (Reader : in out JSON_Simple_Pull_Reader) return Item_Type is separate;
-
    --  Note: Position Reader before "items"
    procedure Read_Inventory
      (Reader : in out JSON_Simple_Pull_Reader; Inventory : out Item_List)
@@ -69,22 +63,12 @@ package body API.Tasks.Profiles is
                   raise Program_Error;
             end case;
          end loop Read_Items;
-
    end Read_Inventory;
-
-   --  Note: Position Reader before START_OBJECT
-   procedure Read_Silver
-     (Reader : in out JSON_Simple_Pull_Reader;
-      Result :    out Profile_Type) is separate;
-
-   --  Note: Position Reader at START_OBJECT
-   procedure Read_Loadout
-     (Reader  : in out JSON_Simple_Pull_Reader;
-      Loadout :    out Loadout_Type) is separate;
 
    function Get
      (Auth : API.Identification.Auth_Type) return Profile_Type
    is
+      use Ada.Strings.Unbounded;
 
       Result : Profile_Type;
       Stream : Memory_UTF8_Input_Stream_Access := new Memory_UTF8_Input_Stream;
